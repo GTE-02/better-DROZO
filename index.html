@@ -292,7 +292,7 @@
         <strong style="color:var(--primary); font-size:13px; display:block; margin-bottom:4px;">🔐 Pair Authenticator App (Google or Microsoft)</strong>
         <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Scan with Google Authenticator or Microsoft Authenticator, or paste the Base32 manual code:</p>
         <div style="display:flex; gap:12px; align-items:center;">
-          <div id="totp-setup-qr" style="background:#fff; padding:6px; border-radius:8px; border:1px solid var(--border); width:92px; height:92px; display:flex; align-items:center; justify-content:center;"></div>
+          <div id="totp-setup-qr" style="background:#fff; padding:8px; border-radius:10px; border:1px solid var(--border); width:156px; height:156px; display:flex; align-items:center; justify-content:center;"></div>
           <div style="font-size:11px;">
             <div style="font-weight:700; color:var(--text-main);">Base32 Secret Key:</div>
             <code id="totp-secret-key" style="background:#E5E7EB; padding:3px 6px; border-radius:4px; font-size:11px; display:inline-block; margin-top:4px;">JBSWY3DPEHPK3PXP</code>
@@ -515,22 +515,53 @@
 
   function renderDigitalIdBadge() {
     if (!activeUser) return;
-    const email = activeUser.email;
-    document.getElementById('id-card-name').innerText = email.split('@')[0].toUpperCase();
-    document.getElementById('id-card-email').innerText = email;
+    const email = activeUser.email.trim().toLowerCase();
+    const cleanUser = email.split('@')[0].toUpperCase();
+    
+    const cardName = document.getElementById('id-card-name');
+    if (cardName) cardName.innerText = cleanUser;
+    
+    const cardEmail = document.getElementById('id-card-email');
+    if (cardEmail) cardEmail.innerText = email;
+
     const tokenPayload = `DROZO_PASS:${email}:AUTH_${Math.floor(1000 + Math.random()*9000)}`;
-    document.getElementById('id-card-hash').innerText = tokenPayload.split(':')[2];
+    const cardHash = document.getElementById('id-card-hash');
+    if (cardHash) cardHash.innerText = tokenPayload.split(':')[2];
 
+    // 1. Digital Health Pass Barcode / QR
     const qrContainer = document.getElementById('id-qrcode-box');
-    qrContainer.innerHTML = '';
-    new QRCode(qrContainer, { text: tokenPayload, width: 80, height: 80 });
+    if (qrContainer) {
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: tokenPayload,
+        width: 80,
+        height: 80,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
 
-    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['client@drozomind.com'];
-    document.getElementById('totp-secret-key').innerText = secret;
-    const totpUri = `otpauth://totp/DrozoMind:${email}?secret=${secret}&issuer=DrozoMind`;
+    // 2. Standards-Compliant TOTP Setup QR for Microsoft & Google Authenticator
+    const secret = (TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'] || 'JBSWY3DPEHPK3PXP').replace(/\s+/g, '').toUpperCase();
+    const secretKeyBox = document.getElementById('totp-secret-key');
+    if (secretKeyBox) secretKeyBox.innerText = secret;
+
+    // Standard RFC-compliant otpauth URI
+    const issuer = encodeURIComponent("DrozoMind");
+    const accountLabel = encodeURIComponent(email);
+    const totpUri = `otpauth://totp/${issuer}:${accountLabel}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+
     const totpContainer = document.getElementById('totp-setup-qr');
-    totpContainer.innerHTML = '';
-    new QRCode(totpContainer, { text: totpUri, width: 80, height: 80 });
+    if (totpContainer) {
+      totpContainer.innerHTML = '';
+      new QRCode(totpContainer, {
+        text: totpUri,
+        width: 140,
+        height: 140,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+      });
+    }
   }
 
   function initApp() {
