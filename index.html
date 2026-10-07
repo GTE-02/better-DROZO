@@ -213,7 +213,10 @@
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <div class="card-title" style="margin-bottom:0;">Direct Coordinator Care</div>
-        <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Clear Chat</button>
+        <div style="display:flex; gap:6px;">
+          <button onclick="promptApiKey()" style="background:var(--primary-light); color:var(--primary); border:1px solid var(--accent-subtle); padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">⚙️ Set AI Key</button>
+          <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Clear Chat</button>
+        </div>
       </div>
       <div class="card-caption">Chat with Drozo AI, speak directly with your therapist, or connect on Discord.</div>
       <div class="chat-container" id="chat-stream"></div>
@@ -530,7 +533,60 @@
     stream.scrollTop = stream.scrollHeight;
   }
 
-  function sendUserMessage() {
+  // LLM Gemini Engine Scoped Strictly to Drozo Mind
+  function promptApiKey() {
+    const existing = localStorage.getItem('drozo_gemini_key') || '';
+    const key = prompt("Enter your Gemini API Key to enable live generative AI (Leave empty to use built-in care engine):", existing);
+    if (key !== null) {
+      localStorage.setItem('drozo_gemini_key', key.trim());
+      alert(key.trim() ? "AI Key saved! Live Drozo AI activated." : "AI Key cleared. Switched to standard care engine.");
+    }
+  }
+
+  async function queryGeminiAI(userText) {
+    const apiKey = localStorage.getItem('drozo_gemini_key');
+    if (!apiKey) {
+      return generateDrozoAIResponse(userText);
+    }
+
+    const systemInstruction = `You are the official AI assistant for "Drozo Mind", a mental health and wellness consultation platform.
+Strict Rules:
+1. ONLY answer questions regarding Drozo Mind, its appointments, booking consultations, video therapy rooms (Web Video Call), official Discord community (https://discord.gg/c8H6CQJTWA), the care pathway pipeline (Requested -> Reviewed -> Slot Offered -> Confirmed), 30-day session history auto-purge, and co-founder/coordinator Drozo (reachable via Discord).
+2. If the user asks about ANYTHING unrelated to Drozo Mind (like general math, coding, outside news, science, trivia, recipes, or casual non-Drozo queries), politely decline by stating: "I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings. For outside questions, please speak directly with your coordinator on Discord!"
+3. Be warm, supportive, concise, and helpful. Handle typos gracefully.`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const payload = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${systemInstruction}
+
+Client asks: "${userText}"` }]
+        }
+      ]
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        return data.candidates[0].content.parts[0].text.trim();
+      } else {
+        return generateDrozoAIResponse(userText);
+      }
+    } catch (err) {
+      console.warn("AI endpoint error, falling back to local engine:", err);
+      return generateDrozoAIResponse(userText);
+    }
+  }
+
+  async function sendUserMessage() {
     const input = document.getElementById('chat-input-text');
     const text = input.value.trim();
     if (!text) return;
@@ -540,12 +596,24 @@
     renderChat();
     localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
 
-    setTimeout(() => {
-      const reply = generateDrozoAIResponse(text);
-      chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
-      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
-      renderChat();
-    }, 400);
+    // Display temporary typing indicator
+    const stream = document.getElementById('chat-stream');
+    const typingBubble = document.createElement('div');
+    typingBubble.className = 'bubble admin';
+    typingBubble.id = 'typing-indicator';
+    typingBubble.innerHTML = '<em style="font-size:11px; opacity:0.7;">Drozo AI is thinking...</em>';
+    stream.appendChild(typingBubble);
+    stream.scrollTop = stream.scrollHeight;
+
+    const reply = await queryGeminiAI(text);
+
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) indicator.remove();
+
+    chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
+    localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+    if (typeof playAlertChime === 'function') playAlertChime('ping');
+    renderChat();
   }
 
   // Live Auto-Refresh Listener
