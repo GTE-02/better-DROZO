@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo Security & Admin Portal</title>
+  <title>Drozo Security & Admin Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
@@ -14,7 +14,7 @@
 </head>
 <body class="text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-  <!-- ================= VIEW 1: LOCKED AUTH CHALLENGE GATE ================= -->
+  <!-- ================= VIEW 1: LOCKED 2FA CHALLENGE GATE ================= -->
   <div id="authGate" class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-5">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 2FA Hardware Verification
@@ -22,13 +22,13 @@
     
     <div>
       <h2 class="text-xl font-extrabold text-white">Authorize Login</h2>
-      <p class="text-xs text-slate-400 mt-1">Scan with Drozo Guard app, use manual entrance, or scan your ID card.</p>
+      <p class="text-xs text-slate-400 mt-1">Scan via Drozo Guard app, enter token, or scan your Verified ID Pass.</p>
     </div>
 
     <!-- QR CODE CONTAINER -->
     <div class="flex justify-center py-1">
       <div id="challengeBox" class="bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center min-h-[190px] min-w-[190px]">
-        <span class="text-xs text-slate-400 mono">Generating challenge...</span>
+        <span class="text-xs text-slate-400 mono">Generating QR...</span>
       </div>
     </div>
 
@@ -58,7 +58,6 @@
           Enter →
         </button>
       </div>
-      <p id="manualError" class="hidden text-[11px] text-rose-400 font-semibold"></p>
     </div>
 
     <!-- WEBCAM ID PASS SCANNER -->
@@ -92,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Official Verified ID Pass -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950/80 via-slate-900 to-emerald-900/60 border border-emerald-800/60 p-6 shadow-2xl backdrop-blur-xl">
       <div class="flex justify-between items-start mb-4">
         <div>
@@ -108,7 +106,6 @@
       </div>
     </div>
 
-    <!-- Live System Overview Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-xl space-y-1">
         <div class="text-xs text-slate-400">2FA Engine</div>
@@ -137,7 +134,6 @@
     let pollTimer = null;
     let qrScanner = null;
 
-    // Check saved authorization immediately
     if (localStorage.getItem("drozo_auth_state") === "UNLOCKED") {
       showDashboard();
     } else {
@@ -145,118 +141,111 @@
     }
 
     function initGate() {
-      // 1. Generate active token synchronously
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
       document.getElementById('tokenText').innerText = activeToken;
       document.getElementById('manualTokenInput').value = activeToken;
 
-      // 2. Render dynamic QR
       const payload = `DROZO_GUARD_AUTH:${activeToken}:${targetEmail}`;
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=${encodeURIComponent(payload)}`;
       document.getElementById('challengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-44 h-44" />`;
 
-      // 3. Register pending session into Supabase REST
-      fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON,
-          "Authorization": `Bearer ${SUPABASE_ANON}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-          session_token: activeToken,
-          email: targetEmail,
-          status: "pending",
-          created_at: new Date().toISOString()
-        })
-      }).catch(() => {});
+      // Non-blocking session insert
+      try {
+        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({
+            session_token: activeToken,
+            email: targetEmail,
+            status: "pending"
+          })
+        }).catch(() => {});
+      } catch (_) {}
 
-      // 4. Polling for App Authorization
+      // Polling with safety bounds
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
         try {
-          // Check this exact active session token
           const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, {
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
-          const rows = await res.json();
-          if (rows && rows.length > 0 && rows[0].status === "authorized") {
-            grantAccess();
-            return;
-          }
-
-          // Fallback: check if the latest session row for this account was authorized in the last 15 seconds
-          const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?email=eq.${targetEmail}&order=created_at.desc&limit=1&select=status`, {
-            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
-          });
-          const latestRows = await fallbackRes.json();
-          if (latestRows && latestRows.length > 0 && latestRows[0].status === "authorized") {
-            grantAccess();
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows && rows.length > 0 && rows[0].status === "authorized") {
+              grantAccess();
+            }
           }
         } catch (_) {}
       }, 1000);
     }
 
     // Manual Entrance Override Button
-    document.getElementById('btnManualEnter').addEventListener('click', (e) => {
+    document.getElementById('btnManualEnter').onclick = function(e) {
       e.preventDefault();
       const val = document.getElementById('manualTokenInput').value.trim().toUpperCase();
-      if (!val) {
-        document.getElementById('manualError').innerText = "Please enter token.";
-        document.getElementById('manualError').classList.remove('hidden');
-        return;
-      }
+      if (!val) return;
 
-      // Mark authorized in Supabase in background
-      fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_ANON,
-          "Authorization": `Bearer ${SUPABASE_ANON}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({ status: "authorized" })
-      }).catch(() => {});
+      try {
+        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}`, {
+          method: "PATCH",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ status: "authorized" })
+        }).catch(() => {});
+      } catch (_) {}
 
       grantAccess();
-    });
+    };
 
     // Webcam ID Pass Scanner Trigger
-    document.getElementById('btnOpenScanner').addEventListener('click', (e) => {
+    document.getElementById('btnOpenScanner').onclick = function(e) {
       e.preventDefault();
       document.getElementById('webcamBox').classList.remove('hidden');
-      qrScanner = new Html5Qrcode("qrReader");
-      qrScanner.start(
-        { facingMode: "user" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText) => {
-          if (
-            decodedText.includes("AUTH_8829") || 
-            decodedText.includes("DROZO_ROOT_ADMIN") || 
-            decodedText.includes("admin@drozominds.com")
-          ) {
-            stopCamera();
-            grantAccess();
-          }
-        },
-        () => {}
-      ).catch(err => {
-        alert("Camera permission error: " + err);
-      });
-    });
+      try {
+        qrScanner = new Html5Qrcode("qrReader");
+        qrScanner.start(
+          { facingMode: "user" },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText) => {
+            if (
+              decodedText.includes("AUTH_8829") || 
+              decodedText.includes("DROZO_ROOT_ADMIN") || 
+              decodedText.includes(targetEmail)
+            ) {
+              stopCamera();
+              grantAccess();
+            }
+          },
+          () => {}
+        ).catch(err => {
+          alert("Webcam error: " + err);
+        });
+      } catch (err) {
+        alert("Scanner initialization error: " + err);
+      }
+    };
 
-    document.getElementById('btnCloseScanner').addEventListener('click', (e) => {
+    document.getElementById('btnCloseScanner').onclick = function(e) {
       e.preventDefault();
       stopCamera();
-    });
+    };
 
     function stopCamera() {
       if (qrScanner) {
         qrScanner.stop().then(() => {
           document.getElementById('webcamBox').classList.add('hidden');
-        }).catch(() => {});
+        }).catch(() => {
+          document.getElementById('webcamBox').classList.add('hidden');
+        });
       }
     }
 
@@ -272,11 +261,11 @@
       document.getElementById('adminPanel').classList.remove('hidden');
     }
 
-    document.getElementById('btnLogout').addEventListener('click', (e) => {
+    document.getElementById('btnLogout').onclick = function(e) {
       e.preventDefault();
       localStorage.removeItem("drozo_auth_state");
       window.location.reload();
-    });
+    };
   </script>
 </body>
 </html>
