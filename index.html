@@ -382,38 +382,66 @@
 
 <script>
 
+  function formatDateTime(str) {
+    if (!str) return 'Date Pending';
+    const d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+
   // Auto-generate and download MS Word (.doc) outcome summary
   
   // Official Clinical Document Exporter
-  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
-    const obs = decodeURIComponent(encObs || '') || "Standard consultation completed. Patient reported steady symptom management.";
-    const rec = decodeURIComponent(encRec || '') || "Continue self-care practices and scheduled check-ins.";
-    const cleanDate = date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  // Poll localStorage every 1.5s for real-time document and ticket sync
+  setInterval(() => {
+    const rawChat = localStorage.getItem('drozo_chat') || '[]';
+    if (rawChat !== JSON.stringify(chatMessages)) {
+      chatMessages = JSON.parse(rawChat);
+      renderChat();
+    }
+    const rawTickets = localStorage.getItem('drozo_tickets') || '[]';
+    if (rawTickets !== JSON.stringify(tickets)) {
+      tickets = JSON.parse(rawTickets);
+      renderPipeline();
+      renderHistory();
+    }
+  }, 1500);
 
-    const htmlDoc = `
+  // Professional Word Document (.doc) Builder
+  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
+    let obs = "Standard consultation completed.";
+    let rec = "Continue regular wellness routine.";
+    try { obs = decodeURIComponent(encObs) || obs; } catch(e){}
+    try { rec = decodeURIComponent(encRec) || rec; } catch(e){}
+
+    const docMarkup = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset='utf-8'>
         <title>Drozo Mind - Clinical Consultation Summary</title>
         <style>
           @page { margin: 1.0in; }
-          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; }
-          .header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 20pt; }
-          .title { font-size: 20pt; font-weight: bold; color: #1B4D3E; margin: 0; }
-          .subtitle { font-size: 10pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; margin-top: 4pt; }
-          .meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 6pt; padding: 12pt 16pt; margin-bottom: 22pt; }
+          body { font-family: 'Calibri', 'Arial', sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; }
+          .header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 18pt; }
+          .title { font-size: 20pt; font-weight: bold; color: #1B4D3E; }
+          .subtitle { font-size: 9pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; }
+          .meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 4pt; padding: 12pt; margin-bottom: 18pt; }
           .meta-table { width: 100%; border-collapse: collapse; }
           .meta-table td { padding: 4pt 6pt; font-size: 10pt; }
           .meta-label { font-weight: bold; color: #374151; width: 25%; }
           .section-title { font-size: 13pt; font-weight: bold; color: #1B4D3E; border-bottom: 1pt solid #D1D5DB; padding-bottom: 4pt; margin-top: 18pt; margin-bottom: 8pt; }
           .content-block { background: #FAFAFA; border-left: 3pt solid #1B4D3E; padding: 10pt 14pt; font-size: 11pt; color: #111827; margin-bottom: 14pt; }
-          .seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 14pt; font-size: 9pt; color: #6B7280; text-align: center; }
+          .seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 12pt; font-size: 9pt; color: #6B7280; text-align: center; }
         </style>
       </head>
       <body>
         <div class='header-box'>
           <div class='title'>🌿 Drozo Mind Clinical Network</div>
-          <div class='subtitle'>Official Consultation Summary & Therapeutic Outcome Report</div>
+          <div class='subtitle'>Official Consultation Summary & Diagnostic Outcome Documentation</div>
         </div>
 
         <div class='meta-box'>
@@ -422,19 +450,19 @@
               <td class='meta-label'>Session Reference:</td>
               <td>#TCK-${ticketNum}</td>
               <td class='meta-label'>Consultation Date:</td>
-              <td>${cleanDate}</td>
+              <td>${date}</td>
             </tr>
             <tr>
-              <td class='meta-label'>Client / Subject:</td>
-              <td>${patient || 'Valued Client'}</td>
+              <td class='meta-label'>Client Name:</td>
+              <td>${patient}</td>
               <td class='meta-label'>Attending Clinician:</td>
-              <td>${clinician || 'Drozo Mind Clinical Staff'}</td>
+              <td>${clinician}</td>
             </tr>
             <tr>
-              <td class='meta-label'>Outcome Status:</td>
+              <td class='meta-label'>Session Status:</td>
               <td style='color:#059669; font-weight:bold;'>Completed & Verified</td>
-              <td class='meta-label'>Channel Verification:</td>
-              <td>Direct Telehealth Protocol</td>
+              <td class='meta-label'>Care Channel:</td>
+              <td>Direct Encrypted Session</td>
             </tr>
           </table>
         </div>
@@ -446,48 +474,54 @@
         <div class='content-block'>${rec}</div>
 
         <div class='section-title'>3. Institutional Verification</div>
-        <p style='font-size:10pt; color:#4B5563;'>This summary was generated in accordance with Drozo Mind Care protocols and signed off by the attending clinician. Please retain this report for your personal wellness records.</p>
+        <p style='font-size:10pt; color:#4B5563;'>This summary has been issued under the supervision of the Drozo Mind Clinical Coordination Team. Retain this record for ongoing health documentation.</p>
 
         <div class='seal-box'>
-          <p><strong>Drozo Mind Care Systems</strong> • Confidential Medical & Wellness Document • Issued: ${cleanDate}</p>
+          <p><strong>Drozo Mind Consultation Hub</strong> • Issued on ${date} • Automated Clinical Record</p>
         </div>
       </body>
       </html>
     `;
 
-    const blob = new Blob([htmlDoc], { type: 'application/msword;charset=utf-8' });
+    const blob = new Blob([docMarkup], { type: 'application/msword;charset=utf-8' });
     const dlUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = dlUrl;
-    a.download = `DrozoMind_Clinical_Outcome_TCK-${ticketNum}.doc`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const link = document.createElement('a');
+    link.href = dlUrl;
+    link.download = `DrozoMind_Clinical_Outcome_TCK-${ticketNum}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(dlUrl);
   }
 
-
-    function renderChat() {
+  function renderChat() {
     const stream = document.getElementById('chat-stream');
     if (!stream) return;
-    stream.innerHTML = chatMessages.map(m => `
-      <div class="bubble ${m.role}">
-        ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.8; margin-bottom:2px;">${m.sender}</strong>` : ''}
-        ${(m.text || '').replace(/\n/g, '<br>')}
-        ${m.isOutcomeDoc ? `
-          <div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:10px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.06);">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-              <span style="font-size:18px;">📑</span>
-              <strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong>
+    chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+    stream.innerHTML = chatMessages.map(m => {
+      const safeObs = encodeURIComponent(m.observations || m.outcomeNotes || '');
+      const safeRec = encodeURIComponent(m.recommendations || '');
+      const safeDate = m.date || formatDateTime(new Date().toISOString());
+
+      return `
+        <div class="bubble ${m.role}">
+          ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.85; margin-bottom:3px;">${m.sender}</strong>` : ''}
+          ${(m.text || '').replace(/\n/g, '<br>')}
+          ${m.isOutcomeDoc ? `
+            <div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:12px; border:1px solid #D1D5DB; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="font-size:20px;">📑</span>
+                <strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Attending: ${m.clinician ert{}ert{} 'Care Team'} •${safeDate}</div>
+              <button onclick="downloadTherapyDoc('${m.ticketNum}', '${m.patientName || 'Client'}', '${m.clinician ert{}ert{} 'Care Team'}', '${safeDate}', '${safeObs}', '${safeRec}')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">
+                ⬇️ Download Official Outcome (.doc)
+              </button>
             </div>
-            <div style="font-size:11px; color:var(--text-muted); margin-bottom:12px; line-height:1.4;">Official session summary verified by ${m.clinician ert{}ert{} 'Clinical Staff'} on${m.date || 'Recent'}.</div>
-            <button onclick="downloadTherapyDoc('${m.ticketNum ert{}ert{} '000000'}', '${m.patientName || 'Client'}', '${m.clinician ert{}ert{} 'Care Team'}', '${m.date || ''}', '${encodeURIComponent(m.observations ert{}ert{} m.outcomeNotes ert{}ert{} '')}', '${encodeURIComponent(m.recommendations || '')}')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700;">
-              ⬇️ Download Official Outcome (.doc)
-            </button>
-          </div>
-        ` : ''}
-      </div>
-    `).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
+          ` : ''}
+        </div>
+      `;
+    }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
     stream.scrollTop = stream.scrollHeight;
   }
 

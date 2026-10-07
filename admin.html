@@ -108,6 +108,17 @@
 
 <script>
 
+  function formatDateTime(str) {
+    if (!str) return 'Date Pending';
+    const d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+
   let pendingOutcomeTicketId = null;
 
   function claimTicket(id) {
@@ -135,8 +146,8 @@
 
   function submitClinicalOutcome() {
     const id = pendingOutcomeTicketId || document.getElementById('modal-ticket-id').value;
-    const observations = document.getElementById('modal-observations').value.trim();
-    const recommendations = document.getElementById('modal-recommendations').value.trim();
+    const observations = (document.getElementById('modal-observations').value || '').trim();
+    const recommendations = (document.getElementById('modal-recommendations').value || '').trim();
     if (!observations || !recommendations) {
       alert("Please provide both clinical observations and recommendations.");
       return;
@@ -145,6 +156,8 @@
     tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
     const t = tickets.find(x => x.id === id);
     if (!t) return;
+
+    const formattedDate = formatDateTime(new Date().toISOString());
 
     t.status = 'Completed';
     t.completedAt = new Date().toISOString();
@@ -157,12 +170,12 @@
     const outcomeMessage = {
       role: 'admin',
       sender: 'Drozo Clinical AI',
-      text: `Official Clinical Outcome Report generated for consultation #TCK-${t.ticketNum}. The verified consultation document has been issued and is available for download below.`,
+      text: `📋 Official Clinical Outcome Document generated for Consultation #TCK-${t.ticketNum}. Attending Clinician: ${t.claimedBy || 'Drozo Mind Specialist'}. Your verified care report is ready for download below:`,
       isOutcomeDoc: true,
       ticketNum: t.ticketNum,
-      patientName: t.name,
+      patientName: t.name || 'Valued Client',
       clinician: t.claimedBy || 'Drozo Mind Clinical Staff',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      date: formattedDate,
       observations: observations,
       recommendations: recommendations
     };
@@ -172,8 +185,8 @@
 
     closeOutcomeModal();
     renderDashboard();
+    alert("Clinical document generated and sent to the client!");
   }
-
 
   function claimTicket(id) {
     const adminSessionEmail = sessionStorage.getItem('drozo_admin_email') || 'Lead Clinician';
@@ -301,7 +314,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <div>
             <strong style="font-size:15px;">#TCK-${t.ticketNum} — ${t.name}</strong>
-            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${new Date(t.slot).toLocaleString()}</span>
+            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${formatDateTime(t.slot)}</span>
           </div>
           <span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:${t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)'}; color:${t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)'};">
             ${t.status.toUpperCase()}
