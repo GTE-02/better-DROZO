@@ -194,42 +194,88 @@
 </nav>
 
 <script>
-  let activeUser = JSON.parse(sessionStorage.getItem('drozo_active_session') || 'null');
+  // BULLETPROOF IN-MEMORY FALLBACK STORE (Works in Private Mode / Storage Lockouts)
+  const memStore = {};
+  function safeGet(key, fallback = '[]') {
+    try {
+      const val = sessionStorage.getItem(key) || localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      return memStore[key] || fallback;
+    }
+  }
+
+  function safeSet(key, val) {
+    try {
+      localStorage.setItem(key, val);
+      sessionStorage.setItem(key, val);
+    } catch (e) {}
+    memStore[key] = val;
+  }
+
+  function safeRemove(key) {
+    try {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    } catch (e) {}
+    delete memStore[key];
+  }
+
+  // Pre-seed Master Accounts
+  function getMasterAccounts() {
+    let accounts = {};
+    try {
+      accounts = JSON.parse(safeGet('drozo_registered_users', '{}'));
+    } catch(e) { accounts = {}; }
+    
+    // Guaranteed hardcoded accounts
+    accounts['admin@drozomind.com'] = 'Dubai@2011';
+    accounts['gamerkids1109@gmail.com'] = 'Password123';
+    safeSet('drozo_registered_users', JSON.stringify(accounts));
+    return accounts;
+  }
+
+  let activeUser = null;
+  try {
+    activeUser = JSON.parse(safeGet('drozo_active_session', 'null'));
+  } catch(e) { activeUser = null; }
+
   let authMode = 'login';
-  let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-  let chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+  let tickets = [];
+  try { tickets = JSON.parse(safeGet('drozo_tickets', '[]')); } catch(e) { tickets = []; }
 
-  function formatDateTime(str) {
-    if (!str) return 'Date Pending';
-    const d = new Date(str);
-    if (isNaN(d.getTime())) return str;
-    return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function getRegisteredAccounts() {
-    let users = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
-    users['admin@drozomind.com'] = 'Dubai@2011';
-    users['gamerkids1109@gmail.com'] = 'Password123';
-    localStorage.setItem('drozo_registered_users', JSON.stringify(users));
-    return users;
-  }
+  let chatMessages = [];
+  try { chatMessages = JSON.parse(safeGet('drozo_chat', '[]')); } catch(e) { chatMessages = []; }
 
   function setAuthTab(mode) {
     authMode = mode;
     const isLogin = mode === 'login';
-    document.getElementById('btn-login-tab').style.background = isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-login-tab').style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('btn-signup-tab').style.background = !isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-signup-tab').style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-submit-btn').innerText = isLogin ? 'Sign In' : 'Create Account';
+    const btnL = document.getElementById('btn-login-tab');
+    const btnS = document.getElementById('btn-signup-tab');
+    const submitBtn = document.getElementById('auth-submit-btn');
+
+    if (btnL) {
+      btnL.style.background = isLogin ? '#fff' : 'transparent';
+      btnL.style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    }
+    if (btnS) {
+      btnS.style.background = !isLogin ? '#fff' : 'transparent';
+      btnS.style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    }
+    if (submitBtn) submitBtn.innerText = isLogin ? 'Sign In' : 'Create Account';
     hideAuthError();
   }
 
   function showAuthError(msg) {
     const errBox = document.getElementById('auth-error-msg');
-    errBox.innerText = msg;
-    errBox.style.display = 'block';
+    if (errBox) {
+      errBox.innerText = msg;
+      errBox.style.display = 'block';
+    } else {
+      alert(msg);
+    }
   }
+
   function hideAuthError() {
     const errBox = document.getElementById('auth-error-msg');
     if (errBox) errBox.style.display = 'none';
@@ -237,44 +283,75 @@
 
   function executeAuth() {
     hideAuthError();
-    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('auth-pass').value || '').trim();
-    if (!email || !pass) return showAuthError('Please enter both email and password.');
+    const emailEl = document.getElementById('auth-email');
+    const passEl = document.getElementById('auth-pass');
+    if (!emailEl || !passEl) return;
 
-    const accounts = getRegisteredAccounts();
+    const email = (emailEl.value || '').trim().toLowerCase();
+    const pass = (passEl.value || '').trim();
+
+    if (!email || !pass) {
+      return showAuthError('Please enter both email and password.');
+    }
+
+    const accounts = getMasterAccounts();
+
     if (authMode === 'signup') {
-      if (accounts[email]) return showAuthError('Account already exists. Switch to Sign In.');
-      if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
+      if (accounts[email]) {
+        return showAuthError('Account already exists! Please click Sign In.');
+      }
+      if (pass.length < 6) {
+        return showAuthError('Password must be at least 6 characters.');
+      }
       accounts[email] = pass;
-      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+      safeSet('drozo_registered_users', JSON.stringify(accounts));
       activeUser = { id: 'usr_' + Date.now(), email: email, role: 'user' };
-      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
+      safeSet('drozo_active_session', JSON.stringify(activeUser));
       initApp();
     } else {
-      if (!accounts[email]) return showAuthError('No account found. Click Create Account first.');
-      if (accounts[email] !== pass) return showAuthError('Incorrect password. Access denied.');
-      activeUser = { id: 'usr_' + Date.now(), email: email, role: (email === 'admin@drozomind.com' || email === 'gamerkids1109@gmail.com') ? 'admin' : 'user' };
-      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
+      // Direct pass for Master Admin / Drozo Co-admin
+      if ((email === 'admin@drozomind.com' && pass === 'Dubai@2011') ||
+          (email === 'gamerkids1109@gmail.com' && pass === 'Password123')) {
+        activeUser = { id: 'admin_' + Date.now(), email: email, role: 'admin' };
+        safeSet('drozo_active_session', JSON.stringify(activeUser));
+        initApp();
+        return;
+      }
+
+      if (!accounts[email]) {
+        return showAuthError('No account found. Click "Create Account" first.');
+      }
+      if (accounts[email] !== pass) {
+        return showAuthError('Incorrect password. Please verify and retry.');
+      }
+
+      activeUser = { id: 'usr_' + Date.now(), email: email, role: 'user' };
+      safeSet('drozo_active_session', JSON.stringify(activeUser));
       initApp();
     }
   }
 
   function initApp() {
+    const modal = document.getElementById('auth-modal');
     if (!activeUser) {
-      document.getElementById('auth-modal').style.display = 'flex';
+      if (modal) modal.style.display = 'flex';
       return;
     }
-    document.getElementById('auth-modal').style.display = 'none';
-    document.getElementById('user-display-email').innerText = activeUser.email;
-    document.getElementById('profile-email-box').value = activeUser.email;
-    pruneOldHistory();
-    renderPipeline();
-    renderChat();
-    renderHistory();
+    if (modal) modal.style.display = 'none';
+
+    const disp = document.getElementById('user-display-email');
+    if (disp) disp.innerText = activeUser.email;
+    const prof = document.getElementById('profile-email-box');
+    if (prof) prof.value = activeUser.email;
+
+    if (typeof pruneOldHistory === 'function') pruneOldHistory();
+    if (typeof renderPipeline === 'function') renderPipeline();
+    if (typeof renderChat === 'function') renderChat();
+    if (typeof renderHistory === 'function') renderHistory();
   }
 
   function signOutUser() {
-    sessionStorage.removeItem('drozo_active_session');
+    safeRemove('drozo_active_session');
     location.reload();
   }
 

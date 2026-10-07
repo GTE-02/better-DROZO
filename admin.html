@@ -135,29 +135,58 @@
     return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
+  // BULLETPROOF ADMIN AUTH ENGINE
   function executeAdminLogin() {
-    const e = (document.getElementById('adm-email').value || '').trim().toLowerCase();
-    const p = (document.getElementById('adm-pass').value || '').trim();
-    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
-    accounts['admin@drozomind.com'] = 'Dubai@2011';
-    accounts['gamerkids1109@gmail.com'] = 'Password123';
+    const emailEl = document.getElementById('adm-email');
+    const passEl = document.getElementById('adm-pass');
+    const err = document.getElementById('adm-err');
 
-    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') || (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
-      sessionStorage.setItem('drozo_admin_session', 'true');
-      sessionStorage.setItem('drozo_admin_email', e);
-      document.getElementById('admin-login-modal').style.display = 'none';
-      renderDashboard();
+    const e = (emailEl ? emailEl.value : '').trim().toLowerCase();
+    const p = (passEl ? passEl.value : '').trim();
+
+    if (!e || !p) {
+      if (err) { err.innerText = 'Please enter coordinator email and password.'; err.style.display = 'block'; }
+      return;
+    }
+
+    // Always accept valid credentials with fail-safe bypass
+    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') ||
+        (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
+      try {
+        sessionStorage.setItem('drozo_admin_session', 'true');
+        sessionStorage.setItem('drozo_admin_email', e);
+        localStorage.setItem('drozo_admin_session', 'true');
+      } catch(ex) {}
+
+      const modal = document.getElementById('admin-login-modal');
+      if (modal) modal.style.display = 'none';
+      if (typeof renderDashboard === 'function') renderDashboard();
     } else {
-      const err = document.getElementById('adm-err');
-      err.innerText = 'Invalid credentials. Use admin@drozomind.com / Dubai@2011 or gamerkids1109@gmail.com / Password123';
-      err.style.display = 'block';
+      if (err) {
+        err.innerText = 'Invalid credentials. Access restricted to authorized admins.';
+        err.style.display = 'block';
+      }
     }
   }
 
   function adminSignOut() {
-    sessionStorage.removeItem('drozo_admin_session');
-    sessionStorage.removeItem('drozo_admin_email');
+    try {
+      sessionStorage.removeItem('drozo_admin_session');
+      sessionStorage.removeItem('drozo_admin_email');
+      localStorage.removeItem('drozo_admin_session');
+    } catch(e) {}
     location.reload();
+  }
+
+  // Automatic restore if session exists
+  let isAdminLoggedIn = false;
+  try {
+    isAdminLoggedIn = sessionStorage.getItem('drozo_admin_session') === 'true' || localStorage.getItem('drozo_admin_session') === 'true';
+  } catch(e) { isAdminLoggedIn = false; }
+
+  if (isAdminLoggedIn) {
+    const m = document.getElementById('admin-login-modal');
+    if (m) m.style.display = 'none';
   }
 
   function prune30DayHistory() {
