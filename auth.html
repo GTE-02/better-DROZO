@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drozo Guard - Login Scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #060b13; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-center space-y-5">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Step 2: Login Challenge
+    </div>
+    
+    <div>
+      <h2 class="text-xl font-bold text-white">Scan to Authorize Login</h2>
+      <p class="text-xs text-slate-400 mt-1">Tap <strong class="text-emerald-400">Scan Admin Portal QR</strong> on your phone.</p>
+    </div>
+
+    <div class="flex justify-center py-2">
+      <div id="challengeBox" class="bg-white p-4 rounded-2xl shadow-xl flex items-center justify-center min-h-[210px] min-w-[210px]">
+        <span class="text-xs text-slate-400 mono">Loading challenge...</span>
+      </div>
+    </div>
+
+    <div id="statusIndicator" class="text-xs mono text-slate-400 bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+      Token: <span id="tokenText" class="text-emerald-400 font-semibold">...</span>
+    </div>
+
+    <div id="successCard" class="hidden p-4 rounded-xl bg-emerald-950 border-2 border-emerald-400 text-center">
+      <div class="text-2xl">🎉</div>
+      <div class="text-sm font-bold text-white mt-1">AUTHORIZED!</div>
+      <div class="text-xs text-emerald-300">Admin portal session verified.</div>
+    </div>
+  </div>
+
+  <script>
+    const targetEmail = "admin@drozominds.com";
+    const supabaseUrl = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+
+    async function initChallenge() {
+      const sessionToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
+      document.getElementById('tokenText').innerText = sessionToken;
+
+      const payload = `DROZO_GUARD_AUTH:${sessionToken}:${targetEmail}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(payload)}`;
+      document.getElementById('challengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-48 h-48" />`;
+
+      // Insert pending session into Supabase
+      try {
+        await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions`, {
+          method: "POST",
+          headers: {
+            "apikey": supabaseAnonKey,
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({
+            session_token: sessionToken,
+            email: targetEmail,
+            status: "pending",
+            created_at: new Date().toISOString()
+          })
+        });
+      } catch (e) {}
+
+      // Poll for authorization
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}&select=status`, {
+            headers: { "apikey": supabaseAnonKey, "Authorization": `Bearer ${supabaseAnonKey}` }
+          });
+          const rows = await res.json();
+          if (rows && rows[0] && rows[0].status === "authorized") {
+            clearInterval(interval);
+            document.getElementById('statusIndicator').innerHTML = "<strong class='text-emerald-400'>✓ 2FA VERIFIED</strong>";
+            document.getElementById('successCard').classList.remove('hidden');
+          }
+        } catch (e) {}
+      }, 1500);
+    }
+
+    window.addEventListener("DOMContentLoaded", initChallenge);
+  </script>
+</body>
+</html>
