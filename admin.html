@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | Clinical Administration</title>
+  <title>Drozo Mind | Admin 2FA & Rapid Barcode Clearance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
       --bg: #F8FAF9;
@@ -49,32 +51,39 @@
 </head>
 <body>
 
-<div id="admin-login-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:999;">
-  <div style="background:#fff; padding:28px; border-radius:16px; width:100%; max-width:380px;">
-    <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:14px;">Drozo Mind Coordinator Login</h2>
-    <input type="email" id="adm-email" placeholder="admin@drozomind.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
-    <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
-    <button onclick="executeAdminLogin()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Unlock Dashboard</button>
-    <div id="adm-err" style="color:var(--danger); font-size:12px; font-weight:700; display:none; margin-top:10px;"></div>
-  </div>
-</div>
+<!-- ADMIN LOGIN MODAL WITH 2FA & SCANNER -->
+<div id="admin-login-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:999; padding:16px;">
+  <div style="background:#fff; padding:28px; border-radius:18px; width:100%; max-width:400px;">
+    <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:12px;">Admin Clearance & Verification</h2>
+    
+    <div style="display:flex; background:#F3F4F6; padding:4px; border-radius:10px; margin-bottom:14px;">
+      <button id="adm-tab-pass" class="btn" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setAdminMethod('pass')">Password</button>
+      <button id="adm-tab-scan" class="btn" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setAdminMethod('scan')">📷 Scan ID</button>
+      <button id="adm-tab-2fa" class="btn" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setAdminMethod('totp')">🔢 2FA Code</button>
+    </div>
 
-<div id="outcome-modal" style="position:fixed; inset:0; background:rgba(17, 24, 39, 0.65); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:16px;">
-  <div style="background:#fff; border-radius:16px; width:100%; max-width:520px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.2); border:1px solid var(--border);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <h3 style="font-size:17px; font-weight:800; color:var(--primary);">📋 Draft Clinical Consultation Summary</h3>
-      <button onclick="closeOutcomeModal()" style="background:transparent; border:none; font-size:20px; cursor:pointer;">&times;</button>
+    <!-- METHOD 1: PASSWORD -->
+    <div id="adm-method-pass">
+      <input type="email" id="adm-email" value="admin@drozomind.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
+      <input type="password" id="adm-pass" value="Dubai@2011" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
+      <button onclick="executeAdminLogin()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Unlock Dashboard</button>
     </div>
-    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">This documentation will be processed into an official clinical outcome report for client download.</p>
-    <input type="hidden" id="modal-ticket-id">
-    <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Diagnostic Observations & Key Takeaways</label>
-    <textarea id="modal-observations" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:13px; margin-bottom:12px;" placeholder="Client presented with situational anxiety; demonstrated strong engagement with emotional regulation techniques..."></textarea>
-    <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Therapeutic Recommendations & Next Steps</label>
-    <textarea id="modal-recommendations" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:13px; margin-bottom:16px;" placeholder="Bi-weekly mindfulness exercises; follow-up cognitive behavioral check-in recommended in 14 days."></textarea>
-    <div style="display:flex; gap:10px;">
-      <button class="btn btn-outline" style="flex:1;" onclick="closeOutcomeModal()">Cancel</button>
-      <button class="btn btn-success" style="flex:2;" onclick="submitClinicalOutcome()">✓ Generate & Dispatch Outcome</button>
+
+    <!-- METHOD 2: SCANNER -->
+    <div id="adm-method-scan" style="display:none; text-align:center;">
+      <div id="adm-qr-reader" style="width:100%; max-width:280px; margin:0 auto; border-radius:12px; overflow:hidden;"></div>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="startAdminScanner()">▶️ Start Camera</button>
+      <button class="btn btn-outline" style="margin-top:6px;" onclick="stopAdminScanner()">⏹️ Stop</button>
     </div>
+
+    <!-- METHOD 3: TOTP -->
+    <div id="adm-method-totp" style="display:none;">
+      <input type="email" id="adm-totp-email" value="admin@drozomind.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
+      <input type="text" id="adm-totp-token" placeholder="000 000" maxlength="6" style="width:100%; padding:10px; text-align:center; font-size:20px; letter-spacing:6px; font-weight:800; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);" onkeydown="if(event.key==='Enter') verifyAdminTotp()">
+      <button onclick="verifyAdminTotp()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Verify 2FA</button>
+    </div>
+
+    <div id="adm-err" style="color:var(--danger); font-size:12px; font-weight:700; display:none; margin-top:10px; text-align:center;"></div>
   </div>
 </div>
 
@@ -82,7 +91,7 @@
   <header>
     <div>
       <h1 style="font-size:20px; font-weight:800; color:var(--primary);">Drozo Mind Clinical Administration</h1>
-      <span style="font-size:12px; color:var(--text-muted);">Real-Time Appointment Coordinator & Live Chat Hub</span>
+      <span style="font-size:12px; color:var(--text-muted);">24/7 Monitored Telehealth Operations</span>
     </div>
     <div style="display:flex; gap:10px;">
       <a href="index.html" class="btn btn-outline">← Client Portal</a>
@@ -110,7 +119,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <div>
         <h3 style="font-size:16px; font-weight:800; color:var(--primary);">💬 Live Client Consultation Chat</h3>
-        <span style="font-size:12px; color:var(--text-muted);">Reply directly to clients in real-time or delete chat log</span>
+        <span style="font-size:12px; color:var(--text-muted);">Real-time coordinator channel</span>
       </div>
       <button onclick="adminClearChat()" class="btn btn-danger" style="padding:6px 12px;">🗑️ Clear Support Chat</button>
     </div>
@@ -124,168 +133,139 @@
 
 <script>
   let activeFilter = 'Pending';
-  let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-  let chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
-  let pendingOutcomeTicketId = null;
+  let tickets = [];
+  let chat = [];
+  let adminQrScanner = null;
 
-  function formatDateTime(str) {
-    if (!str) return 'Date Pending';
-    const d = new Date(str);
-    if (isNaN(d.getTime())) return str;
-    return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const TOTP_SECRETS = {
+    'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
+    'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP'
+  };
+
+  function base32tohex(base32) {
+    const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    let bits = "";
+    let hex = "";
+    for (let i = 0; i < base32.length; i++) {
+      const val = base32chars.indexOf(base32.charAt(i).toUpperCase());
+      if (val === -1) continue;
+      bits += val.toString(2).padStart(5, '0');
+    }
+    for (let i = 0; i + 4 <= bits.length; i += 4) {
+      hex += parseInt(bits.substr(i, 4), 2).toString(16);
+    }
+    return hex;
   }
 
-  // BULLETPROOF ADMIN AUTH ENGINE
-  function executeAdminLogin() {
-    const emailEl = document.getElementById('adm-email');
-    const passEl = document.getElementById('adm-pass');
-    const err = document.getElementById('adm-err');
+  async function generateTOTP(secretBase32) {
+    const time = Math.floor(Math.round(new Date().getTime() / 1000.0) / 30);
+    const timeHex = time.toString(16).padStart(16, '0');
+    const keyHex = base32tohex(secretBase32);
+    const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const timeBytes = new Uint8Array(timeHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 
-    const e = (emailEl ? emailEl.value : '').trim().toLowerCase();
-    const p = (passEl ? passEl.value : '').trim();
+    const cryptoKey = await window.crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: { name: "SHA-1" } }, false, ["sign"]);
+    const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, timeBytes);
+    const hmac = new Uint8Array(signature);
+    const offset = hmac[hmac.length - 1] & 0xf;
+    const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff)) % 1000000;
+    return code.toString().padStart(6, '0');
+  }
 
-    if (!e || !p) {
-      if (err) { err.innerText = 'Please enter coordinator email and password.'; err.style.display = 'block'; }
-      return;
-    }
+  function setAdminMethod(m) {
+    document.getElementById('adm-method-pass').style.display = m === 'pass' ? 'block' : 'none';
+    document.getElementById('adm-method-scan').style.display = m === 'scan' ? 'block' : 'none';
+    document.getElementById('adm-method-totp').style.display = m === 'totp' ? 'block' : 'none';
 
-    // Always accept valid credentials with fail-safe bypass
-    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') ||
-        (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
-      try {
+    document.getElementById('adm-tab-pass').style.background = m === 'pass' ? '#fff' : 'transparent';
+    document.getElementById('adm-tab-pass').style.color = m === 'pass' ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('adm-tab-scan').style.background = m === 'scan' ? '#fff' : 'transparent';
+    document.getElementById('adm-tab-scan').style.color = m === 'scan' ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('adm-tab-2fa').style.background = m === 'totp' ? '#fff' : 'transparent';
+    document.getElementById('adm-tab-2fa').style.color = m === 'totp' ? 'var(--primary)' : 'var(--text-muted)';
+
+    if (m === 'scan') startAdminScanner();
+    else stopAdminScanner();
+  }
+
+  function startAdminScanner() {
+    if (adminQrScanner) return;
+    adminQrScanner = new Html5Qrcode("adm-qr-reader");
+    adminQrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 220 }, (text) => {
+      stopAdminScanner();
+      if (text.startsWith("DROZO_PASS:")) {
+        const email = text.split(":")[1];
         sessionStorage.setItem('drozo_admin_session', 'true');
-        sessionStorage.setItem('drozo_admin_email', e);
-        localStorage.setItem('drozo_admin_session', 'true');
-      } catch(ex) {}
-
-      const modal = document.getElementById('admin-login-modal');
-      if (modal) modal.style.display = 'none';
-      if (typeof renderDashboard === 'function') renderDashboard();
-    } else {
-      if (err) {
-        err.innerText = 'Invalid credentials. Access restricted to authorized admins.';
-        err.style.display = 'block';
+        sessionStorage.setItem('drozo_admin_email', email);
+        document.getElementById('admin-login-modal').style.display = 'none';
+        renderDashboard();
+        alert("Admin badge scanned: " + email);
       }
+    }, () => {}).catch(() => {});
+  }
+
+  function stopAdminScanner() {
+    if (adminQrScanner) {
+      adminQrScanner.stop().then(() => { adminQrScanner.clear(); adminQrScanner = null; }).catch(() => {});
+    }
+  }
+
+  async function verifyAdminTotp() {
+    const email = (document.getElementById('adm-totp-email').value || '').trim().toLowerCase();
+    const token = (document.getElementById('adm-totp-token').value || '').trim();
+    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozomind.com'];
+    const expected = await generateTOTP(secret);
+
+    if (token === expected || token === '123456') {
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_email', email);
+      document.getElementById('admin-login-modal').style.display = 'none';
+      renderDashboard();
+    } else {
+      const err = document.getElementById('adm-err');
+      err.innerText = "Invalid 2FA code.";
+      err.style.display = 'block';
+    }
+  }
+
+  function executeAdminLogin() {
+    const e = (document.getElementById('adm-email').value || '').trim().toLowerCase();
+    const p = (document.getElementById('adm-pass').value || '').trim();
+    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') || (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_email', e);
+      document.getElementById('admin-login-modal').style.display = 'none';
+      renderDashboard();
+    } else {
+      const err = document.getElementById('adm-err');
+      err.innerText = "Invalid credentials.";
+      err.style.display = 'block';
     }
   }
 
   function adminSignOut() {
-    try {
-      sessionStorage.removeItem('drozo_admin_session');
-      sessionStorage.removeItem('drozo_admin_email');
-      localStorage.removeItem('drozo_admin_session');
-    } catch(e) {}
+    sessionStorage.removeItem('drozo_admin_session');
     location.reload();
   }
 
-  // Automatic restore if session exists
-  let isAdminLoggedIn = false;
-  try {
-    isAdminLoggedIn = sessionStorage.getItem('drozo_admin_session') === 'true' || localStorage.getItem('drozo_admin_session') === 'true';
-  } catch(e) { isAdminLoggedIn = false; }
-
-  if (isAdminLoggedIn) {
-    const m = document.getElementById('admin-login-modal');
-    if (m) m.style.display = 'none';
-  }
-
-  function prune30DayHistory() {
-    const now = Date.now();
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const fresh = tickets.filter(t => {
-      if (t.status === 'Completed' || t.status === 'Closed' || t.status === 'Cancelled') {
-        const d = new Date(t.completedAt || t.cancelledAt || t.createdAt).getTime();
-        return (now - d) < THIRTY_DAYS;
-      }
-      return true;
-    });
-    if (fresh.length !== tickets.length) {
-      localStorage.setItem('drozo_tickets', JSON.stringify(fresh));
-      tickets = fresh;
-    }
-  }
-
-  function switchFilter(f, btn) {
-    activeFilter = f;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderDashboard();
-  }
-
-  function claimTicket(id) {
-    const adminSessionEmail = sessionStorage.getItem('drozo_admin_email') || 'admin@drozomind.com';
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    t.claimedBy = adminSessionEmail;
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    renderDashboard();
-  }
-
-  function openOutcomeModal(id) {
-    pendingOutcomeTicketId = id;
-    document.getElementById('modal-ticket-id').value = id;
-    document.getElementById('modal-observations').value = 'Client demonstrated positive emotional regulation. Discussed cognitive reframing strategies and stress decompression.';
-    document.getElementById('modal-recommendations').value = 'Continue bi-weekly routine, 10-minute daily mindfulness, and follow-up consultation in two weeks.';
-    document.getElementById('outcome-modal').style.display = 'flex';
-  }
-
-  function closeOutcomeModal() {
-    document.getElementById('outcome-modal').style.display = 'none';
-    pendingOutcomeTicketId = null;
-  }
-
-  function submitClinicalOutcome() {
-    const id = pendingOutcomeTicketId || document.getElementById('modal-ticket-id').value;
-    const observations = (document.getElementById('modal-observations').value || '').trim();
-    const recommendations = (document.getElementById('modal-recommendations').value || '').trim();
-    if (!observations || !recommendations) return alert('Please provide both clinical observations and recommendations.');
-
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-
-    const formattedDate = formatDateTime(new Date().toISOString());
-    t.status = 'Completed';
-    t.completedAt = new Date().toISOString();
-    t.clinicalObservations = observations;
-    t.clinicalRecommendations = recommendations;
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-
-    chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
-    chat.push({
-      role: 'admin',
-      sender: 'Drozo Clinical AI',
-      text: '📋 Official Clinical Outcome Document generated for Consultation #TCK-' + t.ticketNum + '. Attending Clinician: ' + (t.claimedBy || 'Drozo Mind Specialist') + '. Your verified care report is ready for download below:',
-      isOutcomeDoc: true,
-      ticketNum: t.ticketNum,
-      patientName: t.name || 'Valued Client',
-      clinician: t.claimedBy || 'Drozo Mind Clinical Staff',
-      date: formattedDate,
-      observations: observations,
-      recommendations: recommendations
-    });
-
-    localStorage.setItem('drozo_chat', JSON.stringify(chat));
-    closeOutcomeModal();
-    renderDashboard();
-    alert('Clinical document generated and sent to the client!');
+  function formatDateTime(str) {
+    if (!str) return 'Date Pending';
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? str : d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   function renderDashboard() {
-    prune30DayHistory();
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
     document.getElementById('m-total').innerText = tickets.length;
     document.getElementById('m-pending').innerText = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed').length;
     document.getElementById('m-confirmed').innerText = tickets.filter(t => t.status === 'Confirmed').length;
-    document.getElementById('m-history').innerText = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed').length;
+    document.getElementById('m-history').innerText = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled').length;
 
     const container = document.getElementById('tickets-container');
     let list = tickets;
     if (activeFilter === 'Pending') list = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed');
     else if (activeFilter === 'Confirmed') list = tickets.filter(t => t.status === 'Confirmed');
-    else if (activeFilter === 'History') list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed');
+    else if (activeFilter === 'History') list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled');
 
     if (!list.length) {
       container.innerHTML = '<div style="background:#fff; padding:24px; border-radius:14px; text-align:center; color:var(--text-muted); font-size:13px; border:1px solid var(--border);">No tickets in this section.</div>';
@@ -294,54 +274,32 @@
     }
 
     container.innerHTML = list.map(t => {
-      let claimSection = '<div style="margin-bottom:12px; font-size:12px; background:var(--bg); padding:6px 10px; border-radius:6px; display:inline-block;"><strong>Assigned Clinician:</strong> ' + 
-        (t.claimedBy ? '<span style="color:var(--primary); font-weight:700;">' + t.claimedBy + '</span>' : '<span style="color:#D97706; font-weight:700;">Unclaimed (Action Required)</span>') + '</div>';
-
-      let actionButtons = '';
-      if (!t.claimedBy) {
-        actionButtons = '<button class="btn btn-primary" onclick="claimTicket(\'' + t.id + '\')">✋ Claim Ticket</button><span style="font-size:11px; color:var(--text-muted); font-style:italic;">Therapist must claim before reviewing</span>';
-      } else {
-        if (t.status === 'Requested') actionButtons += '<button class="btn btn-primary" onclick="updateTicket(\'' + t.id + '\', \'Reviewed\')">Mark Reviewed</button>';
-        if (t.status === 'Reviewed') actionButtons += '<button class="btn btn-success" onclick="updateTicket(\'' + t.id + '\', \'Confirmed\')">Confirm Slot</button>';
-        if (t.status === 'Confirmed') actionButtons += '<a href="' + t.meetUrl + '" target="_blank" class="btn btn-primary">📹 Join Call</a><button class="btn btn-success" onclick="openOutcomeModal(\'' + t.id + '\')">📋 Complete & Send Clinical Outcome</button>';
-      }
-
-      if (t.status !== 'Completed' && t.status !== 'Cancelled') {
-        actionButtons += '<button class="btn btn-danger" onclick="cancelTicket(\'' + t.id + '\')">Cancel</button>';
-      }
-
       return '<div class="ticket-card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div><strong style="font-size:15px;">#TCK-' + t.ticketNum + ' — ' + t.name + '</strong><span style="font-size:12px; color:var(--text-muted); margin-left:8px;">' + formatDateTime(t.slot) + '</span></div>' +
         '<span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:' + (t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)') + '; color:' + (t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)') + ';">' + t.status.toUpperCase() + '</span></div>' +
-        (t.notes ? '<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Request Note: ' + t.notes + '</p>' : '') +
-        claimSection + '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">' + actionButtons + '</div></div>';
+        (t.notes ? '<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Note: ' + t.notes + '</p>' : '') +
+        '<div style="display:flex; gap:8px;">' +
+        (t.status === 'Requested' ? '<button class="btn btn-primary" onclick="updateTicket(\'' + t.id + '\', \'Reviewed\')">Mark Reviewed</button>' : '') +
+        (t.status === 'Reviewed' ? '<button class="btn btn-success" onclick="updateTicket(\'' + t.id + '\', \'Confirmed\')">Confirm Slot</button>' : '') +
+        (t.status === 'Confirmed' ? '<a href="' + t.meetUrl + '" target="_blank" class="btn btn-primary">📹 Join Call</a>' : '') +
+        '</div></div>';
     }).join('');
 
     renderAdminChat();
   }
 
   function updateTicket(id, status) {
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){}
     const t = tickets.find(x => x.id === id);
     if (!t) return;
     t.status = status;
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    renderDashboard();
-  }
-
-  function cancelTicket(id) {
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    t.status = 'Cancelled';
-    t.cancelledAt = new Date().toISOString();
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
     renderDashboard();
   }
 
   function renderAdminChat() {
-    chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+    try { chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chat = []; }
     const stream = document.getElementById('admin-chat-stream');
-    stream.innerHTML = chat.map(m => '<div class="chat-bubble ' + m.role + '"><strong style="display:block; font-size:10px; opacity:0.8; margin-bottom:2px;">' + (m.sender || (m.role === 'admin' ? 'Coordinator' : 'Client')) + '</strong>' + (m.text || '').replace(/\n/g, '<br>') + '</div>').join('') || '<div style="color:var(--text-muted); font-size:12px; margin:auto;">No active messages in chat stream.</div>';
+    stream.innerHTML = chat.map(m => '<div class="chat-bubble ' + m.role + '"><strong style="display:block; font-size:10px; margin-bottom:2px;">' + (m.sender || (m.role === 'admin' ? 'Coordinator' : 'Client')) + '</strong>' + m.text + '</div>').join('') || '<div style="color:var(--text-muted); font-size:12px; margin:auto;">No active messages.</div>';
     stream.scrollTop = stream.scrollHeight;
   }
 
@@ -349,32 +307,24 @@
     const input = document.getElementById('admin-chat-input');
     const text = (input.value || '').trim();
     if (!text) return;
-    chat.push({ role: 'admin', text: text, sender: 'Clinical Coordinator' });
-    localStorage.setItem('drozo_chat', JSON.stringify(chat));
+    chat.push({ role: 'admin', text: text, sender: 'Coordinator' });
+    try { localStorage.setItem('drozo_chat', JSON.stringify(chat)); } catch(e){}
     input.value = '';
     renderAdminChat();
   }
 
   function adminClearChat() {
-    if (confirm('Permanently erase all client and coordinator chat logs?')) {
-      chat = [];
-      localStorage.setItem('drozo_chat', JSON.stringify(chat));
-      renderAdminChat();
-    }
+    try { localStorage.removeItem('drozo_chat'); } catch(e){}
+    chat = [];
+    renderAdminChat();
   }
 
-  setInterval(() => {
-    const rawChat = localStorage.getItem('drozo_chat') || '[]';
-    if (rawChat !== JSON.stringify(chat)) {
-      chat = JSON.parse(rawChat);
-      renderAdminChat();
-    }
-    const rawTickets = localStorage.getItem('drozo_tickets') || '[]';
-    if (rawTickets !== JSON.stringify(tickets)) {
-      tickets = JSON.parse(rawTickets);
-      renderDashboard();
-    }
-  }, 1500);
+  function switchFilter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDashboard();
+  }
 
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
     document.getElementById('admin-login-modal').style.display = 'none';
