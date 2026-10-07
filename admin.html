@@ -3,51 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo Admin Console</title>
+  <title>Drozo Admin Console - Root Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #060b13; }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-color: #02140d; 
+    }
     .mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body class="text-slate-100 min-h-screen p-4 sm:p-8 flex justify-center">
+<body class="text-emerald-50 min-h-screen p-4 sm:p-8 flex justify-center">
 
   <div class="max-w-5xl w-full space-y-6">
 
     <!-- Top Navigation Bar -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl gap-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#052317] border border-[#0d4f34] p-6 rounded-3xl shadow-xl gap-4">
       <div>
         <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">ACCESS GRANTED • ROOT OWNER LEVEL</span>
         <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-2 mt-0.5">
           <span>🛡️</span> Drozo Security & Admin Console
         </h1>
-        <p class="text-xs text-slate-400 mt-1">Platform management, hardware key telemetry, and operational controls.</p>
+        <p class="text-xs text-emerald-300/80 mt-1">Platform management, hardware key telemetry, and operational controls.</p>
       </div>
       <div class="flex items-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#0a3825] text-emerald-300 border border-emerald-500/40">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           2FA ACTIVE
         </span>
-        <button onclick="logoutAdmin()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-950/60 border border-rose-800/60 text-rose-300 hover:bg-rose-900 transition">
+        <button onclick="logoutAdmin()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-950/70 border border-rose-800 text-rose-200 hover:bg-rose-900 transition">
           Lock Session
         </button>
       </div>
     </div>
 
     <!-- Official Verified ID Pass -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950/80 via-slate-900 to-emerald-900/60 border border-emerald-800/60 p-6 shadow-2xl backdrop-blur-xl">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#063321] via-[#042618] to-[#021810] border border-emerald-600/50 p-6 shadow-2xl backdrop-blur-xl">
       <div class="flex justify-between items-start mb-4">
         <div>
-          <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-400/90">OFFICIAL VERIFIED ID PASS</span>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-400">OFFICIAL VERIFIED ID PASS</span>
           <h2 class="text-xl font-bold text-white tracking-wide mt-0.5">Water_Chugger/Owner</h2>
         </div>
-        <span class="text-xs font-mono text-emerald-400">Clearance: Root Admin</span>
+        <span class="text-xs font-mono text-emerald-300">Clearance: Root Admin</span>
       </div>
-      <div class="text-xs space-y-2 text-slate-300">
+      <div class="text-xs space-y-2 text-emerald-100">
         <div><strong class="text-white">Account:</strong> <span class="mono text-emerald-300 font-bold">admin@drozominds.com</span></div>
         <div><strong class="text-white">Hardware Key:</strong> <span class="mono text-emerald-400">com.drozomind.guard (Active & Paired)</span></div>
-        <div><strong class="text-white">Token Hash:</strong> <span class="mono text-slate-400">AUTH_8829</span></div>
+        <div><strong class="text-white">Token Hash:</strong> <span class="mono text-emerald-300">AUTH_8829</span></div>
         <div class="pt-1 flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
           <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
           Root Owner Identity verified by Google AI Sentinel
@@ -55,46 +58,44 @@
       </div>
     </div>
 
-    <!-- System Status & Metrics Grid -->
+    <!-- Status Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-slate-400">2FA Binding Method</div>
+      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
+        <div class="text-xs text-emerald-300">2FA Binding Method</div>
         <div class="text-lg font-bold text-emerald-400">Drozo Guard APK</div>
-        <div class="text-[11px] text-slate-500">Hardware token binding permanent</div>
+        <div class="text-[11px] text-emerald-500">Hardware token binding permanent</div>
       </div>
-      <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-slate-400">Supabase REST / Realtime</div>
-        <div class="text-lg font-bold text-blue-400">Online</div>
-        <div class="text-[11px] text-slate-500">Database synchronization active</div>
+      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
+        <div class="text-xs text-emerald-300">Supabase Link</div>
+        <div class="text-lg font-bold text-teal-400">Online</div>
+        <div class="text-[11px] text-emerald-500">Database synchronization active</div>
       </div>
-      <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-slate-400">Sentinel Security Status</div>
+      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
+        <div class="text-xs text-emerald-300">Sentinel Security Status</div>
         <div class="text-lg font-bold text-white">Protected</div>
         <div class="text-[11px] text-emerald-400 font-medium">Zero breaches detected</div>
       </div>
     </div>
 
-    <!-- Admin Operational Control Tools -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+    <!-- Operational Controls -->
+    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-5">
       <h3 class="text-base font-bold text-white flex items-center gap-2">
         <span>⚙️</span> Operational Controls
       </h3>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Control 1 -->
-        <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+        <div class="p-4 rounded-xl bg-[#021810] border border-[#0d4f34] space-y-2">
           <div class="text-xs font-bold text-white">Flush Expired Auth Challenges</div>
-          <p class="text-[11px] text-slate-400">Purge stale pending sessions older than 10 minutes from Supabase table.</p>
-          <button onclick="alert('Stale sessions flushed from database.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+          <p class="text-[11px] text-emerald-400/70">Purge stale pending sessions from the database.</p>
+          <button onclick="alert('Stale sessions flushed.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
             Execute Purge
           </button>
         </div>
 
-        <!-- Control 2 -->
-        <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+        <div class="p-4 rounded-xl bg-[#021810] border border-[#0d4f34] space-y-2">
           <div class="text-xs font-bold text-white">Rotate Session Signing Keys</div>
-          <p class="text-[11px] text-slate-400">Refresh client token verification salt across all active portal gates.</p>
-          <button onclick="alert('Session signing keys re-synchronized.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+          <p class="text-[11px] text-emerald-400/70">Re-synchronize client token verification salt across portal gates.</p>
+          <button onclick="alert('Session keys rotated.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
             Rotate Keys
           </button>
         </div>
@@ -102,7 +103,7 @@
     </div>
 
     <!-- Audit Event Log Table -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
           <span>📋</span> Security Audit Log
@@ -111,8 +112,8 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left text-slate-300">
-          <thead class="text-[10px] text-slate-400 uppercase bg-slate-950/60 border-b border-slate-800">
+        <table class="w-full text-xs text-left text-emerald-100">
+          <thead class="text-[10px] text-emerald-400 uppercase bg-[#021810] border-b border-[#0d4f34]">
             <tr>
               <th class="py-2.5 px-3">Event</th>
               <th class="py-2.5 px-3">Entity</th>
@@ -120,24 +121,24 @@
               <th class="py-2.5 px-3">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60">
+          <tbody class="divide-y divide-[#0d4f34]/60">
             <tr>
               <td class="py-2.5 px-3 mono text-white">AUTH_2FA_SESSION</td>
               <td class="py-2.5 px-3">admin@drozominds.com</td>
-              <td class="py-2.5 px-3 text-slate-400">Drozo Guard APK / Override</td>
+              <td class="py-2.5 px-3 text-emerald-300">Drozo Guard APK / Override</td>
               <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">SUCCESS</span></td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 mono text-white">ID_PASS_VALIDATION</td>
               <td class="py-2.5 px-3">Water_Chugger/Owner</td>
-              <td class="py-2.5 px-3 text-slate-400">Token Hash AUTH_8829</td>
+              <td class="py-2.5 px-3 text-emerald-300">Token Hash AUTH_8829</td>
               <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">VERIFIED</span></td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 mono text-white">DATABASE_HEARTBEAT</td>
               <td class="py-2.5 px-3">ahlwsktpiymgdvdmjdqq</td>
-              <td class="py-2.5 px-3 text-slate-400">PostgREST REST</td>
-              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300">ONLINE</span></td>
+              <td class="py-2.5 px-3 text-emerald-300">PostgREST REST</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300">ONLINE</span></td>
             </tr>
           </tbody>
         </table>
@@ -147,14 +148,13 @@
   </div>
 
   <script>
-    // Strict authentication guard: redirect to index.html if not authenticated
     if (localStorage.getItem("drozo_auth_state") !== "UNLOCKED") {
-      window.location.replace("./index.html");
+      window.location.replace("./auth.html");
     }
 
     function logoutAdmin() {
       localStorage.removeItem("drozo_auth_state");
-      window.location.replace("./index.html");
+      window.location.replace("./auth.html");
     }
   </script>
 </body>
