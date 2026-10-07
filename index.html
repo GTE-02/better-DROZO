@@ -382,6 +382,46 @@
 
 <script>
 
+  // Auto-generate and download MS Word (.doc) outcome summary
+  function downloadTherapyDoc(ticketNum, patient, clinician, date, notes) {
+    const docContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><title>Drozo Mind Clinical Summary</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; color: #111; line-height: 1.6; }
+        h1 { color: #1B4D3E; border-bottom: 2px solid #1B4D3E; padding-bottom: 8px; }
+        .meta { margin: 20px 0; background: #F4F7F5; padding: 15px; border-radius: 6px; }
+        .section-title { font-weight: bold; color: #2D6A4F; margin-top: 20px; font-size: 16px; }
+      </style>
+      </head>
+      <body>
+        <h1>🌿 Drozo Mind - Clinical Consultation Summary</h1>
+        <div class='meta'>
+          <p><strong>Appointment ID:</strong> #TCK-${ticketNum}</p>
+          <p><strong>Client:</strong> ${patient}</p>
+          <p><strong>Attending Clinician:</strong> ${clinician}</p>
+          <p><strong>Date of Consultation:</strong> ${date}</p>
+        </div>
+        <div class='section-title'>Session Evaluation & Recommendations</div>
+        <p>${notes}</p>
+        <div class='section-title'>Official Clinical Seal</div>
+        <p>This document is verified and auto-dispatched by the Drozo Mind Clinical Administration Engine.</p>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DrozoMind_Outcome_TCK-${ticketNum}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+
   // Drawer controls
   function toggleSupportDrawer(open) {
     const drawer = document.getElementById('side-support-drawer');
@@ -733,7 +773,15 @@
     stream.innerHTML = chatMessages.map(m => `
       <div class="bubble ${m.role}">
         ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.8; margin-bottom:2px;">${m.sender}</strong>` : ''}
-        ${m.text}
+        ${m.text.replace(/\n/g, '<br>')}
+        ${m.isOutcomeDoc ? `
+          <div style="margin-top:10px; padding:10px; background:#fff; color:#111; border-radius:8px; border:1px solid var(--border);">
+            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:var(--primary);">📄 Clinical Document Ready</div>
+            <button onclick="downloadTherapyDoc('${m.ticketNum}', '${m.patientName}', '${m.clinician}', '${m.date}', '${m.outcomeNotes}')" class="btn btn-primary" style="margin-top:4px; padding:6px 12px; font-size:11px; width:auto; display:inline-flex;">
+              ⬇️ Download Outcome (.doc)
+            </button>
+          </div>
+        ` : ''}
       </div>
     `).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
     stream.scrollTop = stream.scrollHeight;

@@ -107,6 +107,55 @@
 </div>
 
 <script>
+
+  function claimTicket(id) {
+    const adminSessionEmail = sessionStorage.getItem('drozo_admin_email') || 'Lead Clinician';
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.claimedBy = adminSessionEmail;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
+  }
+
+  function promptOutcomeAndComplete(id) {
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+
+    const notes = prompt(`Enter clinical outcome summary & takeaways for ${t.name}:`, "Client exhibited positive emotional regulation. Recommended ongoing bi-weekly cognitive check-ins and structured mindfulness habits.");
+    if (notes === null || !notes.trim()) return;
+
+    t.status = 'Completed';
+    t.completedAt = new Date().toISOString();
+    t.outcomeNotes = notes.trim();
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+
+    // Send AI-generated Outcome Document to client chat
+    chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+    const aiDocMessage = `[Drozo Clinical AI] Official Therapy Outcome Document Generated for Session #TCK-${t.ticketNum}\n\n` +
+      `Clinician: ${t.claimedBy || 'Drozo Mind Care Team'}\n` +
+      `Date: ${new Date().toLocaleDateString()}\n` +
+      `Outcome & Care Plan: "${t.outcomeNotes}"\n\n` +
+      `A downloadable copy has been generated and filed in your records.`;
+
+    chat.push({
+      role: 'admin',
+      sender: 'Drozo AI',
+      text: aiDocMessage,
+      isOutcomeDoc: true,
+      ticketNum: t.ticketNum,
+      patientName: t.name,
+      outcomeNotes: t.outcomeNotes,
+      clinician: t.claimedBy || 'Drozo Mind Specialist',
+      date: new Date().toLocaleDateString()
+    });
+
+    localStorage.setItem('drozo_chat', JSON.stringify(chat));
+    alert("Session completed! Clinical outcome generated and dispatched to client.");
+    renderDashboard();
+  }
+
   let activeFilter = 'Pending';
   let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
   let chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
@@ -119,7 +168,7 @@
     accounts['gamerkids1109@gmail.com'] = 'Password123';
 
     if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') || (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
-      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_session', 'true'); sessionStorage.setItem('drozo_admin_email', e);
       document.getElementById('admin-login-modal').style.display = 'none';
       renderDashboard();
     } else {
@@ -193,13 +242,22 @@
         </div>
         ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Notes: ${t.notes}</p>` : ''}
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          ${t.status === 'Requested' ? `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>` : ''}
-          ${t.status === 'Reviewed' ? `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>` : ''}
-          ${t.status === 'Confirmed' ? `
-            <a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>
-            <button class="btn btn-success" onclick="completeTicket('${t.id}')">✓ Mark Meeting Completed</button>
-          ` : ''}
+        <div style="margin-bottom:8px; font-size:12px; color:var(--text-muted);">
+          <strong>Assigned Clinician:</strong> ${t.claimedBy ? `<span style="color:var(--primary); font-weight:700;">${t.claimedBy}</span>` : '<span style="color:#D97706; font-weight:700;">Unassigned (Action Required)</span>'}
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          ${!t.claimedBy ? `
+            <button class="btn btn-primary" style="background:#2563EB;" onclick="claimTicket('${t.id}')">✋ Claim Ticket</button>
+            <span style="font-size:11px; color:var(--text-muted); font-style:italic;">Must claim ticket before review</span>
+          ` : `
+            ${t.status === 'Requested' ? `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>` : ''}
+            ${t.status === 'Reviewed' ? `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>` : ''}
+            ${t.status === 'Confirmed' ? `
+              <a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>
+              <button class="btn btn-success" onclick="promptOutcomeAndComplete('${t.id}')">📋 Complete & Send Clinical Outcome</button>
+            ` : ''}
+          `}
           ${t.status !== 'Completed' && t.status !== 'Cancelled' ? `<button class="btn btn-danger" onclick="cancelTicket('${t.id}')">Cancel Appointment</button>` : ''}
         </div>
       </div>
