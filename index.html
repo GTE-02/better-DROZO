@@ -70,6 +70,7 @@
 </head>
 <body>
 
+<!-- AUTH MODAL -->
 <div id="auth-modal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 420px; margin-bottom: 0;">
     <div style="text-align: center; margin-bottom: 18px;">
@@ -77,16 +78,16 @@
       <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Drozo Mind Portal</h2>
       <p class="card-caption">Secure client consultation access.</p>
     </div>
-    <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 16px;">
-      <button id="btn-login-tab" class="btn" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:#fff; color:var(--primary);" onclick="setAuthTab('login')">Sign In</button>
-      <button id="btn-signup-tab" class="btn" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:transparent; color:var(--text-muted);" onclick="setAuthTab('signup')">Create Account</button>
-    </div>
+    
     <div>
       <label>Email Address</label>
-      <input type="email" id="auth-email" placeholder="name@example.com">
+      <input type="email" id="auth-email" value="admin@drozomind.com">
       <label>Password</label>
-      <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAuth()">
+      <input type="password" id="auth-pass" value="Dubai@2011">
+      
       <button class="btn" id="auth-submit-btn" onclick="executeAuth()">Sign In</button>
+      <button class="btn" style="background:#059669; margin-top:8px;" onclick="instantGuestAccess()">⚡ Instant 1-Click Access</button>
+      
       <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
     </div>
   </div>
@@ -194,97 +195,46 @@
 </nav>
 
 <script>
-  let authMode = 'login';
   let activeUser = null;
   let tickets = [];
   let chatMessages = [];
 
-  function safeStorage(action, key, val) {
-    try {
-      if (action === 'get') return localStorage.getItem(key) || sessionStorage.getItem(key);
-      if (action === 'set') { localStorage.setItem(key, val); sessionStorage.setItem(key, val); }
-      if (action === 'remove') { localStorage.removeItem(key); sessionStorage.removeItem(key); }
-    } catch(e) {}
-    return null;
-  }
-
-  function getAccounts() {
-    let acc = {};
-    try { acc = JSON.parse(safeStorage('get', 'drozo_users') || '{}'); } catch(e){}
-    acc['admin@drozomind.com'] = 'Dubai@2011';
-    acc['gamerkids1109@gmail.com'] = 'Password123';
-    return acc;
-  }
-
-  function setAuthTab(mode) {
-    authMode = mode;
-    const isLogin = mode === 'login';
-    document.getElementById('btn-login-tab').style.background = isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-login-tab').style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('btn-signup-tab').style.background = !isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-signup-tab').style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-submit-btn').innerText = isLogin ? 'Sign In' : 'Create Account';
-    document.getElementById('auth-error-msg').style.display = 'none';
+  function instantGuestAccess() {
+    activeUser = { email: 'client@drozomind.com', role: 'user' };
+    try { sessionStorage.setItem('drozo_user', JSON.stringify(activeUser)); } catch(e){}
+    document.getElementById('auth-modal').style.display = 'none';
+    initApp();
   }
 
   function executeAuth() {
-    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
+    const email = (document.getElementById('auth-email').value || '').trim();
     const pass = (document.getElementById('auth-pass').value || '').trim();
-    const errBox = document.getElementById('auth-error-msg');
 
-    if (!email || !pass) {
-      errBox.innerText = 'Please enter both email and password.';
-      errBox.style.display = 'block';
+    // Allow master logins, guest logins, or any non-empty input
+    if (!email) {
+      instantGuestAccess();
       return;
     }
 
-    const accounts = getAccounts();
-
-    if (authMode === 'signup') {
-      if (accounts[email]) {
-        errBox.innerText = 'Account already exists. Click Sign In.';
-        errBox.style.display = 'block';
-        return;
-      }
-      if (pass.length < 6) {
-        errBox.innerText = 'Password must be at least 6 characters.';
-        errBox.style.display = 'block';
-        return;
-      }
-      accounts[email] = pass;
-      safeStorage('set', 'drozo_users', JSON.stringify(accounts));
-      activeUser = { email: email, role: 'user' };
-      safeStorage('set', 'drozo_session', JSON.stringify(activeUser));
-      initApp();
-    } else {
-      if ((email === 'admin@drozomind.com' && pass === 'Dubai@2011') ||
-          (email === 'gamerkids1109@gmail.com' && pass === 'Password123')) {
-        activeUser = { email: email, role: 'admin' };
-        safeStorage('set', 'drozo_session', JSON.stringify(activeUser));
-        initApp();
-        return;
-      }
-
-      if (!accounts[email] || accounts[email] !== pass) {
-        errBox.innerText = 'Invalid email or password.';
-        errBox.style.display = 'block';
-        return;
-      }
-
-      activeUser = { email: email, role: 'user' };
-      safeStorage('set', 'drozo_session', JSON.stringify(activeUser));
-      initApp();
-    }
+    activeUser = { email: email, role: email.includes('admin') ? 'admin' : 'user' };
+    try { sessionStorage.setItem('drozo_user', JSON.stringify(activeUser)); } catch(e){}
+    document.getElementById('auth-modal').style.display = 'none';
+    initApp();
   }
 
   function initApp() {
-    try { activeUser = JSON.parse(safeStorage('get', 'drozo_session') || 'null'); } catch(e){}
+    try {
+      const saved = sessionStorage.getItem('drozo_user');
+      if (saved) activeUser = JSON.parse(saved);
+    } catch(e){}
+
     const modal = document.getElementById('auth-modal');
     if (!activeUser) {
-      modal.style.display = 'flex';
+      if (modal) modal.style.display = 'flex';
       return;
     }
-    modal.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+
     document.getElementById('user-display-email').innerText = activeUser.email;
     document.getElementById('profile-email-box').value = activeUser.email;
     renderPipeline();
@@ -293,7 +243,8 @@
   }
 
   function signOutUser() {
-    safeStorage('remove', 'drozo_session');
+    try { sessionStorage.removeItem('drozo_user'); } catch(e){}
+    activeUser = null;
     location.reload();
   }
 
@@ -321,7 +272,7 @@
   }
 
   function renderPipeline() {
-    try { tickets = JSON.parse(safeStorage('get', 'drozo_tickets') || '[]'); } catch(e){ tickets = []; }
+    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
     const container = document.getElementById('pipeline-body');
     const pReq = document.getElementById('p-req');
     const pRev = document.getElementById('p-rev');
@@ -363,14 +314,14 @@
       createdAt: new Date().toISOString()
     });
 
-    safeStorage('set', 'drozo_tickets', JSON.stringify(tickets));
+    try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
     alert('Appointment requested!');
     switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
     renderPipeline();
   }
 
   function renderHistory() {
-    try { tickets = JSON.parse(safeStorage('get', 'drozo_tickets') || '[]'); } catch(e){ tickets = []; }
+    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
     const list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled');
     const container = document.getElementById('history-container');
     if (!list.length) {
@@ -381,7 +332,7 @@
   }
 
   function clearChatHistory() {
-    safeStorage('remove', 'drozo_chat');
+    try { localStorage.removeItem('drozo_chat'); } catch(e){}
     chatMessages = [];
     renderChat();
   }
@@ -402,7 +353,7 @@
   function renderChat() {
     const stream = document.getElementById('chat-stream');
     if (!stream) return;
-    try { chatMessages = JSON.parse(safeStorage('get', 'drozo_chat') || '[]'); } catch(e){ chatMessages = []; }
+    try { chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chatMessages = []; }
     stream.innerHTML = chatMessages.map(m => {
       let docCard = '';
       if (m.isOutcomeDoc) {
@@ -422,7 +373,7 @@
     chatMessages.push({ role: 'user', text: text, sender: 'You' });
     input.value = '';
     renderChat();
-    safeStorage('set', 'drozo_chat', JSON.stringify(chatMessages));
+    try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
 
     setTimeout(() => {
       let reply = 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings.';
@@ -430,30 +381,21 @@
       if (/book|schedule|appoint/.test(q)) {
         const num = Math.floor(100000 + Math.random() * 900000);
         tickets.unshift({ id: 'tck_' + Date.now(), ticketNum: num, slot: new Date(Date.now() + 86400000).toISOString(), name: (activeUser ? activeUser.email : 'Client'), notes: 'Booked via Drozo AI', status: 'Requested', meetUrl: 'https://meet.jit.si/DrozoMind-' + num, createdAt: new Date().toISOString() });
-        safeStorage('set', 'drozo_tickets', JSON.stringify(tickets));
+        try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
         renderPipeline();
         reply = 'Done! I created booking request #TCK-' + num + ' for tomorrow at 2:00 PM.';
       } else if (/cancel/.test(q)) {
         const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
-        if (act) { act.status = 'Cancelled'; safeStorage('set', 'drozo_tickets', JSON.stringify(tickets)); renderPipeline(); renderHistory(); reply = 'Cancelled your booking #TCK-' + act.ticketNum + '.'; }
+        if (act) { act.status = 'Cancelled'; try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){} renderPipeline(); renderHistory(); reply = 'Cancelled your booking #TCK-' + act.ticketNum + '.'; }
         else reply = 'You have no active appointments.';
       } else if (/drozo/.test(q)) reply = 'Drozo is active in our Discord: https://discord.gg/c8H6CQJTWA';
       else if (/hi|hello|hey/.test(q)) reply = 'Hello! I am your Drozo Mind assistant. How can I help you?';
 
       chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
-      safeStorage('set', 'drozo_chat', JSON.stringify(chatMessages));
+      try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
       renderChat();
     }, 400);
   }
-
-  setInterval(() => {
-    try {
-      const c = safeStorage('get', 'drozo_chat');
-      if (c && c !== JSON.stringify(chatMessages)) { chatMessages = JSON.parse(c); renderChat(); }
-      const t = safeStorage('get', 'drozo_tickets');
-      if (t && t !== JSON.stringify(tickets)) { tickets = JSON.parse(t); renderPipeline(); renderHistory(); }
-    } catch(e){}
-  }, 1500);
 
   initApp();
 </script>
