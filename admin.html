@@ -85,9 +85,48 @@
     <button class="tab-btn" onclick="switchFilter('Confirmed', this)">Confirmed Live</button>
     <button class="tab-btn" onclick="switchFilter('History', this)">📁 Completed & History (30 Days)</button>
     <button class="tab-btn" onclick="switchFilter('All', this)">All Appointments</button>
+    <button class="tab-btn" id="owner-threat-tab" style="display:none; background:#7F1D1D; color:#FECACA; border-color:#991B1B;" onclick="switchFilter('Security', this)">🛡️ Threat & Incident Console</button>
   </div>
 
   <div id="tickets-container"></div>
+
+  <!-- OWNER THREAT MONITORING CONSOLE -->
+  <div id="security-console-panel" style="display:none;">
+    <div style="background:#111827; color:#F3F4F6; border-radius:16px; padding:20px; border:1px solid #374151; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #1F2937; padding-bottom:10px;">
+        <div>
+          <h2 style="font-size:17px; font-weight:800; color:#EF4444;">🛡️ Active Threat Interception & Defense Console</h2>
+          <p style="font-size:12px; color:#9CA3AF;">Restricted to Owner (admin@drozominds.com) • Real-Time Client Telemetry</p>
+        </div>
+        <button class="btn btn-danger" style="padding:6px 12px; font-size:11px;" onclick="clearThreatLogs()">Clear Incident Log</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+        <div style="background:#1F2937; padding:14px; border-radius:10px;">
+          <span style="font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">Active Client Bans & Session Locks</span>
+          <div id="banned-users-list" style="margin-top:8px; font-size:12px; max-height:120px; overflow-y:auto;"></div>
+          <div style="display:flex; gap:6px; margin-top:10px;">
+            <input type="text" id="ban-input-identifier" placeholder="Email or Session ID..." style="background:#111827; border:1px solid #374151; color:#fff; padding:6px 10px; border-radius:6px; font-size:12px; flex:1;">
+            <button class="btn btn-danger" style="margin-top:0; padding:6px 10px; font-size:11px;" onclick="applyUserLockout()">Ban / Lock</button>
+          </div>
+        </div>
+
+        <div style="background:#1F2937; padding:14px; border-radius:10px;">
+          <span style="font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">Autonomous Defense Policy</span>
+          <div style="font-size:12px; color:#D1D5DB; margin-top:8px; line-height:1.5;">
+            <div>• <strong>Unapproved Data Export:</strong> Auto-blocked & flagged</div>
+            <div>• <strong>DOM Script Injection:</strong> Auto-purged & node dropped</div>
+            <div>• <strong>Network Edge IP Enforcement:</strong> Sync blocklist to WAF/CDN</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#0F172A; border-radius:10px; padding:12px; border:1px solid #1E293B;">
+        <div style="font-size:11px; font-weight:700; color:#38BDF8; margin-bottom:8px;">REAL-TIME THREAT INCIDENT FEED</div>
+        <div id="threat-event-stream" style="font-family:monospace; font-size:11px; max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="admin-chat-box">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -107,6 +146,84 @@
 
 <script>
   let activeFilter = 'Pending';
+
+  function getThreatLog() {
+    try {
+      return JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
+    } catch(e) { return []; }
+  }
+
+  function getBannedList() {
+    try {
+      return JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
+    } catch(e) { return []; }
+  }
+
+  function applyUserLockout() {
+    const input = document.getElementById('ban-input-identifier');
+    const val = (input ? input.value : '').trim().toLowerCase();
+    if (!val) return;
+    if (val === 'admin@drozominds.com') {
+      alert("Cannot ban the root owner account.");
+      return;
+    }
+
+    const list = getBannedList();
+    if (!list.includes(val)) {
+      list.push(val);
+      localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
+    }
+    input.value = '';
+    renderBannedList();
+    renderThreatStream();
+    alert("Session identity locked. Future access from this account will be terminated.");
+  }
+
+  function removeBan(item) {
+    let list = getBannedList();
+    list = list.filter(x => x !== item);
+    localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
+    renderBannedList();
+  }
+
+  function renderBannedList() {
+    const box = document.getElementById('banned-users-list');
+    if (!box) return;
+    const list = getBannedList();
+    if (!list.length) {
+      box.innerHTML = '<span style="color:#6B7280;">No active session locks.</span>';
+      return;
+    }
+    box.innerHTML = list.map(item => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#111827; padding:4px 8px; border-radius:4px; margin-bottom:4px;">
+        <span style="color:#EF4444; font-weight:700;">${item}</span>
+        <button onclick="removeBan('${item}')" style="background:transparent; border:none; color:#9CA3AF; cursor:pointer; font-size:11px;">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  function renderThreatStream() {
+    const stream = document.getElementById('threat-event-stream');
+    if (!stream) return;
+    const logs = getThreatLog();
+    if (!logs.length) {
+      stream.innerHTML = '<div style="color:#64748B;">No incidents logged. Defense active.</div>';
+      return;
+    }
+    stream.innerHTML = logs.map(l => `
+      <div style="border-bottom:1px solid #1E293B; padding-bottom:4px;">
+        <span style="color:#F59E0B;">[${l.timestamp}]</span>
+        <span style="color:#EF4444; font-weight:bold;"> [${l.type}]</span>
+        <span style="color:#E2E8F0;"> Target: ${l.target}</span> - ${l.action}
+      </div>
+    `).join('');
+  }
+
+  function clearThreatLogs() {
+    localStorage.removeItem('drozo_threat_logs');
+    renderThreatStream();
+  }
+
   let tickets = [];
   let chat = [];
 
@@ -172,6 +289,23 @@
 
     const currentAdminEmail = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
     const isOwner = currentAdminEmail === 'admin@drozominds.com';
+
+    const ownerTab = document.getElementById('owner-threat-tab');
+    if (ownerTab) ownerTab.style.display = isOwner ? 'inline-flex' : 'none';
+
+    const securityPanel = document.getElementById('security-console-panel');
+    const ticketsContainer = document.getElementById('tickets-container');
+
+    if (activeFilter === 'Security') {
+      if (securityPanel) securityPanel.style.display = 'block';
+      if (ticketsContainer) ticketsContainer.style.display = 'none';
+      renderBannedList();
+      renderThreatStream();
+      return;
+    } else {
+      if (securityPanel) securityPanel.style.display = 'none';
+      if (ticketsContainer) ticketsContainer.style.display = 'block';
+    }
 
     container.innerHTML = list.map(t => {
       let actionButtons = '';

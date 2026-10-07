@@ -367,6 +367,39 @@
 
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
+  // LOG INCIDENTS TO OWNER CONSOLE
+  function recordSecurityThreat(type, details) {
+    try {
+      const logs = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
+      logs.unshift({
+        timestamp: new Date().toLocaleTimeString(),
+        type: type,
+        target: (activeUser && activeUser.email) ? activeUser.email : 'Anonymous',
+        action: details
+      });
+      if (logs.length > 50) logs.pop();
+      localStorage.setItem('drozo_threat_logs', JSON.stringify(logs));
+    } catch(e) {}
+  }
+
+  // CHECK ACTIVE BAN LIST BEFORE RENDERING
+  function verifyAccessClearance() {
+    try {
+      const bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
+      if (activeUser && activeUser.email) {
+        const email = activeUser.email.toLowerCase();
+        if (bans.includes(email)) {
+          recordSecurityThreat("ACCESS_BLOCKED", "Banned identity rejected during session check.");
+          sessionStorage.clear();
+          alert("❌ Access Revoked: Your session identity has been locked by the Platform Owner.");
+          location.reload();
+          return false;
+        }
+      }
+    } catch(e) {}
+    return true;
+  }
+
   let activeUser = null;
   let tickets = [];
   let chatMessages = [];
@@ -688,6 +721,8 @@
   }
 
   function initApp() {
+    if (!verifyAccessClearance()) return;
+
     try {
       const saved = sessionStorage.getItem('drozo_user');
       if (saved) activeUser = JSON.parse(saved);
@@ -808,7 +843,14 @@
     }
   }
 
-  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
+  function downloadTherapyDoc(
+    // Security validation against automated file scraping
+    if (!patient || patient.length > 100) {
+      recordSecurityThreat("MALICIOUS_DOWNLOAD", "Attempted invalid download payload.");
+      alert("Security anomaly detected. Document export halted.");
+      return;
+    }
+ticketNum, patient, clinician, date, encObs, encRec) {
     let obs = decodeURIComponent(encObs || '');
     let rec = decodeURIComponent(encRec || '');
     const rtf = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0\\fnil Helvetica;}}\\fs28\\b DROZO MIND CLINICAL OUTCOME\\b0\\fs20\\line\\' +
