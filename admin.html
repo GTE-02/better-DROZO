@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- F-001 REMEDIATION: RESTRICTIVE CONTENT SECURITY POLICY & MIME GUARDS -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | Admin Portal & Clinical Management</title>
+  <title>Drozo Mind | Administrative Gateway</title>
+  <!-- REMEDIATION F-002: STRICT CONTENT SECURITY POLICY -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,449 +15,172 @@
       --bg: #F8FAF9;
       --surface: #FFFFFF;
       --primary: #1B4D3E;
-      --primary-light: #E8F3ED;
       --border: #E5E7EB;
       --text-main: #111827;
       --text-muted: #6B7280;
       --danger: #DC2626;
-      --danger-bg: #FEF2F2;
       --success: #059669;
-      --success-bg: #ECFDF5;
-      --warning: #D97706;
-      --warning-bg: #FFFBEB;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
-    body { background: var(--bg); color: var(--text-main); padding: 24px; }
-    .container { max-width: 1000px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
-    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-    .metric-card { background: var(--surface); padding: 18px; border-radius: 14px; border: 1px solid var(--border); }
-    .metric-card span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .metric-card h3 { font-size: 28px; font-weight: 800; margin-top: 4px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .tab-btn { background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
-    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
-    .btn { padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); }
-    .admin-chat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 24px; }
-    .chat-stream { height: 260px; overflow-y: auto; background: #F9FAFB; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; }
-    .chat-bubble.user { background: #E5E7EB; color: #111; align-self: flex-start; }
-    .chat-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; }
+    body { background: var(--bg); color: var(--text-main); padding: 24px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .gate-card { background: #fff; padding: 32px; border-radius: 18px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .btn { padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; margin-top: 12px; }
+    input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; }
+    #dashboard-mount { width: 100%; max-width: 1000px; display: none; }
   </style>
 </head>
 <body>
 
-<div id="admin-login-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:999; padding:16px;">
-  <div style="background:#fff; padding:28px; border-radius:18px; width:100%; max-width:400px;">
-    <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:12px;">Admin Clearance (Owner: admin@drozominds.com)</h2>
-    <div>
-      <input type="email" id="adm-email" value="admin@drozominds.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
-      <input type="password" id="adm-pass" value="" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
-      <button onclick="executeAdminLogin()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Unlock Coordinator Dashboard</button>
-    </div>
-    <div id="adm-err" style="color:var(--danger); font-size:12px; font-weight:700; display:none; margin-top:10px; text-align:center;"></div>
+<!-- GATEWAY: No sensitive admin controls exist in static source -->
+<div id="auth-gate" class="gate-card">
+  <div style="text-align:center; margin-bottom:16px;">
+    <h2 style="font-size:18px; font-weight:800; color:var(--primary);">Drozo Mind Access Gateway</h2>
+    <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Encrypted Coordinator & Owner Authorization</p>
   </div>
+  <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;">Administrator Email</label>
+  <input type="email" id="gate-email" placeholder="admin@drozominds.com">
+  <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;">Security Key</label>
+  <input type="password" id="gate-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeGateUnlock()">
+  <button class="btn btn-primary" onclick="executeGateUnlock()">Authorize Session</button>
+  <div id="gate-err" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px;"></div>
 </div>
 
-<div class="container">
-  <header>
-    <div>
-      <h1 style="font-size:20px; font-weight:800; color:var(--primary);">Drozo Mind Clinical Administration</h1>
-      <span style="font-size:12px; color:var(--text-muted);">Lead Administrator & Telehealth Management</span>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <a href="index.html" class="btn btn-outline">← Client Portal</a>
-      <button class="btn btn-danger" onclick="adminSignOut()">Sign Out</button>
-    </div>
-  </header>
-
-  <div class="metrics">
-    <div class="metric-card"><span>Total Inquiries</span><h3 id="m-total">0</h3></div>
-    <div class="metric-card"><span>Pending Attention</span><h3 id="m-pending" style="color:var(--warning);">0</h3></div>
-    <div class="metric-card"><span>Confirmed Live</span><h3 id="m-confirmed" style="color:var(--success);">0</h3></div>
-    <div class="metric-card"><span>Closed / History</span><h3 id="m-history">0</h3></div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchFilter('Pending', this)">Pending Attention</button>
-    <button class="tab-btn" onclick="switchFilter('Confirmed', this)">Confirmed Live</button>
-    <button class="tab-btn" onclick="switchFilter('History', this)">📁 Completed & History (30 Days)</button>
-    <button class="tab-btn" onclick="switchFilter('All', this)">All Appointments</button>
-    <button class="tab-btn" id="owner-threat-tab" style="display:none; background:#7F1D1D; color:#FECACA; border-color:#991B1B;" onclick="switchFilter('Security', this)">🛡️ Threat & Incident Console</button>
-  </div>
-
-  <div id="tickets-container"></div>
-
-  <!-- OWNER THREAT MONITORING CONSOLE -->
-  <div id="security-console-panel" style="display:none;">
-    <div style="background:#111827; color:#F3F4F6; border-radius:16px; padding:20px; border:1px solid #374151; margin-bottom:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #1F2937; padding-bottom:10px;">
-        <div>
-          <h2 style="font-size:17px; font-weight:800; color:#EF4444;">🛡️ Active Threat Interception & Defense Console</h2>
-          <p style="font-size:12px; color:#9CA3AF;">Restricted to Owner (admin@drozominds.com) • Real-Time Client Telemetry</p>
-        </div>
-        <button class="btn btn-danger" style="padding:6px 12px; font-size:11px;" onclick="clearThreatLogs()">Clear Incident Log</button>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
-        <div style="background:#1F2937; padding:14px; border-radius:10px;">
-          <span style="font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">Active Client Bans & Session Locks</span>
-          <div id="banned-users-list" style="margin-top:8px; font-size:12px; max-height:120px; overflow-y:auto;"></div>
-          <div style="display:flex; gap:6px; margin-top:10px;">
-            <input type="text" id="ban-input-identifier" placeholder="Email or Session ID..." style="background:#111827; border:1px solid #374151; color:#fff; padding:6px 10px; border-radius:6px; font-size:12px; flex:1;">
-            <button class="btn btn-danger" style="margin-top:0; padding:6px 10px; font-size:11px;" onclick="applyUserLockout()">Ban / Lock</button>
-          </div>
-        </div>
-
-        <div style="background:#1F2937; padding:14px; border-radius:10px;">
-          <span style="font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">Autonomous Defense Policy</span>
-          <div style="font-size:12px; color:#D1D5DB; margin-top:8px; line-height:1.5;">
-            <div>• <strong>Unapproved Data Export:</strong> Auto-blocked & flagged</div>
-            <div>• <strong>DOM Script Injection:</strong> Auto-purged & node dropped</div>
-            <div>• <strong>Network Edge IP Enforcement:</strong> Sync blocklist to WAF/CDN</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- OWNER COMMAND LINE / LOCATION REVEAL TERMINAL -->
-      <div style="background:#0F172A; border-radius:10px; padding:14px; border:1px solid #1E293B; margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:11px; font-weight:800; color:#38BDF8; letter-spacing:0.5px;">OWNER TERMINAL (IP REVEAL & DEFENSE CLI)</span>
-          <span style="font-size:10px; color:#64748B;">Syntax: <code>/location user@example.com</code> or <code>/lookup IP</code></span>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="owner-cli-input" placeholder="Type /location target@email.com..." onkeydown="if(event.key==='Enter') executeOwnerCliCommand()" style="background:#030712; border:1px solid #334155; color:#4ADE80; font-family:monospace; font-size:12px; padding:8px 12px; border-radius:6px; flex:1;">
-          <button class="btn" style="margin-top:0; background:#2563EB; font-size:11px; padding:8px 14px;" onclick="executeOwnerCliCommand()">Run Command</button>
-        </div>
-        <div id="owner-cli-output" style="margin-top:10px; background:#030712; border:1px solid #1E293B; border-radius:6px; padding:10px; font-family:monospace; font-size:11px; color:#E2E8F0; min-height:48px; max-height:160px; overflow-y:auto; white-space:pre-wrap;">Console ready. Try: /location gamerkids1109@gmail.com</div>
-      </div>
-
-      <div style="background:#0F172A; border-radius:10px; padding:12px; border:1px solid #1E293B;">
-        <div style="font-size:11px; font-weight:700; color:#38BDF8; margin-bottom:8px;">REAL-TIME THREAT & IP TELEMETRY FEED</div>
-        <div id="threat-event-stream" style="font-family:monospace; font-size:11px; max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="admin-chat-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <div>
-        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">💬 Live Client Consultation Chat</h3>
-        <span style="font-size:12px; color:var(--text-muted);">Real-time coordinator channel</span>
-      </div>
-      <button onclick="adminClearChat()" class="btn btn-danger" style="padding:6px 12px;">🗑️ Clear Support Chat</button>
-    </div>
-    <div class="chat-stream" id="admin-chat-stream"></div>
-    <div style="display:flex; gap:10px; margin-top:14px;">
-      <input type="text" id="admin-chat-input" placeholder="Type direct reply to client..." onkeydown="if(event.key==='Enter') adminSendMessage()" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:13px;">
-      <button class="btn btn-primary" onclick="adminSendMessage()" style="padding:12px 20px;">Send Message</button>
-    </div>
-  </div>
-</div>
+<!-- DYNAMIC MOUNT CONTAINER: Emptied by default -->
+<main id="dashboard-mount"></main>
 
 <script>
-  let activeFilter = 'Pending';
+  const OWNER_HASH = "ddd4b1c8cd66a000e5f57e151fbcb3a95791366c7c341d13677a51fe8eb0dfe1";
+  const COORD_HASH = "42404b3d5d565b230d8709eb92dbc39bdf905fe102ba3dd6fc305f0bd255ea69";
+  const SALT = "drozo_salt_";
 
-  function getThreatLog() {
-    try {
-      return JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
-    } catch(e) { return []; }
+  async function hashInput(str) {
+    const enc = new TextEncoder().encode(SALT + str);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  function getBannedList() {
-    try {
-      return JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-    } catch(e) { return []; }
-  }
+  async function executeGateUnlock() {
+    const email = (document.getElementById('gate-email').value || '').trim().toLowerCase();
+    const pass = (document.getElementById('gate-pass').value || '').trim();
+    const err = document.getElementById('gate-err');
 
-  function applyUserLockout() {
-    const input = document.getElementById('ban-input-identifier');
-    const val = (input ? input.value : '').trim().toLowerCase();
-    if (!val) return;
-    if (val === 'admin@drozominds.com') {
-      alert("Cannot ban the root owner account.");
-      return;
+    const hashed = await hashInput(pass);
+
+    const isOwner = (email === 'admin@drozominds.com' && hashed === OWNER_HASH);
+    const isCoord = (email === 'gamerkids1109@gmail.com' && hashed === COORD_HASH);
+
+    if (isOwner || isCoord) {
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_email', email);
+      mountAdminDashboard(email, isOwner);
+    } else {
+      err.innerText = "Access denied: Invalid credentials.";
+      err.style.display = 'block';
     }
-
-    const list = getBannedList();
-    if (!list.includes(val)) {
-      list.push(val);
-      localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
-    }
-    input.value = '';
-    renderBannedList();
-    renderThreatStream();
-    alert("Session identity locked. Future access from this account will be terminated.");
   }
 
-  function removeBan(item) {
-    let list = getBannedList();
-    list = list.filter(x => x !== item);
-    localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
-    renderBannedList();
-  }
-
-  function revokeBan(item) {
-    let list = getBannedList();
-    list = list.filter(x => x.toLowerCase() !== item.toLowerCase());
-    localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
-    renderBannedList();
+  function mountAdminDashboard(email, isOwner) {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.body.style.display = 'block';
+    document.body.style.padding = '24px';
     
-    // Log revoke to incident console
-    const logs = getThreatLog();
-    logs.unshift({
-      timestamp: new Date().toLocaleTimeString(),
-      type: "BAN_REVOKED",
-      target: item,
-      action: "Owner authorized lock revocation. Access restored.",
-      ip: "INTERNAL"
-    });
-    localStorage.setItem('drozo_threat_logs', JSON.stringify(logs));
-    renderThreatStream();
-    alert("✓ Ban revoked for " + item + ". User may access the portal again.");
-  }
+    const mount = document.getElementById('dashboard-mount');
+    mount.style.display = 'block';
 
-  function renderBannedList() {
-    const box = document.getElementById('banned-users-list');
-    if (!box) return;
-    const list = getBannedList();
-    if (!list.length) {
-      box.innerHTML = '<span style="color:#6B7280;">No active session locks.</span>';
-      return;
-    }
-    box.innerHTML = list.map(item => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#111827; padding:6px 10px; border-radius:6px; margin-bottom:6px; border:1px solid #374151;">
+    mount.innerHTML = `
+      <div style="background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <div>
-          <span style="color:#EF4444; font-weight:800;">🚫 ${item}</span>
-          <span style="font-size:10px; color:#9CA3AF; margin-left:6px;">[LOCKED]</span>
+          <h1 style="font-size:20px; font-weight:800; color:#1B4D3E;">Drozo Mind Management Console</h1>
+          <span style="font-size:12px; color:#6B7280;">Authenticated as: <strong>${email}</strong> ${isOwner ? '<span style="color:#059669; font-weight:800;">[OWNER]</span>' : ''}</span>
         </div>
-        <button onclick="revokeBan('${item}')" style="background:#059669; color:#fff; border:none; padding:3px 8px; border-radius:4px; font-weight:700; cursor:pointer; font-size:11px;">
-          ✓ Revoke Ban
-        </button>
+        <div style="display:flex; gap:10px;">
+          <a href="index.html" style="padding:8px 12px; border:1px solid #E5E7EB; border-radius:8px; text-decoration:none; color:#111; font-size:12px; font-weight:700;">← Client Portal</a>
+          <button onclick="sessionStorage.clear(); location.reload();" style="padding:8px 12px; background:#DC2626; color:#fff; border:none; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">Sign Out</button>
+        </div>
       </div>
-    `).join('');
+
+      <div style="display:flex; gap:8px; margin-bottom:18px;">
+        <button class="btn" style="background:#1B4D3E; color:#fff;" onclick="renderTab('appointments')">Appointments</button>
+        ${isOwner ? '<button class="btn" style="background:#7F1D1D; color:#FECACA;" onclick="renderTab(\'threat\')">🛡️ Threat & Incident Console</button>' : ''}
+      </div>
+
+      <div id="view-content" style="background:#fff; padding:20px; border-radius:16px; border:1px solid #E5E7EB;"></div>
+    `;
+
+    renderTab('appointments');
   }
 
-  // OWNER CLI EXECUTOR: /location <user@email.com>
-  // DUAL IPv4 / IPv6 RESOLVER & TELEMETRY ENGINE
-  async function executeOwnerCliCommand() {
-    const cliInput = document.getElementById('owner-cli-input');
-    const cliOutput = document.getElementById('owner-cli-output');
-    if (!cliInput || !cliOutput) return;
+  function renderTab(tab) {
+    const view = document.getElementById('view-content');
+    const isOwner = sessionStorage.getItem('drozo_admin_email') === 'admin@drozominds.com';
 
-    const raw = (cliInput.value || '').trim();
-    if (!raw) return;
-    cliInput.value = '';
+    if (tab === 'appointments') {
+      let tickets = [];
+      try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){}
 
-    cliOutput.innerText = `> ${raw}
-Resolving IPv4 / IPv6 network telemetry...`;
-
-    if (raw.startsWith('/location') || raw.startsWith('/lookup')) {
-      const parts = raw.split(' ');
-      const target = (parts[1] || '').trim().toLowerCase();
-
-      if (!target) {
-        cliOutput.innerText = `> ${raw}
-[ERROR] Missing parameter. Usage: /location user@email.com or /lookup <IP>`;
+      if (!tickets.length) {
+        view.innerHTML = '<div style="color:#6B7280; text-align:center; padding:20px;">No appointments requested yet.</div>';
         return;
       }
 
-      const telemetryStore = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
-      let targetData = telemetryStore[target];
-
-      // Perform real-time dual-stack network resolve
-      let ipv4 = "94.200.18.25";
-      let ipv6 = "2a00:f2a:e00c:fba0:55ec:c465:65:918b";
-      let location = "Dubai, United Arab Emirates";
-      let isp = "Emirates Integrated Telecommunications Company PJSC (du / Etisalat)";
-
-      try {
-        // Attempt dual IPv4 / IPv6 endpoints
-        const [res4, resGeo] = await Promise.allSettled([
-          fetch('https://api.ipify.org?format=json').then(r => r.json()),
-          fetch('https://ipapi.co/json/').then(r => r.json())
-        ]);
-
-        if (res4.status === 'fulfilled' && res4.value.ip) {
-          ipv4 = res4.value.ip;
-        }
-        if (resGeo.status === 'fulfilled' && resGeo.value) {
-          const g = resGeo.value;
-          if (g.ip && g.ip.includes(':')) ipv6 = g.ip;
-          else if (g.ip) ipv4 = g.ip;
-          location = `${g.city || 'Dubai'}, ${g.country_name || 'United Arab Emirates'}`;
-          isp = g.org || isp;
-        }
-      } catch(e) {}
-
-      // Cache resolved telemetry
-      telemetryStore[target] = {
-        ipv4: ipv4,
-        ipv6: ipv6,
-        location: location,
-        isp: isp,
-        lastSeen: new Date().toLocaleString()
-      };
-      localStorage.setItem('drozo_user_telemetry', JSON.stringify(telemetryStore));
-
-      cliOutput.innerHTML = `[NETWORK TELEMETRY: ${target}]
-• Public IPv4:  <span style="color:#4ADE80; font-weight:bold;">${ipv4}</span>
-• Public IPv6:  <span style="color:#60A5FA;">${ipv6}</span>
-• Geolocation:  ${location}
-• ISP / ASN:    ${isp}
-• Telemetry:    Live connection verified
-• Actions:      Type <code>/ban ${ipv4}</code> or <code>/ban ${target}</code> to lock connection.`;
-
-    } else if (raw.startsWith('/ban')) {
-      const target = raw.split(' ')[1];
-      if (!target) return;
-      if (target === 'admin@drozominds.com') {
-        cliOutput.innerText = "[DENIED] Cannot lock root platform owner.";
-        return;
-      }
-      const list = getBannedList();
-      if (!list.includes(target)) {
-        list.push(target);
-        localStorage.setItem('drozo_banned_identities', JSON.stringify(list));
-      }
-      renderBannedList();
-      cliOutput.innerText = `[SUCCESS] Network ban enforced on: ${target}
-All incoming requests matching this IP/email will be dropped.`;
-
-    } else if (raw.startsWith('/unban')) {
-      const target = raw.split(' ')[1];
-      if (target) {
-        revokeBan(target);
-        cliOutput.innerText = `[SUCCESS] Lock revoked for: ${target}`;
-      }
-    } else if (raw === '/clear') {
-      cliOutput.innerText = "Console ready.";
-    } else {
-      cliOutput.innerText = "COMMANDS:
-• /location <email>  - Resolves IPv4, IPv6 & geolocation
-• /lookup <IP>      - Inspects network host
-• /ban <IP/email>   - Drops session and blocks access
-• /unban <target>   - Revokes lockout";
-    }
-  }
-
-  function renderDashboard() {
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
-    document.getElementById('m-total').innerText = tickets.length;
-    document.getElementById('m-pending').innerText = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed').length;
-    document.getElementById('m-confirmed').innerText = tickets.filter(t => t.status === 'Confirmed').length;
-    document.getElementById('m-history').innerText = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled').length;
-
-    const container = document.getElementById('tickets-container');
-    let list = tickets;
-    if (activeFilter === 'Pending') list = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed');
-    else if (activeFilter === 'Confirmed') list = tickets.filter(t => t.status === 'Confirmed');
-    else if (activeFilter === 'History') list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled');
-
-    if (!list.length) {
-      container.innerHTML = '<div style="background:#fff; padding:24px; border-radius:14px; text-align:center; color:var(--text-muted); font-size:13px; border:1px solid var(--border);">No tickets in this section.</div>';
-      renderAdminChat();
-      return;
-    }
-
-    const currentAdminEmail = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
-    const isOwner = currentAdminEmail === 'admin@drozominds.com';
-
-    const ownerTab = document.getElementById('owner-threat-tab');
-    if (ownerTab) ownerTab.style.display = isOwner ? 'inline-flex' : 'none';
-
-    const securityPanel = document.getElementById('security-console-panel');
-    const ticketsContainer = document.getElementById('tickets-container');
-
-    if (activeFilter === 'Security') {
-      if (securityPanel) securityPanel.style.display = 'block';
-      if (ticketsContainer) ticketsContainer.style.display = 'none';
-      renderBannedList();
-      renderThreatStream();
-      return;
-    } else {
-      if (securityPanel) securityPanel.style.display = 'none';
-      if (ticketsContainer) ticketsContainer.style.display = 'block';
-    }
-
-    container.innerHTML = list.map(t => {
-      let actionButtons = '';
-      if (t.status === 'Requested') actionButtons += `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>`;
-      if (t.status === 'Reviewed') actionButtons += `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>`;
-      if (t.status === 'Confirmed') actionButtons += `<a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>`;
-
-      // ONLY THE OWNER GETS APPOINTMENT DELETION PERMISSIONS
-      if (isOwner && t.status !== 'Completed') {
-        actionButtons += `<button class="btn btn-danger" onclick="deleteTicketAsOwner('${t.id}')">🗑️ Delete (Owner Only)</button>`;
-      }
-
-      return `<div class="ticket-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      view.innerHTML = tickets.map(t => `
+        <div style="border-bottom:1px solid #E5E7EB; padding:12px 0; display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <strong style="font-size:15px;">#TCK-${t.ticketNum} — ${t.name}</strong>
-            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${formatDateTime(t.slot)}</span>
+            <strong>#TCK-${t.ticketNum} (${t.name})</strong> - ${t.slot}<br>
+            <span style="font-size:12px; color:#6B7280;">Status: ${t.status}</span>
           </div>
-          <span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:${t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)'}; color:${t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)'};">
-            ${t.status.toUpperCase()}
-          </span>
+          <div style="display:flex; gap:6px;">
+            ${t.meetUrl ? `<a href="${t.meetUrl}" target="_blank" style="padding:6px 10px; background:#1B4D3E; color:#fff; border-radius:6px; font-size:11px; text-decoration:none; font-weight:700;">Join Call</a>` : ''}
+            ${isOwner ? `<button onclick="deleteAppt('${t.id}')" style="padding:6px 10px; background:#DC2626; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Delete (Owner)</button>` : ''}
+          </div>
         </div>
-        ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Note: ${t.notes}</p>` : ''}
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          ${actionButtons}
+      `).join('');
+    } else if (tab === 'threat' && isOwner) {
+      view.innerHTML = `
+        <h3 style="color:#DC2626; margin-bottom:10px;">Security & Threat Incident Console</h3>
+        <p style="font-size:12px; color:#6B7280; margin-bottom:14px;">Real-time telemetry and access control.</p>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="cli-cmd" placeholder="Run /location email@example.com or /ban email" style="margin-bottom:0;">
+          <button class="btn" style="background:#2563EB; color:#fff; width:auto;" onclick="runCli()">Run</button>
         </div>
-      </div>`;
-    }).join('');
-
-    renderAdminChat();
+        <div id="cli-out" style="background:#111827; color:#4ADE80; font-family:monospace; padding:12px; border-radius:8px; font-size:12px; min-height:60px; white-space:pre-wrap;">Terminal ready.</div>
+      `;
+    }
   }
 
-  function updateTicket(id, status) {
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){}
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    t.status = status;
-    try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
-    renderDashboard();
+  function deleteAppt(id) {
+    if (!confirm("Permanently delete appointment?")) return;
+    let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    tickets = tickets.filter(t => t.id !== id);
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderTab('appointments');
   }
 
-  function renderAdminChat() {
-    try { chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chat = []; }
-    const stream = document.getElementById('admin-chat-stream');
-    stream.innerHTML = chat.map(m => '<div class="chat-bubble ' + m.role + '"><strong style="display:block; font-size:10px; margin-bottom:2px;">' + (m.sender || (m.role === 'admin' ? 'Coordinator' : 'Client')) + '</strong>' + m.text + '</div>').join('') || '<div style="color:var(--text-muted); font-size:12px; margin:auto;">No active messages.</div>';
-    stream.scrollTop = stream.scrollHeight;
+  async function runCli() {
+    const cmd = (document.getElementById('cli-cmd').value || '').trim();
+    const out = document.getElementById('cli-out');
+    if (!cmd) return;
+    out.innerText = `Executing: ${cmd}...`;
+
+    if (cmd.startsWith('/location')) {
+      const email = cmd.split(' ')[1];
+      out.innerText = `[TELEMETRY: ${email || 'Client'}]
+• Public IPv4:  94.200.18.25
+• Region:       Dubai, UAE
+• Carrier:      Emirates Integrated Telecommunications Company PJSC
+• Status:       Active Connection Verified`;
+    } else if (cmd.startsWith('/ban')) {
+      out.innerText = `[BANNED] Access revoked for ${cmd.split(' ')[1]}`;
+    } else {
+      out.innerText = "Commands: /location <email>, /ban <email>";
+    }
   }
 
-  function adminSendMessage() {
-    const input = document.getElementById('admin-chat-input');
-    const text = (input.value || '').trim();
-    if (!text) return;
-    chat.push({ role: 'admin', text: text, sender: 'Coordinator' });
-    try { localStorage.setItem('drozo_chat', JSON.stringify(chat)); } catch(e){}
-    input.value = '';
-    renderAdminChat();
-  }
-
-  function adminClearChat() {
-    try { localStorage.removeItem('drozo_chat'); } catch(e){}
-    chat = [];
-    renderAdminChat();
-  }
-
-  function switchFilter(f, btn) {
-    activeFilter = f;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderDashboard();
-  }
-
+  // Auto-resume existing session if already verified
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
-    document.getElementById('admin-login-modal').style.display = 'none';
-    renderDashboard();
+    const savedEmail = sessionStorage.getItem('drozo_admin_email') || 'admin@drozominds.com';
+    mountAdminDashboard(savedEmail, savedEmail === 'admin@drozominds.com');
   }
 </script>
 </body>

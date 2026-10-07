@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <!-- F-001 REMEDIATION: RESTRICTIVE CONTENT SECURITY POLICY & MIME GUARDS -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
+    <!-- REMEDIATION F-002: HARDENED CONTENT SECURITY POLICY -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
