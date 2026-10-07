@@ -30,171 +30,46 @@
       --radius-md: 14px;
       --radius-lg: 20px;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     body { background: var(--bg); color: var(--text-main); padding: 24px 16px 110px; }
     .container { max-width: 640px; margin: 0 auto; }
-
-    header {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: var(--shadow-card); margin-bottom: 20px;
-    }
+    header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card); margin-bottom: 20px; }
     .brand-group { display: flex; align-items: center; gap: 12px; }
-    .brand-icon {
-      width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light);
-      display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary);
-    }
+    .brand-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary); }
     .brand-title { font-size: 17px; font-weight: 800; color: var(--primary); }
     .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-    
-    .status-pill {
-      font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 20px;
-      background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0;
-      display: inline-flex; align-items: center; gap: 5px;
-    }
-    .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #10B981; }
-
-    .card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px;
-    }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .card-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px; }
+    .card-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
     .card-caption { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
-
     .pipeline-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0; }
-    .step-item {
-      background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm);
-      font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent;
-    }
+    .step-item { background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent; }
     .step-item.active { background: var(--primary-light); color: var(--primary); border-color: var(--accent-subtle); }
     .step-item.done { background: #F0FDF4; color: var(--success); }
-
-    .active-slot-box {
-      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md);
-      padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px;
-    }
-    .ticket-badge {
-      display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;
-      background: var(--primary); color: #fff; margin-bottom: 10px;
-    }
-
+    .active-slot-box { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px; }
     label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin: 14px 0 6px; }
-    input, textarea {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none;
-    }
-
-    .btn {
-      width: 100%; padding: 12px 18px; border: none; border-radius: 10px;
-      font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
-      background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      margin-top: 14px;
-    }
+    input, textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none; }
+    .btn { width: 100%; padding: 12px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; }
     .btn:hover { background: var(--primary-hover); }
     .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
     .btn-danger { background: var(--danger); }
-    .btn-discord { background: var(--discord); color: #fff; }
-
-    .chat-container {
-      height: 300px; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px;
-    }
+    .floating-call-btn { position: fixed; right: 20px; bottom: 95px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35); border: 2px solid #fff; cursor: pointer; z-index: 400; }
+    .support-modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: flex-end; justify-content: flex-end; padding: 16px; }
+    .support-modal-overlay.open { display: flex; }
+    .support-modal-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; }
+    .chat-container { height: 300px; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; }
     .bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
     .bubble.admin { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); align-self: flex-start; }
-
-    .bottom-dock {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100;
-    }
-    .dock-btn {
-      background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700;
-      cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    }
+    .bottom-dock { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px; background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .dock-btn { background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
     .dock-btn.active { color: var(--primary); }
-
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65);
-      backdrop-filter: blur(5px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px;
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65); backdrop-filter: blur(5px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-  
-    /* Floating Side Call Button */
-    .floating-call-btn {
-      position: fixed;
-      right: 20px;
-      bottom: 95px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35);
-      border: 2px solid #fff;
-      cursor: pointer;
-      z-index: 400;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-    .floating-call-btn:hover {
-      transform: scale(1.08);
-      background: var(--primary-hover);
-    }
-    .floating-call-btn::after {
-      content: "";
-      position: absolute;
-      top: 0; right: 0;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: #10B981;
-      border: 2px solid #fff;
-    }
-
-    /* Side Support Modal / Drawer */
-    .support-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(17, 24, 39, 0.55);
-      backdrop-filter: blur(4px);
-      z-index: 600;
-      display: none;
-      align-items: flex-end;
-      justify-content: flex-end;
-      padding: 16px;
-    }
-    .support-modal-overlay.open {
-      display: flex;
-    }
-    .support-modal-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      max-height: 85vh;
-      overflow: hidden;
-      animation: slideUp 0.25s ease-out;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
   </style>
 </head>
 <body>
 
-<!-- AUTH MODAL -->
 <div id="auth-modal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 420px; margin-bottom: 0;">
     <div style="text-align: center; margin-bottom: 18px;">
@@ -202,12 +77,10 @@
       <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Drozo Mind Portal</h2>
       <p class="card-caption">Secure client consultation access.</p>
     </div>
-
     <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 16px;">
       <button id="btn-login-tab" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:#fff; color:var(--primary);" onclick="setAuthTab('login')">Sign In</button>
       <button id="btn-signup-tab" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:transparent; color:var(--text-muted);" onclick="setAuthTab('signup')">Create Account</button>
     </div>
-
     <div>
       <label>Email Address</label>
       <input type="email" id="auth-email" placeholder="name@example.com">
@@ -215,6 +88,38 @@
       <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAuth()">
       <button class="btn" id="auth-submit-btn" onclick="executeAuth()">Sign In</button>
       <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="floating-call-btn" onclick="toggleSupportDrawer(true)" title="Instant Care & AI Coordinator">📞</div>
+
+<div id="side-support-drawer" class="support-modal-overlay" onclick="if(event.target===this) toggleSupportDrawer(false)">
+  <div class="support-modal-panel">
+    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:22px;">🌿</span>
+        <div>
+          <strong style="font-size:15px; display:block;">Drozo Mind Direct Care</strong>
+          <span style="font-size:11px; opacity:0.85;">AI Assistant & Immediate Call Hub</span>
+        </div>
+      </div>
+      <button onclick="toggleSupportDrawer(false)" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+    <div style="padding:14px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button onclick="startInstantVideoCall()" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:var(--primary);">📹 Video Call</button>
+      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:#5865F2; color:#fff; text-decoration:none;">💬 Discord</a>
+    </div>
+    <div style="padding:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Drozo AI Care Assistant</span>
+        <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
+      </div>
+      <div class="chat-container" id="chat-stream" style="flex:1; height:320px;"></div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <input type="text" id="chat-input-text" placeholder="Ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
+        <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
+      </div>
     </div>
   </div>
 </div>
@@ -230,122 +135,39 @@
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <a href="https://discord.gg/c8H6CQJTWA" target="_blank" style="background:#5865F2; color:#fff; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700;">💬 Discord</a>
-      <span class="status-pill">Active Care</span>
     </div>
   </header>
 
-  
-<!-- Floating Side Call / Support Trigger -->
-<div class="floating-call-btn" onclick="toggleSupportDrawer(true)" title="Instant Care & AI Coordinator">
-  📞
-</div>
-
-<!-- Side Support & Call Console -->
-<div id="side-support-drawer" class="support-modal-overlay" onclick="if(event.target===this) toggleSupportDrawer(false)">
-  <div class="support-modal-panel">
-    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:22px;">🌿</span>
-        <div>
-          <strong style="font-size:15px; display:block;">Drozo Mind Direct Care</strong>
-          <span style="font-size:11px; opacity:0.85;">AI Assistant & Immediate Call Hub</span>
-        </div>
-      </div>
-      <button onclick="toggleSupportDrawer(false)" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
-    </div>
-
-    <!-- Quick Call Options on Top -->
-    <div style="padding:14px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-      <button onclick="startInstantVideoCall()" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:var(--primary);">
-        📹 Start Video Call
-      </button>
-      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0; padding:10px; font-size:12px; text-decoration:none;">
-        💬 Discord Voice
-      </a>
-    </div>
-
-    <!-- AI Conversational Action Engine -->
-    <div style="padding:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Drozo AI Care Assistant</span>
-        <div style="display:flex; gap:6px;">
-          <button onclick="promptApiKey()" style="background:var(--primary-light); color:var(--primary); border:1px solid var(--accent-subtle); padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">⚙️ API Key</button>
-          <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
-        </div>
-      </div>
-
-      <div class="chat-container" id="chat-stream" style="flex:1; height:320px;"></div>
-
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <input type="text" id="chat-input-text" placeholder="Type or ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
-        <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-  <!-- OVERVIEW TAB -->
   <div id="tab-overview" class="tab-content active">
     <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Care Pathway Tracker</div>
-          <div class="card-caption">Track your appointment progress from initial request to confirmed video session.</div>
-        </div>
-      </div>
-
+      <div class="card-title">Care Pathway Tracker</div>
+      <div class="card-caption">Track your appointment progress from initial request to confirmed video session.</div>
       <div class="pipeline-bar">
         <div class="step-item" id="p-req">1. Requested</div>
         <div class="step-item" id="p-rev">2. Reviewed</div>
         <div class="step-item" id="p-off">3. Slot Offered</div>
         <div class="step-item" id="p-conf">4. Confirmed</div>
       </div>
-
       <div id="pipeline-body" class="active-slot-box">
         <span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>
       </div>
     </div>
   </div>
 
-  <!-- BOOKING TAB -->
   <div id="tab-book" class="tab-content">
     <div class="card">
       <div class="card-title">Schedule a Consultation</div>
       <div class="card-caption">Submit your preferred date and time for coordinator review.</div>
-
       <label>Preferred Date & Time</label>
       <input type="datetime-local" id="book-slot">
-
       <label>Full Name / Preferred Handle</label>
       <input type="text" id="book-name" placeholder="e.g. Alex Morgan">
-
       <label>Focus Area or Session Notes (Optional)</label>
       <textarea id="book-notes" rows="3" placeholder="Tell us about the topics or goals you would like to address..."></textarea>
-
       <button class="btn" onclick="submitBookingRequest()">Submit Booking Request</button>
     </div>
   </div>
 
-  <!-- CHAT TAB -->
-  <div id="tab-chat" class="tab-content">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div class="card-title" style="margin-bottom:0;">Direct Coordinator Care</div>
-        <div style="display:flex; gap:6px;">
-          <button onclick="promptApiKey()" style="background:var(--primary-light); color:var(--primary); border:1px solid var(--accent-subtle); padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">⚙️ Set AI Key</button>
-          <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Clear Chat</button>
-        </div>
-      </div>
-      <div class="card-caption">Chat with Drozo AI, speak directly with your therapist, or connect on Discord.</div>
-      <div class="chat-container" id="chat-stream"></div>
-      <div style="display: flex; gap: 8px; margin-top: 14px;">
-        <input type="text" id="chat-input-text" placeholder="Ask Drozo AI or send coordinator message..." onkeydown="if(event.key==='Enter') sendUserMessage()">
-        <button class="btn" style="width: 100px; margin-top: 0;" onclick="sendUserMessage()">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- HISTORY TAB -->
   <div id="tab-history" class="tab-content">
     <div class="card">
       <div class="card-title">Session History</div>
@@ -354,25 +176,16 @@
     </div>
   </div>
 
-  <!-- PROFILE TAB -->
   <div id="tab-profile" class="tab-content">
     <div class="card">
       <div class="card-title">User Account</div>
       <label>Registered Email</label>
       <input type="text" id="profile-email-box" readonly style="background: var(--surface-subtle);">
-      
-      <div style="margin: 18px 0; padding: 14px; background: var(--surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border);">
-        <strong style="font-size: 13px; color: var(--primary); display: block; margin-bottom: 4px;">💬 Official Discord Hub</strong>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Direct voice rooms and live community updates.</p>
-        <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0;">Open Discord Hub</a>
-      </div>
-
       <button class="btn btn-danger" onclick="signOutUser()">Sign Out</button>
     </div>
   </div>
 </div>
 
-<!-- DOCK NAVIGATION -->
 <nav class="bottom-dock">
   <button class="dock-btn active" onclick="switchNav('overview', this)">Overview</button>
   <button class="dock-btn" onclick="switchNav('book', this)">Schedule</button>
@@ -381,11 +194,17 @@
 </nav>
 
 <script>
-
   let activeUser = JSON.parse(sessionStorage.getItem('drozo_active_session') || 'null');
   let authMode = 'login';
   let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
   let chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+
+  function formatDateTime(str) {
+    if (!str) return 'Date Pending';
+    const d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
 
   function getRegisteredAccounts() {
     let users = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
@@ -398,34 +217,19 @@
   function setAuthTab(mode) {
     authMode = mode;
     const isLogin = mode === 'login';
-    const loginBtn = document.getElementById('btn-login-tab');
-    const signupBtn = document.getElementById('btn-signup-tab');
-    const submitBtn = document.getElementById('auth-submit-btn');
-
-    if (loginBtn) {
-      loginBtn.style.background = isLogin ? '#fff' : 'transparent';
-      loginBtn.style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    }
-    if (signupBtn) {
-      signupBtn.style.background = !isLogin ? '#fff' : 'transparent';
-      signupBtn.style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    }
-    if (submitBtn) {
-      submitBtn.innerText = isLogin ? 'Sign In' : 'Create Account';
-    }
+    document.getElementById('btn-login-tab').style.background = isLogin ? '#fff' : 'transparent';
+    document.getElementById('btn-login-tab').style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('btn-signup-tab').style.background = !isLogin ? '#fff' : 'transparent';
+    document.getElementById('btn-signup-tab').style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('auth-submit-btn').innerText = isLogin ? 'Sign In' : 'Create Account';
     hideAuthError();
   }
 
   function showAuthError(msg) {
     const errBox = document.getElementById('auth-error-msg');
-    if (errBox) {
-      errBox.innerText = msg;
-      errBox.style.display = 'block';
-    } else {
-      alert(msg);
-    }
+    errBox.innerText = msg;
+    errBox.style.display = 'block';
   }
-
   function hideAuthError() {
     const errBox = document.getElementById('auth-error-msg');
     if (errBox) errBox.style.display = 'none';
@@ -433,68 +237,40 @@
 
   function executeAuth() {
     hideAuthError();
-    const emailEl = document.getElementById('auth-email');
-    const passEl = document.getElementById('auth-pass');
-    
-    if (!emailEl || !passEl) return;
-    
-    const email = (emailEl.value || '').trim().toLowerCase();
-    const pass = (passEl.value || '').trim();
-
-    if (!email || !pass) {
-      return showAuthError("Please enter both email and password.");
-    }
+    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
+    const pass = (document.getElementById('auth-pass').value || '').trim();
+    if (!email || !pass) return showAuthError('Please enter both email and password.');
 
     const accounts = getRegisteredAccounts();
-
     if (authMode === 'signup') {
-      if (accounts[email]) {
-        return showAuthError("Account already exists. Please switch to Sign In.");
-      }
-      if (pass.length < 6) {
-        return showAuthError("Password must be at least 6 characters.");
-      }
+      if (accounts[email]) return showAuthError('Account already exists. Switch to Sign In.');
+      if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
       accounts[email] = pass;
       localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
       activeUser = { id: 'usr_' + Date.now(), email: email, role: 'user' };
       sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
       initApp();
     } else {
-      if (!accounts[email]) {
-        return showAuthError("Account not found. Switch to 'Create Account' first.");
-      }
-      if (accounts[email] !== pass) {
-        return showAuthError("Incorrect password. Please try again.");
-      }
-
-      activeUser = {
-        id: 'usr_' + Date.now(),
-        email: email,
-        role: (email === 'admin@drozomind.com' || email === 'gamerkids1109@gmail.com') ? 'admin' : 'user'
-      };
+      if (!accounts[email]) return showAuthError('No account found. Click Create Account first.');
+      if (accounts[email] !== pass) return showAuthError('Incorrect password. Access denied.');
+      activeUser = { id: 'usr_' + Date.now(), email: email, role: (email === 'admin@drozomind.com' || email === 'gamerkids1109@gmail.com') ? 'admin' : 'user' };
       sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
       initApp();
     }
   }
 
   function initApp() {
-    const modal = document.getElementById('auth-modal');
     if (!activeUser) {
-      if (modal) modal.style.display = 'flex';
+      document.getElementById('auth-modal').style.display = 'flex';
       return;
     }
-    if (modal) modal.style.display = 'none';
-
-    const emailDisplay = document.getElementById('user-display-email');
-    if (emailDisplay) emailDisplay.innerText = activeUser.email;
-
-    const emailBox = document.getElementById('profile-email-box');
-    if (emailBox) emailBox.value = activeUser.email;
-
-    if (typeof pruneOldHistory === 'function') pruneOldHistory();
-    if (typeof renderPipeline === 'function') renderPipeline();
-    if (typeof renderChat === 'function') renderChat();
-    if (typeof renderHistory === 'function') renderHistory();
+    document.getElementById('auth-modal').style.display = 'none';
+    document.getElementById('user-display-email').innerText = activeUser.email;
+    document.getElementById('profile-email-box').value = activeUser.email;
+    pruneOldHistory();
+    renderPipeline();
+    renderChat();
+    renderHistory();
   }
 
   function signOutUser() {
@@ -502,113 +278,227 @@
     location.reload();
   }
 
-
-  function formatDateTime(str) {
-    if (!str) return 'Date Pending';
-    const d = new Date(str);
-    if (isNaN(d.getTime())) return str;
-    return d.toLocaleString('en-US', {
-      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+  function switchNav(tab, el) {
+    document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
   }
 
+  function toggleSupportDrawer(open) {
+    const drawer = document.getElementById('side-support-drawer');
+    if (open) { drawer.classList.add('open'); renderChat(); }
+    else { drawer.classList.remove('open'); }
+  }
 
-  // Auto-generate and download MS Word (.doc) outcome summary
-  
-  // Official Clinical Document Exporter
-  // Poll localStorage every 1.5s for real-time document and ticket sync
-  setInterval(() => {
-    const rawChat = localStorage.getItem('drozo_chat') || '[]';
-    if (rawChat !== JSON.stringify(chatMessages)) {
-      chatMessages = JSON.parse(rawChat);
+  function startInstantVideoCall() {
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const active = tickets.find(t => t.status === 'Confirmed');
+    if (active && active.meetUrl) window.open(active.meetUrl, '_blank');
+    else {
+      const tempId = Math.floor(100000 + Math.random() * 900000);
+      window.open('https://meet.jit.si/DrozoMind-Instant-' + tempId + '#config.prejoinPageEnabled=false', '_blank');
+    }
+  }
+
+  function renderPipeline() {
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const container = document.getElementById('pipeline-body');
+    const pReq = document.getElementById('p-req');
+    const pRev = document.getElementById('p-rev');
+    const pOff = document.getElementById('p-off');
+    const pConf = document.getElementById('p-conf');
+    [pReq, pRev, pOff, pConf].forEach(s => s.className = 'step-item');
+
+    const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
+    if (!active) {
+      container.innerHTML = '<span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>';
+      return;
+    }
+
+    pReq.classList.add('active');
+    if (active.status === 'Reviewed') pRev.classList.add('active');
+    else if (active.status === 'Slot Offered') { pRev.classList.add('done'); pOff.classList.add('active'); }
+    else if (active.status === 'Confirmed') { pRev.classList.add('done'); pOff.classList.add('done'); pConf.classList.add('active'); }
+
+    let buttons = '';
+    if (active.status === 'Slot Offered') {
+      buttons = '<div style="margin-top:12px; display:flex; gap:8px;"><button class="btn" style="background:#059669; margin-top:0;" onclick="acceptCounterSlot(\'' + active.id + '\')">Accept Offered Time</button><button class="btn btn-danger" style="margin-top:0;" onclick="cancelClientSlot(\'' + active.id + '\')">Decline</button></div>';
+    } else if (active.status === 'Confirmed') {
+      buttons = '<div style="margin-top:14px; background:#fff; padding:16px; border-radius:12px; border:1px solid var(--border);"><strong style="color:var(--primary); display:block; margin-bottom:6px;">🎉 Appointment Confirmed! Choose Platform:</strong><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"><a href="' + active.meetUrl + '" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px;">📹 Video Room</a><a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:#5865F2; color:#fff; text-decoration:none;">💬 Discord</a></div></div>';
+    }
+
+    container.innerHTML = '<div style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; background:var(--primary); color:#fff; margin-bottom:10px;">#TCK-' + active.ticketNum + ' • ' + active.status.toUpperCase() + '</div>' +
+      '<div><strong>Client:</strong> ' + active.name + '</div>' +
+      '<div><strong>Requested Slot:</strong> ' + formatDateTime(active.slot) + '</div>' +
+      (active.counterSlot ? '<div style="color:#D97706; margin-top:6px;"><strong>Proposed Slot:</strong> ' + formatDateTime(active.counterSlot) + '</div>' : '') + buttons;
+  }
+
+  function submitBookingRequest() {
+    const slot = document.getElementById('book-slot').value;
+    const name = document.getElementById('book-name').value.trim();
+    const notes = document.getElementById('book-notes').value.trim();
+    if (!slot || !name) return alert('Please fill in preferred date/time and name.');
+
+    const ticketNum = Math.floor(100000 + Math.random() * 900000);
+    tickets.unshift({
+      id: 'tck_' + Date.now(),
+      ticketNum: ticketNum,
+      slot: slot,
+      name: name,
+      notes: notes,
+      status: 'Requested',
+      meetUrl: 'https://meet.jit.si/DrozoMind-' + ticketNum + '#config.prejoinPageEnabled=false',
+      createdAt: new Date().toISOString()
+    });
+
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    alert('Appointment requested! Coordinator will review shortly.');
+    switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
+    renderPipeline();
+  }
+
+  function acceptCounterSlot(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Confirmed';
+    t.slot = t.counterSlot || t.slot;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderPipeline();
+  }
+
+  function cancelClientSlot(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Cancelled';
+    t.cancelledAt = new Date().toISOString();
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderPipeline();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    pruneOldHistory();
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const container = document.getElementById('history-container');
+    const list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed');
+    if (!list.length) {
+      container.innerHTML = '<span style="color:var(--text-muted); font-size:13px;">No past sessions. Records remain here for 30 days.</span>';
+      return;
+    }
+    const now = Date.now();
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    container.innerHTML = list.map(t => {
+      const finishedTime = new Date(t.completedAt || t.cancelledAt || t.createdAt).getTime();
+      const daysLeft = Math.max(1, Math.round((THIRTY_DAYS - (now - finishedTime)) / (24 * 60 * 60 * 1000)));
+      const isDone = t.status === 'Completed';
+      return '<div style="background:var(--surface-subtle); border:1px solid var(--border); padding:12px; border-radius:10px; font-size:13px;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><strong>#TCK-' + t.ticketNum + ' (' + t.name + ')</strong><span style="font-weight:700; color:' + (isDone ? 'var(--success)' : 'var(--danger)') + '">' + (isDone ? 'COMPLETED' : 'CANCELLED') + '</span></div>' +
+        '<div style="color:var(--text-muted); font-size:12px;">Date: ' + formatDateTime(t.slot) + '</div>' +
+        '<div style="font-size:11px; color:#9CA3AF; margin-top:2px;">Auto-cleans in ' + daysLeft + ' days</div></div>';
+    }).join('');
+  }
+
+  function pruneOldHistory() {
+    let t = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const filtered = t.filter(ticket => {
+      if (ticket.status === 'Completed' || ticket.status === 'Cancelled' || ticket.status === 'Closed') {
+        const itemDate = new Date(ticket.completedAt || ticket.cancelledAt || ticket.createdAt).getTime();
+        return (now - itemDate) < THIRTY_DAYS;
+      }
+      return true;
+    });
+    if (filtered.length !== t.length) localStorage.setItem('drozo_tickets', JSON.stringify(filtered));
+  }
+
+  function clearChatHistory() {
+    if (confirm('Clear support chat history?')) {
+      chatMessages = [];
+      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
       renderChat();
     }
-    const rawTickets = localStorage.getItem('drozo_tickets') || '[]';
-    if (rawTickets !== JSON.stringify(tickets)) {
-      tickets = JSON.parse(rawTickets);
-      renderPipeline();
-      renderHistory();
-    }
-  }, 1500);
+  }
 
-  // Professional Word Document (.doc) Builder
+  function executeAiIntent(query) {
+    const q = query.toLowerCase().trim();
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    if (/cancel|abort|delete|drop/.test(q) && /appoint|book|meet|session|slot/.test(q)) {
+      const activeIdx = tickets.findIndex(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
+      if (activeIdx !== -1) {
+        const cancelledTicket = tickets[activeIdx];
+        cancelledTicket.status = 'Cancelled';
+        cancelledTicket.cancelledAt = new Date().toISOString();
+        localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+        renderPipeline();
+        renderHistory();
+        return 'I have successfully cancelled your appointment (#TCK-' + cancelledTicket.ticketNum + '). It is now archived in your History tab.';
+      }
+      return 'You do not have any active appointments to cancel right now.';
+    }
+    if (/(book|schedule|make|set up|create)\s+(an\s+)?(appoint|meet|slot|consult|session)/.test(q)) {
+      let scheduledDate = new Date();
+      if (q.includes('tomorrow')) scheduledDate.setDate(scheduledDate.getDate() + 1);
+      else scheduledDate.setDate(scheduledDate.getDate() + 2);
+      scheduledDate.setHours(14, 0, 0, 0);
+
+      const ticketNum = Math.floor(100000 + Math.random() * 900000);
+      const userName = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
+      tickets.unshift({
+        id: 'tck_' + Date.now(),
+        ticketNum: ticketNum,
+        slot: scheduledDate.toISOString(),
+        name: userName,
+        notes: 'Automated booking via Drozo AI',
+        status: 'Requested',
+        meetUrl: 'https://meet.jit.si/DrozoMind-' + ticketNum + '#config.prejoinPageEnabled=false',
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+      renderPipeline();
+      return 'Done! I created a booking request (#TCK-' + ticketNum + ') for ' + formatDateTime(scheduledDate.toISOString()) + '. Your coordinator will review it.';
+    }
+    if (/drozo/.test(q) && /where|who|contact|find/.test(q)) {
+      return 'Drozo is active in our official Discord community! Connect with him directly at https://discord.gg/c8H6CQJTWA';
+    }
+    if (/^(hel|hi|hey|greetings)/.test(q)) {
+      return 'Hello! I am your Drozo Mind Care Assistant. I can book consultations, provide links to live rooms, and answer questions regarding your care. How can I assist you today?';
+    }
+    return 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings. For outside questions, please reach out to our coordinator directly on Discord!';
+  }
+
   function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
-    let obs = "Standard consultation completed.";
-    let rec = "Continue regular wellness routine.";
+    let obs = 'Standard consultation completed.';
+    let rec = 'Continue regular wellness routine.';
     try { obs = decodeURIComponent(encObs) || obs; } catch(e){}
     try { rec = decodeURIComponent(encRec) || rec; } catch(e){}
 
-    const docMarkup = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>Drozo Mind - Clinical Consultation Summary</title>
-        <style>
-          @page { margin: 1.0in; }
-          body { font-family: 'Calibri', 'Arial', sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; }
-          .header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 18pt; }
-          .title { font-size: 20pt; font-weight: bold; color: #1B4D3E; }
-          .subtitle { font-size: 9pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; }
-          .meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 4pt; padding: 12pt; margin-bottom: 18pt; }
-          .meta-table { width: 100%; border-collapse: collapse; }
-          .meta-table td { padding: 4pt 6pt; font-size: 10pt; }
-          .meta-label { font-weight: bold; color: #374151; width: 25%; }
-          .section-title { font-size: 13pt; font-weight: bold; color: #1B4D3E; border-bottom: 1pt solid #D1D5DB; padding-bottom: 4pt; margin-top: 18pt; margin-bottom: 8pt; }
-          .content-block { background: #FAFAFA; border-left: 3pt solid #1B4D3E; padding: 10pt 14pt; font-size: 11pt; color: #111827; margin-bottom: 14pt; }
-          .seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 12pt; font-size: 9pt; color: #6B7280; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class='header-box'>
-          <div class='title'>🌿 Drozo Mind Clinical Network</div>
-          <div class='subtitle'>Official Consultation Summary & Diagnostic Outcome Documentation</div>
-        </div>
-
-        <div class='meta-box'>
-          <table class='meta-table'>
-            <tr>
-              <td class='meta-label'>Session Reference:</td>
-              <td>#TCK-${ticketNum}</td>
-              <td class='meta-label'>Consultation Date:</td>
-              <td>${date}</td>
-            </tr>
-            <tr>
-              <td class='meta-label'>Client Name:</td>
-              <td>${patient}</td>
-              <td class='meta-label'>Attending Clinician:</td>
-              <td>${clinician}</td>
-            </tr>
-            <tr>
-              <td class='meta-label'>Session Status:</td>
-              <td style='color:#059669; font-weight:bold;'>Completed & Verified</td>
-              <td class='meta-label'>Care Channel:</td>
-              <td>Direct Encrypted Session</td>
-            </tr>
-          </table>
-        </div>
-
-        <div class='section-title'>1. Clinical Assessment & Key Observations</div>
-        <div class='content-block'>${obs}</div>
-
-        <div class='section-title'>2. Therapeutic Action Plan & Recommendations</div>
-        <div class='content-block'>${rec}</div>
-
-        <div class='section-title'>3. Institutional Verification</div>
-        <p style='font-size:10pt; color:#4B5563;'>This summary has been issued under the supervision of the Drozo Mind Clinical Coordination Team. Retain this record for ongoing health documentation.</p>
-
-        <div class='seal-box'>
-          <p><strong>Drozo Mind Consultation Hub</strong> • Issued on ${date} • Automated Clinical Record</p>
-        </div>
-      </body>
-      </html>
-    `;
+    const docMarkup = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+      '<head><meta charset="utf-8"><title>Drozo Mind - Clinical Summary</title>' +
+      '<style>@page { margin: 1.0in; } body { font-family: Calibri, Arial, sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; } ' +
+      '.header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 18pt; } ' +
+      '.title { font-size: 20pt; font-weight: bold; color: #1B4D3E; } ' +
+      '.subtitle { font-size: 9pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; } ' +
+      '.meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 4pt; padding: 12pt; margin-bottom: 18pt; } ' +
+      '.meta-table { width: 100%; border-collapse: collapse; } .meta-table td { padding: 4pt 6pt; font-size: 10pt; } ' +
+      '.meta-label { font-weight: bold; color: #374151; width: 25%; } ' +
+      '.section-title { font-size: 13pt; font-weight: bold; color: #1B4D3E; border-bottom: 1pt solid #D1D5DB; padding-bottom: 4pt; margin-top: 18pt; margin-bottom: 8pt; } ' +
+      '.content-block { background: #FAFAFA; border-left: 3pt solid #1B4D3E; padding: 10pt 14pt; font-size: 11pt; color: #111827; margin-bottom: 14pt; } ' +
+      '.seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 12pt; font-size: 9pt; color: #6B7280; text-align: center; }</style></head>' +
+      '<body><div class="header-box"><div class="title">🌿 Drozo Mind Clinical Network</div><div class="subtitle">Official Consultation Summary & Diagnostic Outcome Documentation</div></div>' +
+      '<div class="meta-box"><table class="meta-table"><tr><td class="meta-label">Session Reference:</td><td>#TCK-' + ticketNum + '</td><td class="meta-label">Consultation Date:</td><td>' + date + '</td></tr>' +
+      '<tr><td class="meta-label">Client Name:</td><td>' + patient + '</td><td class="meta-label">Attending Clinician:</td><td>' + clinician + '</td></tr>' +
+      '<tr><td class="meta-label">Session Status:</td><td style="color:#059669; font-weight:bold;">Completed & Verified</td><td class="meta-label">Care Channel:</td><td>Direct Encrypted Session</td></tr></table></div>' +
+      '<div class="section-title">1. Clinical Assessment & Key Observations</div><div class="content-block">' + obs + '</div>' +
+      '<div class="section-title">2. Therapeutic Action Plan & Recommendations</div><div class="content-block">' + rec + '</div>' +
+      '<div class="seal-box"><p><strong>Drozo Mind Consultation Hub</strong> • Issued on ' + date + ' • Automated Clinical Record</p></div></body></html>';
 
     const blob = new Blob([docMarkup], { type: 'application/msword;charset=utf-8' });
     const dlUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = dlUrl;
-    link.download = `DrozoMind_Clinical_Outcome_TCK-${ticketNum}.doc`;
+    link.download = 'DrozoMind_Clinical_Outcome_TCK-' + ticketNum + '.doc';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -623,25 +513,16 @@
       const safeObs = encodeURIComponent(m.observations || m.outcomeNotes || '');
       const safeRec = encodeURIComponent(m.recommendations || '');
       const safeDate = m.date || formatDateTime(new Date().toISOString());
-
-      return `
-        <div class="bubble ${m.role}">
-          ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.85; margin-bottom:3px;">${m.sender}</strong>` : ''}
-          ${(m.text || '').replace(/\n/g, '<br>')}
-          ${m.isOutcomeDoc ? `
-            <div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:12px; border:1px solid #D1D5DB; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span style="font-size:20px;">📑</span>
-                <strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong>
-              </div>
-              <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Attending: ${m.clinician ert{}ert{} 'Care Team'} •${safeDate}</div>
-              <button onclick="downloadTherapyDoc('${m.ticketNum}', '${m.patientName || 'Client'}', '${m.clinician ert{}ert{} 'Care Team'}', '${safeDate}', '${safeObs}', '${safeRec}')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">
-                ⬇️ Download Official Outcome (.doc)
-              </button>
-            </div>
-          ` : ''}
-        </div>
-      `;
+      let outcomeCard = '';
+      if (m.isOutcomeDoc) {
+        outcomeCard = '<div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:12px; border:1px solid #D1D5DB; box-shadow:0 4px 12px rgba(0,0,0,0.08);">' +
+          '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;"><span style="font-size:20px;">📑</span><strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong></div>' +
+          '<div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Attending: ' + (m.clinician || 'Care Team') + ' • ' + safeDate + '</div>' +
+          '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + safeDate + '\', \'' + safeObs + '\', \'' + safeRec + '\')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">⬇️ Download Official Outcome (.doc)</button></div>';
+      }
+      return '<div class="bubble ' + m.role + '">' +
+        (m.sender ? '<strong style="display:block; font-size:11px; opacity:0.85; margin-bottom:3px;">' + m.sender + '</strong>' : '') +
+        (m.text || '').replace(/\n/g, '<br>') + outcomeCard + '</div>';
     }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
     stream.scrollTop = stream.scrollHeight;
   }
@@ -650,49 +531,32 @@
     const input = document.getElementById('chat-input-text');
     const text = (input.value || '').trim();
     if (!text) return;
-
     chatMessages.push({ role: 'user', text: text, sender: 'You' });
     input.value = '';
     renderChat();
     localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
 
-    // 1. Check if the user command triggers an executable action (booking, cancelling, etc.)
-    const actionReply = executeAiIntent(text);
-    if (actionReply) {
-      setTimeout(() => {
-        chatMessages.push({ role: 'admin', text: actionReply, sender: 'Drozo AI' });
-        localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
-        if (typeof playAlertChime === 'function') playAlertChime('confirm');
-        renderChat();
-      }, 350);
-      return;
-    }
-
-    // 2. Otherwise query Gemini or standard Drozo knowledge base
-    const stream = document.getElementById('chat-stream');
-    const typingBubble = document.createElement('div');
-    typingBubble.className = 'bubble admin';
-    typingBubble.id = 'typing-indicator';
-    typingBubble.innerHTML = '<em style="font-size:11px; opacity:0.7;">Drozo AI is assisting...</em>';
-    stream.appendChild(typingBubble);
-    stream.scrollTop = stream.scrollHeight;
-
-    const reply = await queryGeminiAI(text);
-
-    const indicator = document.getElementById('typing-indicator');
-    if (indicator) indicator.remove();
-
-    chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
-    localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
-    if (typeof playAlertChime === 'function') playAlertChime('ping');
-    renderChat();
+    setTimeout(() => {
+      const reply = executeAiIntent(text);
+      chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
+      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+      renderChat();
+    }, 350);
   }
 
-  // Live Auto-Refresh Listener
-  window.addEventListener('storage', function(e) {
-    if (e.key === 'drozo_chat') { chatMessages = JSON.parse(e.newValue || '[]'); renderChat(); }
-    if (e.key === 'drozo_tickets') { tickets = JSON.parse(e.newValue || '[]'); renderPipeline(); renderHistory(); }
-  });
+  setInterval(() => {
+    const rawChat = localStorage.getItem('drozo_chat') || '[]';
+    if (rawChat !== JSON.stringify(chatMessages)) {
+      chatMessages = JSON.parse(rawChat);
+      renderChat();
+    }
+    const rawTickets = localStorage.getItem('drozo_tickets') || '[]';
+    if (rawTickets !== JSON.stringify(tickets)) {
+      tickets = JSON.parse(rawTickets);
+      renderPipeline();
+      renderHistory();
+    }
+  }, 1500);
 
   getRegisteredAccounts();
   initApp();
