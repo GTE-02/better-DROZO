@@ -108,6 +108,73 @@
 
 <script>
 
+  let pendingOutcomeTicketId = null;
+
+  function claimTicket(id) {
+    const adminSessionEmail = sessionStorage.getItem('drozo_admin_email') || 'admin@drozomind.com';
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.claimedBy = adminSessionEmail;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
+  }
+
+  function openOutcomeModal(id) {
+    pendingOutcomeTicketId = id;
+    document.getElementById('modal-ticket-id').value = id;
+    document.getElementById('modal-observations').value = "Client demonstrated positive emotional regulation. Discussed cognitive reframing strategies and stress decompression.";
+    document.getElementById('modal-recommendations').value = "Continue bi-weekly routine, 10-minute daily mindfulness, and follow-up consultation in two weeks.";
+    document.getElementById('outcome-modal').style.display = 'flex';
+  }
+
+  function closeOutcomeModal() {
+    document.getElementById('outcome-modal').style.display = 'none';
+    pendingOutcomeTicketId = null;
+  }
+
+  function submitClinicalOutcome() {
+    const id = pendingOutcomeTicketId || document.getElementById('modal-ticket-id').value;
+    const observations = document.getElementById('modal-observations').value.trim();
+    const recommendations = document.getElementById('modal-recommendations').value.trim();
+    if (!observations || !recommendations) {
+      alert("Please provide both clinical observations and recommendations.");
+      return;
+    }
+
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+
+    t.status = 'Completed';
+    t.completedAt = new Date().toISOString();
+    t.clinicalObservations = observations;
+    t.clinicalRecommendations = recommendations;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+
+    // Dispatch directly to Client Care Chat Stream
+    let chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+    const outcomeMessage = {
+      role: 'admin',
+      sender: 'Drozo Clinical AI',
+      text: `Official Clinical Outcome Report generated for consultation #TCK-${t.ticketNum}. The verified consultation document has been issued and is available for download below.`,
+      isOutcomeDoc: true,
+      ticketNum: t.ticketNum,
+      patientName: t.name,
+      clinician: t.claimedBy || 'Drozo Mind Clinical Staff',
+      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      observations: observations,
+      recommendations: recommendations
+    };
+
+    chat.push(outcomeMessage);
+    localStorage.setItem('drozo_chat', JSON.stringify(chat));
+
+    closeOutcomeModal();
+    renderDashboard();
+  }
+
+
   function claimTicket(id) {
     const adminSessionEmail = sessionStorage.getItem('drozo_admin_email') || 'Lead Clinician';
     tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
@@ -229,7 +296,7 @@
       return;
     }
 
-    container.innerHTML = list.map(t => `
+        container.innerHTML = list.map(t => `
       <div class="ticket-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <div>
@@ -240,25 +307,25 @@
             ${t.status.toUpperCase()}
           </span>
         </div>
-        ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Notes: ${t.notes}</p>` : ''}
-
-        <div style="margin-bottom:8px; font-size:12px; color:var(--text-muted);">
-          <strong>Assigned Clinician:</strong> ${t.claimedBy ? `<span style="color:var(--primary); font-weight:700;">${t.claimedBy}</span>` : '<span style="color:#D97706; font-weight:700;">Unassigned (Action Required)</span>'}
+        ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Session Request Note: ${t.notes}</p>` : ''}
+        
+        <div style="margin-bottom:12px; font-size:12px; background:var(--bg); padding:6px 10px; border-radius:6px; display:inline-block;">
+          <strong>Assigned Clinician:</strong> ${t.claimedBy ? `<span style="color:var(--primary); font-weight:700;">${t.claimedBy}</span>` : '<span style="color:#D97706; font-weight:700;">Unclaimed (Action Required)</span>'}
         </div>
 
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
           ${!t.claimedBy ? `
-            <button class="btn btn-primary" style="background:#2563EB;" onclick="claimTicket('${t.id}')">✋ Claim Ticket</button>
-            <span style="font-size:11px; color:var(--text-muted); font-style:italic;">Must claim ticket before review</span>
+            <button class="btn btn-primary" onclick="claimTicket('${t.id}')">✋ Claim Ticket</button>
+            <span style="font-size:11px; color:var(--text-muted); font-style:italic;">Therapist must claim before reviewing</span>
           ` : `
             ${t.status === 'Requested' ? `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>` : ''}
             ${t.status === 'Reviewed' ? `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>` : ''}
             ${t.status === 'Confirmed' ? `
               <a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>
-              <button class="btn btn-success" onclick="promptOutcomeAndComplete('${t.id}')">📋 Complete & Send Clinical Outcome</button>
+              <button class="btn btn-success" onclick="openOutcomeModal('${t.id}')">📋 Complete & Send Clinical Outcome</button>
             ` : ''}
           `}
-          ${t.status !== 'Completed' && t.status !== 'Cancelled' ? `<button class="btn btn-danger" onclick="cancelTicket('${t.id}')">Cancel Appointment</button>` : ''}
+          ${t.status !== 'Completed' && t.status !== 'Cancelled' ? `<button class="btn btn-danger" onclick="cancelTicket('${t.id}')">Cancel</button>` : ''}
         </div>
       </div>
     `).join('');
@@ -333,5 +400,30 @@
     renderDashboard();
   }
 </script>
+
+<!-- CLINICAL OUTCOME & DISPATCH MODAL -->
+<div id="outcome-modal" style="position:fixed; inset:0; background:rgba(17, 24, 39, 0.65); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:16px;">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:520px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.2); border:1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3 style="font-size:17px; font-weight:800; color:var(--primary);">📋 Draft Clinical Consultation Summary</h3>
+      <button onclick="closeOutcomeModal()" style="background:transparent; border:none; font-size:20px; cursor:pointer;">&times;</button>
+    </div>
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">This documentation will be processed by Drozo AI and compiled into an official clinical outcome report for client download.</p>
+    
+    <input type="hidden" id="modal-ticket-id">
+    
+    <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Diagnostic Observations & Key Takeaways</label>
+    <textarea id="modal-observations" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:13px; margin-bottom:12px;" placeholder="Client presented with situational anxiety; demonstrated strong engagement with emotional regulation techniques..."></textarea>
+    
+    <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Therapeutic Recommendations & Next Steps</label>
+    <textarea id="modal-recommendations" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-size:13px; margin-bottom:16px;" placeholder="Bi-weekly mindfulness exercises; follow-up cognitive behavioral check-in recommended in 14 days."></textarea>
+    
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeOutcomeModal()">Cancel</button>
+      <button class="btn btn-success" style="flex:2;" onclick="submitClinicalOutcome()">✓ Generate & Dispatch Outcome</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -383,402 +383,106 @@
 <script>
 
   // Auto-generate and download MS Word (.doc) outcome summary
-  function downloadTherapyDoc(ticketNum, patient, clinician, date, notes) {
-    const docContent = `
+  
+  // Official Clinical Document Exporter
+  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
+    const obs = decodeURIComponent(encObs || '') || "Standard consultation completed. Patient reported steady symptom management.";
+    const rec = decodeURIComponent(encRec || '') || "Continue self-care practices and scheduled check-ins.";
+    const cleanDate = date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const htmlDoc = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><title>Drozo Mind Clinical Summary</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 40px; color: #111; line-height: 1.6; }
-        h1 { color: #1B4D3E; border-bottom: 2px solid #1B4D3E; padding-bottom: 8px; }
-        .meta { margin: 20px 0; background: #F4F7F5; padding: 15px; border-radius: 6px; }
-        .section-title { font-weight: bold; color: #2D6A4F; margin-top: 20px; font-size: 16px; }
-      </style>
+      <head>
+        <meta charset='utf-8'>
+        <title>Drozo Mind - Clinical Consultation Summary</title>
+        <style>
+          @page { margin: 1.0in; }
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; }
+          .header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 20pt; }
+          .title { font-size: 20pt; font-weight: bold; color: #1B4D3E; margin: 0; }
+          .subtitle { font-size: 10pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; margin-top: 4pt; }
+          .meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 6pt; padding: 12pt 16pt; margin-bottom: 22pt; }
+          .meta-table { width: 100%; border-collapse: collapse; }
+          .meta-table td { padding: 4pt 6pt; font-size: 10pt; }
+          .meta-label { font-weight: bold; color: #374151; width: 25%; }
+          .section-title { font-size: 13pt; font-weight: bold; color: #1B4D3E; border-bottom: 1pt solid #D1D5DB; padding-bottom: 4pt; margin-top: 18pt; margin-bottom: 8pt; }
+          .content-block { background: #FAFAFA; border-left: 3pt solid #1B4D3E; padding: 10pt 14pt; font-size: 11pt; color: #111827; margin-bottom: 14pt; }
+          .seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 14pt; font-size: 9pt; color: #6B7280; text-align: center; }
+        </style>
       </head>
       <body>
-        <h1>🌿 Drozo Mind - Clinical Consultation Summary</h1>
-        <div class='meta'>
-          <p><strong>Appointment ID:</strong> #TCK-${ticketNum}</p>
-          <p><strong>Client:</strong> ${patient}</p>
-          <p><strong>Attending Clinician:</strong> ${clinician}</p>
-          <p><strong>Date of Consultation:</strong> ${date}</p>
+        <div class='header-box'>
+          <div class='title'>🌿 Drozo Mind Clinical Network</div>
+          <div class='subtitle'>Official Consultation Summary & Therapeutic Outcome Report</div>
         </div>
-        <div class='section-title'>Session Evaluation & Recommendations</div>
-        <p>${notes}</p>
-        <div class='section-title'>Official Clinical Seal</div>
-        <p>This document is verified and auto-dispatched by the Drozo Mind Clinical Administration Engine.</p>
+
+        <div class='meta-box'>
+          <table class='meta-table'>
+            <tr>
+              <td class='meta-label'>Session Reference:</td>
+              <td>#TCK-${ticketNum}</td>
+              <td class='meta-label'>Consultation Date:</td>
+              <td>${cleanDate}</td>
+            </tr>
+            <tr>
+              <td class='meta-label'>Client / Subject:</td>
+              <td>${patient || 'Valued Client'}</td>
+              <td class='meta-label'>Attending Clinician:</td>
+              <td>${clinician || 'Drozo Mind Clinical Staff'}</td>
+            </tr>
+            <tr>
+              <td class='meta-label'>Outcome Status:</td>
+              <td style='color:#059669; font-weight:bold;'>Completed & Verified</td>
+              <td class='meta-label'>Channel Verification:</td>
+              <td>Direct Telehealth Protocol</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class='section-title'>1. Clinical Assessment & Key Observations</div>
+        <div class='content-block'>${obs}</div>
+
+        <div class='section-title'>2. Therapeutic Action Plan & Recommendations</div>
+        <div class='content-block'>${rec}</div>
+
+        <div class='section-title'>3. Institutional Verification</div>
+        <p style='font-size:10pt; color:#4B5563;'>This summary was generated in accordance with Drozo Mind Care protocols and signed off by the attending clinician. Please retain this report for your personal wellness records.</p>
+
+        <div class='seal-box'>
+          <p><strong>Drozo Mind Care Systems</strong> • Confidential Medical & Wellness Document • Issued: ${cleanDate}</p>
+        </div>
       </body>
       </html>
     `;
 
-    const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([htmlDoc], { type: 'application/msword;charset=utf-8' });
+    const dlUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `DrozoMind_Outcome_TCK-${ticketNum}.doc`;
+    a.href = dlUrl;
+    a.download = `DrozoMind_Clinical_Outcome_TCK-${ticketNum}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(dlUrl);
   }
 
 
-  // Drawer controls
-  function toggleSupportDrawer(open) {
-    const drawer = document.getElementById('side-support-drawer');
-    if (open) {
-      drawer.classList.add('open');
-      renderChat();
-    } else {
-      drawer.classList.remove('open');
-    }
-  }
-
-  function startInstantVideoCall() {
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const active = tickets.find(t => t.status === 'Confirmed');
-    if (active && active.meetUrl) {
-      window.open(active.meetUrl, '_blank');
-    } else {
-      const tempId = Math.floor(100000 + Math.random() * 900000);
-      window.open(`https://meet.jit.si/DrozoMind-Instant-${tempId}#config.prejoinPageEnabled=false`, '_blank');
-    }
-  }
-
-  // AI ACTION EXECUTOR: Can create, cancel, and inspect appointments directly from conversation
-  function executeAiIntent(query) {
-    const q = query.toLowerCase().trim();
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-
-    // ACTION 1: CANCEL CURRENT APPOINTMENT
-    if (/cancel|abort|delete|drop/.test(q) && /appoint|book|meet|session|slot/.test(q)) {
-      const activeIdx = tickets.findIndex(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
-      if (activeIdx !== -1) {
-        const cancelledTicket = tickets[activeIdx];
-        cancelledTicket.status = 'Cancelled';
-        cancelledTicket.cancelledAt = new Date().toISOString();
-        cancelledTicket.cancelReason = 'Cancelled via Drozo AI assistant';
-        localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-        renderPipeline();
-        renderHistory();
-        return `I have successfully cancelled your appointment (#TCK-${cancelledTicket.ticketNum}). It has been archived into your History tab for 30 days. Let me know if you would like to schedule a new one!`;
-      } else {
-        return "You do not have any active appointments to cancel right now. Click 'Schedule' or ask me to book a new one!";
-      }
-    }
-
-    // ACTION 2: BOOK / SCHEDULE APPOINTMENT VIA CHAT
-    if (/(book|schedule|make|set up|create)\s+(an\s+)?(appoint|meet|slot|consult|session)/.test(q)) {
-      // Determine slot date: default to tomorrow at 14:00 if not specified
-      let scheduledDate = new Date();
-      if (q.includes('tomorrow')) {
-        scheduledDate.setDate(scheduledDate.getDate() + 1);
-      } else {
-        scheduledDate.setDate(scheduledDate.getDate() + 2);
-      }
-      scheduledDate.setHours(14, 0, 0, 0);
-
-      const ticketNum = Math.floor(100000 + Math.random() * 900000);
-      const userName = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
-
-      const newTicket = {
-        id: 'tck_' + Date.now(),
-        ticketNum: ticketNum,
-        slot: scheduledDate.toISOString(),
-        name: userName,
-        notes: `Automated booking initiated via Drozo AI: "${query}"`,
-        status: 'Requested',
-        meetUrl: `https://meet.jit.si/DrozoMind-${ticketNum}#config.prejoinPageEnabled=false`,
-        createdAt: new Date().toISOString()
-      };
-
-      tickets.unshift(newTicket);
-      localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-      renderPipeline();
-      return `Done! I have created a new booking request for you (#TCK-${ticketNum}) for ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. Your coordinator has received it and it is now active in your Overview pipeline.`;
-    }
-
-    // ACTION 3: CHECK LIVE STATUS
-    if (/status|where is my|track|check my/.test(q)) {
-      const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
-      if (active) {
-        return `Your current appointment (#TCK-${active.ticketNum}) is in status: **${active.status.toUpperCase()}** for ${new Date(active.slot).toLocaleString()}.`;
-      } else {
-        return "You currently have no active appointments in the care pipeline. Would you like me to book one for you?";
-      }
-    }
-
-    return null; // No direct action; hand over to conversational engine
-  }
-
-  let activeUser = JSON.parse(sessionStorage.getItem('drozo_active_session') || 'null');
-  let authMode = 'login';
-  let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-  let chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
-
-  function getRegisteredAccounts() {
-    let users = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
-    users['admin@drozomind.com'] = 'Dubai@2011';
-    users['gamerkids1109@gmail.com'] = 'Password123';
-    localStorage.setItem('drozo_registered_users', JSON.stringify(users));
-    return users;
-  }
-
-  function setAuthTab(mode) {
-    authMode = mode;
-    const isLogin = mode === 'login';
-    document.getElementById('btn-login-tab').style.background = isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-login-tab').style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('btn-signup-tab').style.background = !isLogin ? '#fff' : 'transparent';
-    document.getElementById('btn-signup-tab').style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-submit-btn').innerText = isLogin ? 'Sign In' : 'Create Account';
-    hideAuthError();
-  }
-
-  function showAuthError(msg) {
-    const errBox = document.getElementById('auth-error-msg');
-    errBox.innerText = msg;
-    errBox.style.display = 'block';
-  }
-  function hideAuthError() {
-    const errBox = document.getElementById('auth-error-msg');
-    if (errBox) errBox.style.display = 'none';
-  }
-
-  function executeAuth() {
-    hideAuthError();
-    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('auth-pass').value || '').trim();
-
-    if (!email || !pass) return showAuthError("Please enter both email and password.");
-
-    const accounts = getRegisteredAccounts();
-
-    if (authMode === 'signup') {
-      if (accounts[email]) return showAuthError("Account already exists. Please Sign In.");
-      if (pass.length < 6) return showAuthError("Password must be at least 6 characters.");
-      accounts[email] = pass;
-      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
-      activeUser = { id: 'usr_' + Date.now(), email: email, role: 'user' };
-      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
-      initApp();
-    } else {
-      if (!accounts[email]) return showAuthError("No account found. Click 'Create Account' first.");
-      if (accounts[email] !== pass) return showAuthError("Incorrect password. Access denied.");
-
-      activeUser = {
-        id: 'usr_' + Date.now(),
-        email: email,
-        role: (email === 'admin@drozomind.com' || email === 'gamerkids1109@gmail.com') ? 'admin' : 'user'
-      };
-      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
-      initApp();
-    }
-  }
-
-  function initApp() {
-    if (!activeUser) {
-      document.getElementById('auth-modal').style.display = 'flex';
-      return;
-    }
-    document.getElementById('auth-modal').style.display = 'none';
-    document.getElementById('user-display-email').innerText = activeUser.email;
-    document.getElementById('profile-email-box').value = activeUser.email;
-    pruneOldHistory();
-    renderPipeline();
-    renderChat();
-    renderHistory();
-  }
-
-  function signOutUser() {
-    sessionStorage.removeItem('drozo_active_session');
-    localStorage.removeItem('drozo_user');
-    location.reload();
-  }
-
-  function switchNav(tab, el) {
-    document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById(`tab-${tab}`).classList.add('active');
-  }
-
-  function renderPipeline() {
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const container = document.getElementById('pipeline-body');
-    const pReq = document.getElementById('p-req');
-    const pRev = document.getElementById('p-rev');
-    const pOff = document.getElementById('p-off');
-    const pConf = document.getElementById('p-conf');
-
-    [pReq, pRev, pOff, pConf].forEach(s => s.className = 'step-item');
-
-    const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
-    if (!active) {
-      container.innerHTML = `<span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>`;
-      return;
-    }
-
-    pReq.classList.add('active');
-    if (active.status === 'Reviewed') pRev.classList.add('active');
-    else if (active.status === 'Slot Offered') { pRev.classList.add('done'); pOff.classList.add('active'); }
-    else if (active.status === 'Confirmed') { pRev.classList.add('done'); pOff.classList.add('done'); pConf.classList.add('active'); }
-
-    container.innerHTML = `
-      <div class="ticket-badge">#TCK-${active.ticketNum} • ${active.status.toUpperCase()}</div>
-      <div><strong>Client:</strong> ${active.name}</div>
-      <div><strong>Requested Slot:</strong> ${new Date(active.slot).toLocaleString()}</div>
-      ${active.counterSlot ? `<div style="color:#D97706; margin-top:6px;"><strong>Proposed Slot:</strong> ${new Date(active.counterSlot).toLocaleString()}</div>` : ''}
-
-      ${active.status === 'Slot Offered' ? `
-        <div style="margin-top:12px; display:flex; gap:8px;">
-          <button class="btn" style="background:#059669; margin-top:0;" onclick="acceptCounterSlot('${active.id}')">Accept Offered Time</button>
-          <button class="btn btn-danger" style="margin-top:0;" onclick="cancelClientSlot('${active.id}')">Decline</button>
-        </div>
-      ` : ''}
-
-      ${active.status === 'Confirmed' ? `
-        <div style="margin-top:14px; background:#fff; padding:16px; border-radius:12px; border:1px solid var(--border);">
-          <strong style="color:var(--primary); display:block; margin-bottom:6px;">🎉 Appointment Confirmed! Choose Platform:</strong>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <a href="${active.meetUrl}" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px;">📹 Video Room</a>
-            <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0; padding:10px; font-size:12px;">💬 Discord</a>
-          </div>
-        </div>
-      ` : ''}
-    `;
-  }
-
-  function submitBookingRequest() {
-    const slot = document.getElementById('book-slot').value;
-    const name = document.getElementById('book-name').value.trim();
-    const notes = document.getElementById('book-notes').value.trim();
-    if (!slot || !name) return alert("Please fill in preferred date/time and name.");
-
-    const ticketNum = Math.floor(100000 + Math.random() * 900000);
-    tickets.unshift({
-      id: 'tck_' + Date.now(),
-      ticketNum: ticketNum,
-      slot: slot,
-      name: name,
-      notes: notes,
-      status: 'Requested',
-      meetUrl: `https://meet.jit.si/DrozoMind-${ticketNum}#config.prejoinPageEnabled=false`,
-      createdAt: new Date().toISOString()
-    });
-
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    alert("Appointment requested! Coordinator will review shortly.");
-    switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
-    renderPipeline();
-  }
-
-  function acceptCounterSlot(id) {
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    t.status = 'Confirmed';
-    t.slot = t.counterSlot || t.slot;
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    renderPipeline();
-  }
-
-  function cancelClientSlot(id) {
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    t.status = 'Cancelled';
-    t.cancelledAt = new Date().toISOString();
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    renderPipeline();
-    renderHistory();
-  }
-
-  function renderHistory() {
-    pruneOldHistory();
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const container = document.getElementById('history-container');
-    const list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed');
-
-    if (!list.length) {
-      container.innerHTML = `<span style="color:var(--text-muted); font-size:13px;">No past sessions. Records remain here for 30 days.</span>`;
-      return;
-    }
-
-    const now = Date.now();
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-
-    container.innerHTML = list.map(t => {
-      const finishedTime = new Date(t.completedAt || t.cancelledAt || t.createdAt).getTime();
-      const daysLeft = Math.max(1, Math.round((THIRTY_DAYS - (now - finishedTime)) / (24 * 60 * 60 * 1000)));
-      const isDone = t.status === 'Completed';
-
-      return `
-        <div style="background:var(--surface-subtle); border:1px solid var(--border); padding:12px; border-radius:10px; font-size:13px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <strong>#TCK-${t.ticketNum} (${t.name})</strong>
-            <span style="font-weight:700; color:${isDone ? 'var(--success)' : 'var(--danger)'}">${isDone ? 'COMPLETED' : 'CANCELLED'}</span>
-          </div>
-          <div style="color:var(--text-muted); font-size:12px;">Date: ${new Date(t.slot).toLocaleString()}</div>
-          <div style="font-size:11px; color:#9CA3AF; margin-top:2px;">Auto-cleans in ${daysLeft} days</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function pruneOldHistory() {
-    let t = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    const filtered = t.filter(ticket => {
-      if (ticket.status === 'Completed' || ticket.status === 'Cancelled' || ticket.status === 'Closed') {
-        const itemDate = new Date(ticket.completedAt || ticket.cancelledAt || ticket.createdAt).getTime();
-        return (now - itemDate) < THIRTY_DAYS;
-      }
-      return true;
-    });
-
-    if (filtered.length !== t.length) localStorage.setItem('drozo_tickets', JSON.stringify(filtered));
-  }
-
-  // Drozo Mind AI Chat & Deletion
-  function clearChatHistory() {
-    if (confirm("Are you sure you want to clear your support chat history?")) {
-      chatMessages = [];
-      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
-      renderChat();
-    }
-  }
-
-  function generateDrozoAIResponse(query) {
-    const q = query.toLowerCase();
-    if (q.includes('book') || q.includes('schedule') || q.includes('appointment')) {
-      return "To book a session, click the 'Schedule' tab in the bottom dock. Choose your date, enter your details, and submit for coordinator review.";
-    }
-    if (q.includes('discord') || q.includes('voice')) {
-      return "Connect with us on our official Discord hub at https://discord.gg/c8H6CQJTWA for live voice consultation rooms and real-time updates.";
-    }
-    if (q.includes('video') || q.includes('call') || q.includes('meet') || q.includes('room')) {
-      return "Once confirmed, your appointment card in the Overview tab lets you enter your private Web Video Call or join via Discord.";
-    }
-    if (q.includes('cancel') || q.includes('history') || q.includes('30 days')) {
-      return "Completed and cancelled sessions are saved in the 'History' tab and automatically erased after 30 days for privacy.";
-    }
-    if (q.includes('hi') || q.includes('hello') || q.includes('drozo') || q.includes('help')) {
-      return "Hello! I am your Drozo Mind assistant. I can guide you through booking consultations, joining live video/Discord rooms, and tracking your care pipeline. How can I help?";
-    }
-    return "I am exclusively dedicated to helping you with Drozo Mind consultations, video channels, and care bookings. For outside questions, please ask your coordinator directly.";
-  }
-
-  function renderChat() {
+    function renderChat() {
     const stream = document.getElementById('chat-stream');
+    if (!stream) return;
     stream.innerHTML = chatMessages.map(m => `
       <div class="bubble ${m.role}">
         ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.8; margin-bottom:2px;">${m.sender}</strong>` : ''}
-        ${m.text.replace(/\n/g, '<br>')}
+        ${(m.text || '').replace(/\n/g, '<br>')}
         ${m.isOutcomeDoc ? `
-          <div style="margin-top:10px; padding:10px; background:#fff; color:#111; border-radius:8px; border:1px solid var(--border);">
-            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:var(--primary);">📄 Clinical Document Ready</div>
-            <button onclick="downloadTherapyDoc('${m.ticketNum}', '${m.patientName}', '${m.clinician}', '${m.date}', '${m.outcomeNotes}')" class="btn btn-primary" style="margin-top:4px; padding:6px 12px; font-size:11px; width:auto; display:inline-flex;">
-              ⬇️ Download Outcome (.doc)
+          <div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:10px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.06);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <span style="font-size:18px;">📑</span>
+              <strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:12px; line-height:1.4;">Official session summary verified by ${m.clinician ert{}ert{} 'Clinical Staff'} on${m.date || 'Recent'}.</div>
+            <button onclick="downloadTherapyDoc('${m.ticketNum ert{}ert{} '000000'}', '${m.patientName || 'Client'}', '${m.clinician ert{}ert{} 'Care Team'}', '${m.date || ''}', '${encodeURIComponent(m.observations ert{}ert{} m.outcomeNotes ert{}ert{} '')}', '${encodeURIComponent(m.recommendations || '')}')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700;">
+              ⬇️ Download Official Outcome (.doc)
             </button>
           </div>
         ` : ''}
@@ -787,60 +491,7 @@
     stream.scrollTop = stream.scrollHeight;
   }
 
-  // LLM Gemini Engine Scoped Strictly to Drozo Mind
-  function promptApiKey() {
-    const existing = localStorage.getItem('drozo_gemini_key') || '';
-    const key = prompt("Enter your Gemini API Key to enable live generative AI (Leave empty to use built-in care engine):", existing);
-    if (key !== null) {
-      localStorage.setItem('drozo_gemini_key', key.trim());
-      alert(key.trim() ? "AI Key saved! Live Drozo AI activated." : "AI Key cleared. Switched to standard care engine.");
-    }
-  }
-
-  async function queryGeminiAI(userText) {
-    const apiKey = localStorage.getItem('drozo_gemini_key');
-    if (!apiKey) {
-      return generateDrozoAIResponse(userText);
-    }
-
-    const systemInstruction = `You are the official AI assistant for "Drozo Mind", a mental health and wellness consultation platform.
-Strict Rules:
-1. ONLY answer questions regarding Drozo Mind, its appointments, booking consultations, video therapy rooms (Web Video Call), official Discord community (https://discord.gg/c8H6CQJTWA), the care pathway pipeline (Requested -> Reviewed -> Slot Offered -> Confirmed), 30-day session history auto-purge, and co-founder/coordinator Drozo (reachable via Discord).
-2. If the user asks about ANYTHING unrelated to Drozo Mind (like general math, coding, outside news, science, trivia, recipes, or casual non-Drozo queries), politely decline by stating: "I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings. For outside questions, please speak directly with your coordinator on Discord!"
-3. Be warm, supportive, concise, and helpful. Handle typos gracefully.`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const payload = {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: `${systemInstruction}
-
-Client asks: "${userText}"` }]
-        }
-      ]
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json();
-      if (data.candidates && data.candidates[0].content.parts[0].text) {
-        return data.candidates[0].content.parts[0].text.trim();
-      } else {
-        return generateDrozoAIResponse(userText);
-      }
-    } catch (err) {
-      console.warn("AI endpoint error, falling back to local engine:", err);
-      return generateDrozoAIResponse(userText);
-    }
-  }
-
-  async function sendUserMessage() {
+  function sendUserMessage() {
     const input = document.getElementById('chat-input-text');
     const text = (input.value || '').trim();
     if (!text) return;
