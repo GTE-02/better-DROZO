@@ -188,6 +188,10 @@
       </div>
     </div>
     <div style="display:flex; gap:10px; align-items:center;">
+      <span id="sync-pulse-indicator" style="display:inline-flex; align-items:center; gap:6px; background:#ECFDF5; border:1px solid #A7F3D0; color:#059669; font-size:11px; font-weight:700; padding:6px 12px; border-radius:20px;">
+        <span style="width:7px; height:7px; background:#059669; border-radius:50%; display:inline-block; box-shadow:0 0 6px #059669;"></span>
+        Live Auto-Sync Active
+      </span>
       <a href="index.html" class="btn btn-outline">← Client Portal</a>
       <button class="btn btn-danger" onclick="adminSignOut()">Sign Out</button>
     </div>
@@ -454,7 +458,48 @@
   }
 
   // 3. LAUNCH EXECUTIVE DASHBOARD
+  
+  // ================= AUTOMATED REAL-TIME SYNC ENGINE =================
+  let autoRefreshTimer = null;
+
+  function initRealtimeSync() {
+    // 1. Cross-tab storage listener (Triggers immediately when client books in another tab)
+    window.addEventListener('storage', (event) => {
+      if (['drozo_tickets', 'drozo_chat', 'drozo_registered_users', 'drozo_threat_logs'].includes(event.key)) {
+        refreshDashboard();
+      }
+    });
+
+    // 2. Automated background poll every 3 seconds
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    autoRefreshTimer = setInterval(() => {
+      if (sessionStorage.getItem('drozo_admin_session') === 'true') {
+        refreshDashboardSilent();
+      }
+    }, 3000);
+  }
+
+  // Silent refresh that updates counts and lists without flickering or losing input focus
+  function refreshDashboardSilent() {
+    try {
+      const freshTickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+      const freshChat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+      const freshUsers = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+      const freshThreats = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
+
+      // Only re-render if data has changed
+      if (JSON.stringify(freshTickets) !== JSON.stringify(tickets) ||
+          freshUsers.length !== parseInt(document.getElementById('m-users').innerText || '0') ||
+          freshChat.length !== chat.length) {
+        tickets = freshTickets;
+        chat = freshChat;
+        refreshDashboard();
+      }
+    } catch(e) {}
+  }
+
   function launchDashboard(email) {
+    initRealtimeSync();
     document.getElementById('auth-gate-wrapper').style.display = 'none';
     const mount = document.getElementById('dashboard-mount');
     mount.style.display = 'block';
