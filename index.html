@@ -324,7 +324,7 @@
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
           <div>
             <span style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#A7F3D0;">OFFICIAL VERIFIED ID PASS</span>
-            <h3 id="id-card-name" style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">OWNER</h3>
+            <h3 id="id-card-name" style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">Water_Chugger/Owner</h3>
           </div>
           <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">2FA ACTIVE</span>
         </div>
@@ -494,7 +494,7 @@
       }
     } else if (email === 'gamerkids1109@gmail.com') {
       if (pass === 'Password123' || hashed === '9eb1d2ec77a56112d080c98f9845ec4668ba45cfba3eebbb5c24e68e4bf98282') {
-        activeUser = { email: email, role: 'admin', name: 'GamerKids' };
+        activeUser = { email: email, role: 'admin', name: 'Drozo YT' };
       } else {
         err.innerText = "Invalid credentials."; err.style.display = 'block'; return;
       }
@@ -713,7 +713,15 @@
     const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
 
     const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = isOwner ? 'OWNER' : (activeUser.name || email.split('@')[0]).toUpperCase();
+    if (cardName) {
+      if (isOwner) {
+        cardName.innerText = 'Water_Chugger/Owner';
+      } else if (email === 'gamerkids1109@gmail.com') {
+        cardName.innerText = 'Drozo YT';
+      } else {
+        cardName.innerText = (activeUser.name || email.split('@')[0]).toUpperCase();
+      }
+    }
 
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
