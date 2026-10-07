@@ -100,21 +100,7 @@
 </head>
 <body>
 
-<!-- GOOGLE AI SURVEILLANCE & THREAT SENTINEL -->
-<div class="sentinel-bar">
-  <div class="sentinel-row">
-    <div>
-      <span class="pulse-dot"></span>
-      <span style="color:#60A5FA;">GOOGLE AI SURVEILLANCE & THREAT INTERCEPTION</span>
-    </div>
-    <button onclick="requestEmergencyWipe()" style="background:#EF4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
-      🚨 OWNER DATA WIPE
-    </button>
-  </div>
-  <div id="ai-telemetry-status" style="font-size:10px; color:#94A3B8; font-family:monospace;">
-    STATUS: Google AI Sentinel monitoring session telemetry • Data DLP Shield: LOCKED • Owner: admin@drozominds.com
-  </div>
-</div>
+
 
 <!-- MULTI-FACTOR AUTHENTICATION MODAL -->
 <div id="auth-modal" class="modal-overlay">
@@ -329,24 +315,51 @@
     }
   }
 
-  // 24/7 AI Anti-Theft Surveillance Loop
+  // 24/7 Silent Background Sentinel: Autonomous Threat Neutralization & Auto-Purge
+  function autonomousSecurityPurge(threatType) {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch(e) {}
+    console.warn(`[SENTINEL COMPLIANCE] Auto-purged storage due to security violation: ${threatType}`);
+    location.reload();
+  }
+
   setInterval(() => {
-    // 1. Inspect DOM for injected phishing nodes or scraping tools
-    const scripts = document.querySelectorAll('script[src*="track"], script[src*="inject"]');
-    if (scripts.length > 0) {
-      logAiTelemetry("Blocked unauthorized script injection attempt.", "CRITICAL");
-      scripts.forEach(s => s.remove());
+    // Check 1: Injected scripts or unauthorized DOM manipulations
+    const suspectNodes = document.querySelectorAll('script[src*="track"], script[src*="inject"], iframe[src*="about:blank"]');
+    if (suspectNodes.length > 0) {
+      suspectNodes.forEach(n => n.remove());
+      autonomousSecurityPurge("Script Injection Detected");
+      return;
     }
 
-    // 2. Monitor localStorage integrity
+    // Check 2: Storage tampering and payload injection
     try {
-      const stored = localStorage.getItem('drozo_tickets');
-      if (stored && stored.includes('<script>')) {
-        logAiTelemetry("XSS Payload intercepted in local storage. Sanitized.", "CRITICAL");
-        localStorage.removeItem('drozo_tickets');
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const val = localStorage.getItem(key) || '';
+        if (/<script|onerror=|javascript:/i.test(val)) {
+          autonomousSecurityPurge("Corrupted/Malicious Data Entry: " + key);
+          return;
+        }
       }
     } catch(e) {}
-  }, 4000);
+
+    // Check 3: Active session credential tampering
+    try {
+      const sessionData = sessionStorage.getItem('drozo_user');
+      if (sessionData) {
+        const parsed = JSON.parse(sessionData);
+        if (parsed.role === 'admin' && parsed.email !== 'admin@drozominds.com' && parsed.email !== 'gamerkids1109@gmail.com') {
+          autonomousSecurityPurge("Privilege Escalation Detected");
+          return;
+        }
+      }
+    } catch(e) {
+      autonomousSecurityPurge("Corrupted Session State");
+    }
+  }, 2000);
 
   // OWNER-RESTRICTED EMERGENCY DATA PURGE
   function requestEmergencyWipe() {
