@@ -710,13 +710,15 @@
   function renderDigitalIdBadge() {
     if (!activeUser) return;
     const email = (activeUser.email || '').trim().toLowerCase();
-    const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
+    const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com';
+    const isDrozoAdmin = email === 'gamerkids1109@gmail.com';
 
+    // 1. Display Title on ID Card
     const cardName = document.getElementById('id-card-name');
     if (cardName) {
       if (isOwner) {
         cardName.innerText = 'Water_Chugger/Owner';
-      } else if (email === 'gamerkids1109@gmail.com') {
+      } else if (isDrozoAdmin) {
         cardName.innerText = 'Drozo YT';
       } else {
         cardName.innerText = (activeUser.name || email.split('@')[0]).toUpperCase();
@@ -730,6 +732,34 @@
     const cardHash = document.getElementById('id-card-hash');
     if (cardHash) cardHash.innerText = "AUTH_8829";
 
+    // 2. Dynamic Security Clearance & Verification Tag
+    const clearanceBox = document.getElementById('id-card-clearance-box');
+    if (clearanceBox) {
+      if (isOwner) {
+        clearanceBox.innerHTML = `
+          <div><strong>Email:</strong> <span>${email}</span></div>
+          <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
+          <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
+          <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
+        `;
+      } else if (isDrozoAdmin) {
+        clearanceBox.innerHTML = `
+          <div><strong>Email:</strong> <span>${email}</span></div>
+          <div><strong>Security Clearance:</strong> <span style="color:#93C5FD; font-weight:800;">Staff Coordinator & Admin</span></div>
+          <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
+          <div style="color:#93C5FD; font-size:10px; margin-top:4px;">✓ Verified Admin & Clinical Staff</div>
+        `;
+      } else {
+        clearanceBox.innerHTML = `
+          <div><strong>Email:</strong> <span>${email}</span></div>
+          <div><strong>Security Clearance:</strong> <span style="color:#E5E7EB; font-weight:700;">Level 4 Encrypted (Client)</span></div>
+          <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
+          <div style="color:#9CA3AF; font-size:10px; margin-top:4px;">✓ Verified Drozo Mind Patient Pass</div>
+        `;
+      }
+    }
+
+    // 3. Render Pass QR
     const qrContainer = document.getElementById('id-qrcode-box');
     if (qrContainer) {
       qrContainer.innerHTML = '';
@@ -741,6 +771,7 @@
       });
     }
 
+    // 4. Setup 2FA Key QR
     const secret = (TOTP_SECRETS[email] || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP').replace(/\s+/g, '').toUpperCase();
     const secretKeyBox = document.getElementById('totp-secret-key');
     if (secretKeyBox) secretKeyBox.innerText = secret;
@@ -763,7 +794,6 @@
     }
   }
 
-  // 7. INITIALIZE CORE APP
   function initApp() {
     try {
       const saved = sessionStorage.getItem('drozo_user');
