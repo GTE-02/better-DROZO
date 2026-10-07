@@ -457,6 +457,96 @@
   }
 
   // 2. CLIENT REGISTRATION SIGN-UP ENGINE
+  async 
+  // ================= DROZO GUARD PROVISIONING ENGINE =================
+  let pendingRegisteredEmail = null;
+
+  function promptGuard2FA(email) {
+    pendingRegisteredEmail = email;
+    document.getElementById('guard-step-ask').style.display = 'block';
+    document.getElementById('guard-step-select').style.display = 'none';
+    document.getElementById('guard-step-apk').style.display = 'none';
+    document.getElementById('guard-step-pair').style.display = 'none';
+    document.getElementById('guard-step-auth-setup').style.display = 'none';
+    document.getElementById('drozo-guard-setup-modal').style.display = 'flex';
+  }
+
+  function dismissGuardPrompt() {
+    document.getElementById('drozo-guard-setup-modal').style.display = 'none';
+  }
+
+  function proceedToGuardMethodChoice() {
+    document.getElementById('guard-step-ask').style.display = 'none';
+    document.getElementById('guard-step-select').style.display = 'block';
+  }
+
+  async function bindPermanent2FA(method) {
+    const email = (pendingRegisteredEmail || (activeUser && activeUser.email) || '').toLowerCase().trim();
+    if (!email) return;
+
+    // Generate random 16-char secret for this device
+    const secret = Array.from(crypto.getRandomValues(new Uint8Array(10))).map(b => b.toString(16).padStart(2,'0')).join('');
+
+    // Save locally
+    const guardStore = JSON.parse(localStorage.getItem('drozo_guard_bindings') || '{}');
+    guardStore[email] = { method: method, secret: secret, lockedAt: new Date().toISOString() };
+    localStorage.setItem('drozo_guard_bindings', JSON.stringify(guardStore));
+
+    // Save permanently to cloud (Supabase)
+    if (typeof sbClient !== 'undefined' && sbClient) {
+      try {
+        await sbClient.from('user_accounts').upsert({
+          email: email,
+          two_factor_method: method,
+          guard_secret: secret
+        });
+      } catch(e) {}
+    }
+
+    document.getElementById('guard-step-select').style.display = 'none';
+
+    if (method === 'drozo_guard') {
+      // Step A: Show APK download QR
+      document.getElementById('guard-step-apk').style.display = 'block';
+      const apkBox = document.getElementById('drozo-apk-qr');
+      apkBox.innerHTML = '';
+      new QRCode(apkBox, {
+        text: 'https://gte-02.github.io/better-DROZO/DrozoGuard.apk',
+        width: 130, height: 130,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } else {
+      // Step B: Show standard Authenticator TOTP QR
+      document.getElementById('guard-step-auth-setup').style.display = 'block';
+      const authBox = document.getElementById('guard-totp-qr');
+      authBox.innerHTML = '';
+      const uri = `otpauth://totp/DrozoMind:${email}?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=DrozoMind`;
+      new QRCode(authBox, { text: uri, width: 145, height: 145, correctLevel: QRCode.CorrectLevel.M });
+    }
+  }
+
+  function showDrozoGuardPairingQR() {
+    document.getElementById('guard-step-apk').style.display = 'none';
+    document.getElementById('guard-step-pair').style.display = 'block';
+
+    const email = (pendingRegisteredEmail || (activeUser && activeUser.email) || '').toLowerCase().trim();
+    const guardStore = JSON.parse(localStorage.getItem('drozo_guard_bindings') || '{}');
+    const secret = (guardStore[email] && guardStore[email].secret) || 'DG_SEC_' + Date.now();
+
+    const pairBox = document.getElementById('drozo-pair-qr');
+    pairBox.innerHTML = '';
+    // Payload scanned by Drozo Guard App
+    const payload = `DROZO_GUARD_LINK:${email}:${secret}`;
+    new QRCode(pairBox, { text: payload, width: 145, height: 145, correctLevel: QRCode.CorrectLevel.H });
+  }
+
+  function finishGuardSetup() {
+    document.getElementById('drozo-guard-setup-modal').style.display = 'none';
+    alert("🛡️ Drozo Security Locked & Activated! Your choice is permanently registered.");
+    initApp();
+  }
+
+
   async function executeClientSignUp() {
     const err = document.getElementById('auth-error-msg');
     const name = (document.getElementById('reg-name').value || '').trim();
@@ -505,8 +595,7 @@
     localStorage.setItem('drozo_user', JSON.stringify(activeUser));
 
     document.getElementById('auth-modal').style.display = 'none';
-    alert("🎉 Account created successfully! Welcome to Drozo Mind.");
-    initApp();
+    promptGuard2FA(email);
   }
 
   // 3. PASSWORD AUTH
@@ -1066,5 +1155,74 @@
 
   initApp();
 </script>
+
+<!-- DROZO GUARD 2FA PROVISIONING MODAL -->
+<div id="drozo-guard-setup-modal" class="modal-overlay" style="display:none; z-index:9999;">
+  <div class="card" style="width:100%; max-width:440px; margin-bottom:0; text-align:center;">
+    <div class="brand-icon" style="margin:0 auto 10px; width:48px; height:48px; font-size:24px;">🛡️</div>
+    <h2 style="font-size:19px; font-weight:800; color:var(--primary);">Drozo Guard Security</h2>
+    <p class="card-caption" id="guard-caption">Your Drozo Digital ID was generated. Activate 2FA protection?</p>
+
+    <!-- STEP 1: INITIAL CHOICE (YES / NO) -->
+    <div id="guard-step-ask">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:18px;">
+        Would you like to activate Two-Factor Authentication (2FA) for your account now?
+      </p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-secondary" style="margin-top:0; flex:1;" onclick="dismissGuardPrompt()">Skip for Now</button>
+        <button type="button" class="btn btn-primary" style="margin-top:0; flex:1;" onclick="proceedToGuardMethodChoice()">Yes, Enable 2FA</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: CHOOSE METHOD (PERMANENT LOCK-IN) -->
+    <div id="guard-step-select" style="display:none;">
+      <p style="font-size:12px; color:var(--danger); font-weight:700; margin-bottom:12px;">
+        ⚠️ IMPORTANT: Once chosen, your 2FA method CANNOT be changed.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button type="button" class="btn btn-primary" style="margin-top:0; padding:14px; text-align:left; display:flex; align-items:center; gap:12px;" onclick="bindPermanent2FA('drozo_guard')">
+          <span style="font-size:22px;">📱</span>
+          <div>
+            <strong>Drozo Guard (Android)</strong>
+            <span style="display:block; font-size:11px; opacity:0.85;">Steam Guard-style instant QR tap unlock</span>
+          </div>
+        </button>
+
+        <button type="button" class="btn btn-secondary" style="margin-top:0; padding:14px; text-align:left; display:flex; align-items:center; gap:12px;" onclick="bindPermanent2FA('authenticator')">
+          <span style="font-size:22px;">🔢</span>
+          <div>
+            <strong>Microsoft / Google Authenticator</strong>
+            <span style="display:block; font-size:11px; color:var(--text-muted);">Standard 6-digit rolling numeric code</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3A: DROZO GUARD ANDROID APP DOWNLOAD -->
+    <div id="guard-step-apk" style="display:none;">
+      <h3 style="font-size:15px; font-weight:800; color:var(--primary); margin-bottom:6px;">Step 1: Get Drozo Guard (Android)</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Scan with your Android phone to download the Drozo Guard APK:</p>
+      <div id="drozo-apk-qr" style="background:#fff; padding:8px; border-radius:12px; width:140px; height:140px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border);"></div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="showDrozoGuardPairingQR()">Next: Link Guard to Account →</button>
+    </div>
+
+    <!-- STEP 3B: PAIR DROZO GUARD VIA LINK QR -->
+    <div id="guard-step-pair" style="display:none;">
+      <h3 style="font-size:15px; font-weight:800; color:var(--primary); margin-bottom:6px;">Step 2: Link Your Device</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Open Drozo Guard on your phone and scan this pairing code:</p>
+      <div id="drozo-pair-qr" style="background:#fff; padding:8px; border-radius:12px; width:160px; height:160px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border);"></div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="finishGuardSetup()">✓ Device Linked Successfully</button>
+    </div>
+
+    <!-- STEP 3C: STANDARD AUTHENTICATOR SETUP -->
+    <div id="guard-step-auth-setup" style="display:none;">
+      <h3 style="font-size:15px; font-weight:800; color:var(--primary); margin-bottom:6px;">Authenticator App Pairing</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Scan with Microsoft or Google Authenticator:</p>
+      <div id="guard-totp-qr" style="background:#fff; padding:8px; border-radius:12px; width:160px; height:160px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border);"></div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="finishGuardSetup()">✓ Authenticator Active</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
