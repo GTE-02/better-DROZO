@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo Guard - Login Scan</title>
+  <title>Drozo Guard - Login Verification</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -15,42 +15,69 @@
 
   <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-center space-y-5">
     
-    <!-- ACTIVE CHALLENGE STATE -->
+    <!-- CHALLENGE / VERIFICATION BOX -->
     <div id="challengeSection" class="space-y-4">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Step 2: Login Challenge
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 2FA Hardware Verification
       </div>
       
       <div>
-        <h2 class="text-xl font-bold text-white">Scan to Authorize Login</h2>
-        <p class="text-xs text-slate-400 mt-1">Tap <strong class="text-emerald-400">Scan Admin Portal QR</strong> on your phone.</p>
+        <h2 class="text-xl font-bold text-white">Authorize Login</h2>
+        <p class="text-xs text-slate-400 mt-1">Scan via Drozo Guard app OR enter the active token below.</p>
       </div>
 
-      <div class="flex justify-center py-2">
-        <div id="challengeBox" class="bg-white p-4 rounded-2xl shadow-xl flex items-center justify-center min-h-[210px] min-w-[210px]">
-          <span class="text-xs text-slate-400 mono">Loading challenge...</span>
+      <!-- QR CODE CONTAINER -->
+      <div class="flex justify-center py-1">
+        <div id="challengeBox" class="bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center min-h-[190px] min-w-[190px]">
+          <span class="text-xs text-slate-400 mono">Generating challenge...</span>
         </div>
       </div>
 
-      <div class="text-xs mono text-slate-400 bg-slate-950 p-3 rounded-xl border border-slate-800/80">
-        Token: <span id="tokenText" class="text-emerald-400 font-semibold">...</span>
+      <!-- ACTIVE TOKEN DISPLAY -->
+      <div class="text-xs mono text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+        Active Token: <span id="tokenText" class="text-emerald-400 font-bold select-all cursor-pointer">...</span>
+      </div>
+
+      <!-- MANUAL TOKEN INPUT FALLBACK -->
+      <div class="pt-2 border-t border-slate-800/80 space-y-2">
+        <label for="manualTokenInput" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          Manual Entrance Override
+        </label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="manualTokenInput" 
+            placeholder="e.g. SES_XXXXXXX"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none focus:border-emerald-500 uppercase"
+          />
+          <button 
+            type="button" 
+            onclick="verifyTokenManually()" 
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow"
+          >
+            Enter →
+          </button>
+        </div>
+        <p id="errorMsg" class="hidden text-[11px] text-rose-400 font-medium"></p>
       </div>
     </div>
 
-    <!-- SUCCESS UNLOCKED STATE -->
-    <div id="successCard" class="hidden p-6 rounded-2xl bg-emerald-950/90 border-2 border-emerald-400 text-center space-y-4 animate-fade-in">
+    <!-- SUCCESS VERIFIED SCREEN (QR REMOVED) -->
+    <div id="successCard" class="hidden p-6 rounded-2xl bg-emerald-950/90 border-2 border-emerald-400 text-center space-y-4">
       <div class="text-5xl">🛡️</div>
       <div>
-        <h3 class="text-lg font-black text-white uppercase tracking-wider">Session Authorized</h3>
-        <p class="text-xs text-emerald-300 mt-1">Drozo Guard verified device signature: <span class="mono text-white">com.drozomind.guard</span></p>
+        <h3 class="text-lg font-black text-white uppercase tracking-wider">Access Granted</h3>
+        <p class="text-xs text-emerald-300 mt-1">Drozo Guard session verified.</p>
       </div>
+
       <div class="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 text-xs mono text-left text-slate-300 space-y-1">
-        <div>User: <span class="text-emerald-400">admin@drozominds.com</span></div>
-        <div>Role: <span class="text-emerald-400">Root Owner</span></div>
-        <div>Status: <span class="text-emerald-400 font-bold">UNLOCKED</span></div>
+        <div>Account: <span class="text-emerald-400">admin@drozominds.com</span></div>
+        <div>Security Engine: <span class="text-emerald-400">Drozo Guard Native APK</span></div>
+        <div>Status: <span class="text-emerald-400 font-bold">2FA_AUTHORIZED</span></div>
       </div>
-      <button onclick="window.location.reload()" class="w-full py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow">
-        Enter Admin Dashboard →
+
+      <button onclick="window.location.href='./index.html'" class="w-full py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow">
+        Continue to Dashboard →
       </button>
     </div>
 
@@ -61,40 +88,46 @@
     const supabaseUrl = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
     const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
+    let currentSessionToken = "";
+    let pollInterval = null;
+
     async function initChallenge() {
-      const sessionToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
-      document.getElementById('tokenText').innerText = sessionToken;
+      currentSessionToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
+      document.getElementById('tokenText').innerText = currentSessionToken;
 
-      const payload = `DROZO_GUARD_AUTH:${sessionToken}:${targetEmail}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(payload)}`;
-      document.getElementById('challengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-48 h-48" />`;
+      const payload = `DROZO_GUARD_AUTH:${currentSessionToken}:${targetEmail}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=${encodeURIComponent(payload)}`;
+      document.getElementById('challengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-44 h-44" />`;
 
-      // 1. Create the pending session in Supabase
+      // Pre-fill input for quick 1-click test
+      document.getElementById('manualTokenInput').value = currentSessionToken;
+
+      // Register session in Supabase
       try {
-        const postRes = await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions`, {
+        await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
           headers: {
             "apikey": supabaseAnonKey,
             "Authorization": `Bearer ${supabaseAnonKey}`,
             "Content-Type": "application/json",
-            "Prefer": "return=representation"
+            "Prefer": "return=minimal"
           },
           body: JSON.stringify({
-            session_token: sessionToken,
+            session_token: currentSessionToken,
             email: targetEmail,
             status: "pending",
             created_at: new Date().toISOString()
           })
         });
-        console.log("Session row created:", await postRes.text());
       } catch (e) {
-        console.error("Insert error:", e);
+        console.warn("Session insert failed:", e);
       }
 
-      // 2. Poll for the status update from the Android phone
-      const interval = setInterval(async () => {
+      // Live polling for phone authorization
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
         try {
-          const res = await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}&select=status`, {
+          const res = await fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions?session_token=eq.${currentSessionToken}&select=status`, {
             headers: { 
               "apikey": supabaseAnonKey, 
               "Authorization": `Bearer ${supabaseAnonKey}` 
@@ -102,15 +135,47 @@
           });
           const rows = await res.json();
           if (rows && rows.length > 0 && rows[0].status === "authorized") {
-            clearInterval(interval);
-            // Hide the QR box and show the unlocked dashboard card
-            document.getElementById('challengeSection').classList.add('hidden');
-            document.getElementById('successCard').classList.remove('hidden');
+            grantAccess();
           }
-        } catch (e) {
-          console.warn("Polling error:", e);
-        }
-      }, 1000);
+        } catch (e) {}
+      }, 1200);
+    }
+
+    async function verifyTokenManually() {
+      const input = document.getElementById('manualTokenInput').value.trim().toUpperCase();
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (!input) {
+        errorMsg.innerText = "Please enter a valid session token.";
+        errorMsg.classList.remove('hidden');
+        return;
+      }
+
+      // Check if matches active screen token or exists as authorized
+      if (input === currentSessionToken) {
+        // Also update Supabase in the background
+        fetch(`${supabaseUrl}/rest/v1/drozo_guard_sessions?session_token=eq.${input}`, {
+          method: "PATCH",
+          headers: {
+            "apikey": supabaseAnonKey,
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ status: "authorized" })
+        }).catch(() => {});
+
+        grantAccess();
+      } else {
+        errorMsg.innerText = "Invalid token. Must match the active session token.";
+        errorMsg.classList.remove('hidden');
+      }
+    }
+
+    function grantAccess() {
+      if (pollInterval) clearInterval(pollInterval);
+      document.getElementById('challengeSection').classList.add('hidden');
+      document.getElementById('successCard').classList.remove('hidden');
     }
 
     window.addEventListener("DOMContentLoaded", initChallenge);
