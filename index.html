@@ -534,7 +534,11 @@
         (m.sender ? '<strong style="display:block; font-size:11px; opacity:0.85; margin-bottom:3px;">' + m.sender + '</strong>' : '') +
         (m.text || '').replace(/\n/g, '<br>') + outcomeCard + '</div>';
     }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
-    stream.scrollTop = stream.scrollHeight;
+
+    // Auto-scroll directly to the latest message
+    setTimeout(() => {
+      stream.scrollTop = stream.scrollHeight;
+    }, 20);
   }
 
   function sendUserMessage() {
