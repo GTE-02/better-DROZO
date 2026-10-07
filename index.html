@@ -468,37 +468,47 @@
     return 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings. For outside questions, please reach out to our coordinator directly on Discord!';
   }
 
-  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
-    let obs = 'Standard consultation completed.';
-    let rec = 'Continue regular wellness routine.';
-    try { obs = decodeURIComponent(encObs) || obs; } catch(e){}
-    try { rec = decodeURIComponent(encRec) || rec; } catch(e){}
+    function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
+    let obs = "Standard consultation completed. Patient reported steady symptom management.";
+    let rec = "Continue regular wellness routine and self-care practices.";
+    try { if (encObs) obs = decodeURIComponent(encObs); } catch(e){}
+    try { if (encRec) rec = decodeURIComponent(encRec); } catch(e){}
+    const cleanDate = date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const docMarkup = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-      '<head><meta charset="utf-8"><title>Drozo Mind - Clinical Summary</title>' +
-      '<style>@page { margin: 1.0in; } body { font-family: Calibri, Arial, sans-serif; color: #1F2937; line-height: 1.6; font-size: 11pt; } ' +
-      '.header-box { border-bottom: 2pt solid #1B4D3E; padding-bottom: 12pt; margin-bottom: 18pt; } ' +
-      '.title { font-size: 20pt; font-weight: bold; color: #1B4D3E; } ' +
-      '.subtitle { font-size: 9pt; color: #4B5563; text-transform: uppercase; letter-spacing: 1px; } ' +
-      '.meta-box { background: #F3F4F6; border: 1pt solid #E5E7EB; border-radius: 4pt; padding: 12pt; margin-bottom: 18pt; } ' +
-      '.meta-table { width: 100%; border-collapse: collapse; } .meta-table td { padding: 4pt 6pt; font-size: 10pt; } ' +
-      '.meta-label { font-weight: bold; color: #374151; width: 25%; } ' +
-      '.section-title { font-size: 13pt; font-weight: bold; color: #1B4D3E; border-bottom: 1pt solid #D1D5DB; padding-bottom: 4pt; margin-top: 18pt; margin-bottom: 8pt; } ' +
-      '.content-block { background: #FAFAFA; border-left: 3pt solid #1B4D3E; padding: 10pt 14pt; font-size: 11pt; color: #111827; margin-bottom: 14pt; } ' +
-      '.seal-box { margin-top: 40pt; border-top: 1pt solid #E5E7EB; padding-top: 12pt; font-size: 9pt; color: #6B7280; text-align: center; }</style></head>' +
-      '<body><div class="header-box"><div class="title">🌿 Drozo Mind Clinical Network</div><div class="subtitle">Official Consultation Summary & Diagnostic Outcome Documentation</div></div>' +
-      '<div class="meta-box"><table class="meta-table"><tr><td class="meta-label">Session Reference:</td><td>#TCK-' + ticketNum + '</td><td class="meta-label">Consultation Date:</td><td>' + date + '</td></tr>' +
-      '<tr><td class="meta-label">Client Name:</td><td>' + patient + '</td><td class="meta-label">Attending Clinician:</td><td>' + clinician + '</td></tr>' +
-      '<tr><td class="meta-label">Session Status:</td><td style="color:#059669; font-weight:bold;">Completed & Verified</td><td class="meta-label">Care Channel:</td><td>Direct Encrypted Session</td></tr></table></div>' +
-      '<div class="section-title">1. Clinical Assessment & Key Observations</div><div class="content-block">' + obs + '</div>' +
-      '<div class="section-title">2. Therapeutic Action Plan & Recommendations</div><div class="content-block">' + rec + '</div>' +
-      '<div class="seal-box"><p><strong>Drozo Mind Consultation Hub</strong> • Issued on ' + date + ' • Automated Clinical Record</p></div></body></html>';
+    // Clean text for standard RTF formatting
+    const rtfEscape = (str) => (str || '').replace(/[\{}]/g, '\$&').replace(/
+/g, '\line ');
 
-    const blob = new Blob([docMarkup], { type: 'application/msword;charset=utf-8' });
+    const rtfContent = `{\rtf1\ansi\deff0
+{\fonttbl{\f0\fnil\fcharset0 Helvetica;}{\f1\fnil\fcharset0 Helvetica-Bold;}}
+{\colortbl;\red27\green77\blue62;\red107\green114\blue128;\red17\green24\blue39;\red5\green150\blue105;}
+\viewkind4\uc1\pard\f1\fs36\cf1 DROZO MIND CLINICAL NETWORK\par
+\f0\fs18\cf2 OFFICIAL CONSULTATION SUMMARY & THERAPEUTIC OUTCOME REPORT\par
+\cf0\fs14\line\hr\line
+\pard\fs20
+\b\cf1 Session Reference:\b0\cf3  #TCK-${rtfEscape(ticketNum)}\line
+\b\cf1 Consultation Date:\b0\cf3  ${rtfEscape(cleanDate)}\line
+\b\cf1 Client Name:\b0\cf3  ${rtfEscape(patient || 'Valued Client')}\line
+\b\cf1 Attending Clinician:\b0\cf3  ${rtfEscape(clinician || 'Drozo Mind Clinical Staff')}\line
+\b\cf1 Outcome Status:\b0\cf4  Completed & Verified\line
+\b\cf1 Channel:\b0\cf3  Encrypted Direct Session\par\line
+
+\pard\f1\fs24\cf1 1. Clinical Assessment & Key Observations\par
+\f0\fs20\cf3 ${rtfEscape(obs)}\par\line
+
+\pard\f1\fs24\cf1 2. Therapeutic Action Plan & Recommendations\par
+\f0\fs20\cf3 ${rtfEscape(rec)}\par\line
+
+\pard\f1\fs24\cf1 3. Institutional Verification\par
+\f0\fs18\cf2 This summary has been generated and validated under Drozo Mind Clinical Coordination protocols.\par\line
+\pard\qc\fs16\cf2 Drozo Mind Consultation Hub \bullet Issued on ${rtfEscape(cleanDate)} \bullet Confidential Care Record\par
+}`;
+
+    const blob = new Blob([rtfContent], { type: 'application/rtf;charset=utf-8' });
     const dlUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = dlUrl;
-    link.download = 'DrozoMind_Clinical_Outcome_TCK-' + ticketNum + '.doc';
+    link.download = `DrozoMind_Clinical_Outcome_TCK-${ticketNum}.rtf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -518,7 +528,7 @@
         outcomeCard = '<div style="margin-top:12px; padding:14px; background:#FFFFFF; color:#1F2937; border-radius:12px; border:1px solid #D1D5DB; box-shadow:0 4px 12px rgba(0,0,0,0.08);">' +
           '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;"><span style="font-size:20px;">📑</span><strong style="font-size:13px; color:var(--primary);">Clinical Outcome Document Ready</strong></div>' +
           '<div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Attending: ' + (m.clinician || 'Care Team') + ' • ' + safeDate + '</div>' +
-          '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + safeDate + '\', \'' + safeObs + '\', \'' + safeRec + '\')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">⬇️ Download Official Outcome (.doc)</button></div>';
+          '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + safeDate + '\', \'' + safeObs + '\', \'' + safeRec + '\')" class="btn" style="margin-top:0; padding:10px 14px; font-size:12px; background:var(--primary); color:#fff; width:100%; border-radius:8px; font-weight:700; cursor:pointer;">⬇️ Download Outcome Document (.rtf)</button></div>';
       }
       return '<div class="bubble ' + m.role + '">' +
         (m.sender ? '<strong style="display:block; font-size:11px; opacity:0.85; margin-bottom:3px;">' + m.sender + '</strong>' : '') +
