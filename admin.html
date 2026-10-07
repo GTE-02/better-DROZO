@@ -384,34 +384,53 @@
   // ================= STAGE 1 GATEWAY =================
   async function proceedToGateVerification() {
     const err = document.getElementById('gate-err');
-    err.style.display = 'none';
+    if (err) err.style.display = 'none';
 
-    const email = (document.getElementById('adm-email').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('adm-pass').value || '').trim();
+    const emailEl = document.getElementById('adm-email');
+    const passEl = document.getElementById('adm-pass');
+    const email = (emailEl ? emailEl.value : '').trim().toLowerCase();
+    const pass = (passEl ? passEl.value : '').trim();
 
     if (!email || !pass) {
-      err.innerText = "Please provide authorized admin email and security key.";
-      err.style.display = 'block';
+      if (err) {
+        err.innerText = "Please provide authorized admin email and security key.";
+        err.style.display = 'block';
+      }
       return;
     }
 
-    const hashed = await sha256(pass);
+    let isAuthorized = false;
 
-    const isOwner = (email === OWNER_EMAIL && (hashed === OWNER_HASH || pass === 'Dubai@2011'));
-    const isGamerKids = (email === 'gamerkids1109@gmail.com' && (hashed === COORD_HASH || pass === 'Password123'));
-    
-    // Check if account has been promoted to Admin by the Owner
-    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-    const promotedUser = accounts.find(u => u.email === email && u.role === 'admin' && (u.pwdHash === hashed || pass === 'Password123'));
+    // 1. Immediate plaintext credential bypass for known admins
+    if (email === OWNER_EMAIL && pass === 'Dubai@2011') {
+      isAuthorized = true;
+    } else if (email === 'gamerkids1109@gmail.com' && pass === 'Password123') {
+      isAuthorized = true;
+    }
 
-    if (isOwner || isGamerKids || promotedUser) {
+    // 2. Hash-based fallback check
+    if (!isAuthorized) {
+      try {
+        const hashed = await sha256(pass);
+        if (email === OWNER_EMAIL && hashed === OWNER_HASH) isAuthorized = true;
+        if (email === 'gamerkids1109@gmail.com' && hashed === COORD_HASH) isAuthorized = true;
+
+        const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+        const match = accounts.find(u => u.email === email && u.role === 'admin' && (u.pwdHash === hashed || pass === 'Password123'));
+        if (match) isAuthorized = true;
+      } catch(e) {}
+    }
+
+    if (isAuthorized) {
       stagedEmail = email;
       document.getElementById('gate-stage-1').style.display = 'none';
       document.getElementById('gate-stage-2').style.display = 'block';
       setSecondFactorChoice('totp');
     } else {
-      err.innerText = "Access Denied: Invalid credentials or missing Admin clearance.";
-      err.style.display = 'block';
+      if (err) {
+        err.innerText = "Access Denied: Invalid credentials or missing Admin clearance.";
+        err.style.display = 'block';
+      }
     }
   }
 
