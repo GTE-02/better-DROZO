@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | AI Surveillance & Secure Care</title>
+  <title>Drozo Mind | Secure Modern Care</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,68 +36,115 @@
     body { background: var(--bg); color: var(--text-main); padding: 16px 16px 110px; }
     .container { max-width: 640px; margin: 0 auto; }
 
-    /* Google AI Surveillance Live Telemetry Header */
-    .sentinel-bar {
-      background: #0B132B; color: #10B981; border-radius: var(--radius-md); padding: 10px 14px;
-      font-size: 11px; font-weight: 700; display: flex; flex-direction: column; gap: 6px;
-      margin-bottom: 14px; border: 1px solid #1E293B; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    header {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow-card); margin-bottom: 18px;
     }
-    .sentinel-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981; display: inline-block; margin-right: 6px; animation: pulse 1.6s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.8; } }
-
-    header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card); margin-bottom: 18px; }
     .brand-group { display: flex; align-items: center; gap: 12px; }
-    .brand-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary); }
+    .brand-icon {
+      width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light);
+      display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary);
+    }
     .brand-title { font-size: 17px; font-weight: 800; color: var(--primary); }
     .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-    
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px;
+    }
     .card-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
     .card-caption { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
-    
+
     .pipeline-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0; }
-    .step-item { background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent; }
+    .step-item {
+      background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent;
+    }
     .step-item.active { background: var(--primary-light); color: var(--primary); border-color: var(--accent-subtle); }
     .step-item.done { background: #F0FDF4; color: var(--success); }
-    .active-slot-box { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px; }
-    
+    .active-slot-box {
+      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px;
+    }
+
     label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin: 14px 0 6px; }
-    input, textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none; }
-    
-    .btn { width: 100%; padding: 12px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; }
+    input, textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none;
+    }
+
+    .btn {
+      width: 100%; padding: 12px 18px; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
+      background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px;
+    }
     .btn:hover { background: var(--primary-hover); }
     .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
     .btn-danger { background: var(--danger); color: #fff; }
 
-    .floating-call-btn { position: fixed; right: 20px; bottom: 95px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35); border: 2px solid #fff; cursor: pointer; z-index: 400; }
-    .support-modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: flex-end; justify-content: flex-end; padding: 16px; }
+    .floating-call-btn {
+      position: fixed; right: 20px; bottom: 95px; width: 56px; height: 56px; border-radius: 50%;
+      background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 24px; box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35); border: 2px solid #fff; cursor: pointer; z-index: 400;
+    }
+
+    /* Side Support Drawer - STRICT VIEWPORT BOUNDS */
+    .support-modal-overlay {
+      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); backdrop-filter: blur(4px);
+      z-index: 600; display: none; align-items: flex-end; justify-content: flex-end; padding: 16px;
+    }
     .support-modal-overlay.open { display: flex; }
-    .support-modal-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; }
-    
-    .chat-container { flex: 1 1 auto; min-height: 280px; max-height: 52vh; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; }
+    .support-modal-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      width: 100%; max-width: 440px; height: 85vh; max-height: 720px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* CHAT STREAM CONTAINER - DYNAMIC SCROLL CONTAINER */
+    .chat-container {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bubble {
+      max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; line-height: 1.45;
+    }
     .bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
     .bubble.admin { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); align-self: flex-start; }
-    
-    .bottom-dock { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px; background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-    .dock-btn { background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+
+    .bottom-dock {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100;
+    }
+    .dock-btn {
+      background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700;
+      cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    }
     .dock-btn.active { color: var(--primary); }
-    
-    .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65); backdrop-filter: blur(5px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65); backdrop-filter: blur(5px);
+      z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     .id-pass-card {
       background: linear-gradient(135deg, #1B4D3E, #0D281E);
-      color: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 12px 30px rgba(27,77,62,0.3);
-      position: relative;
-      margin-top: 14px;
+      color: #fff; border-radius: 16px; padding: 20px;
+      box-shadow: 0 12px 30px rgba(27,77,62,0.3); margin-top: 14px;
     }
-  
+
     @keyframes laserSweep {
       0% { transform: translateY(-70px); opacity: 0.3; }
       50% { opacity: 1; }
@@ -106,8 +153,6 @@
   </style>
 </head>
 <body>
-
-
 
 <!-- MULTI-FACTOR AUTHENTICATION MODAL -->
 <div id="auth-modal" class="modal-overlay">
@@ -125,7 +170,7 @@
       <button id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA Code</button>
     </div>
 
-    <!-- METHOD 1: PASSWORD LOGIN (WITHOUT 1-SECOND BYPASS) -->
+    <!-- METHOD 1: PASSWORD LOGIN -->
     <div id="method-password">
       <label>Registered Email</label>
       <input type="email" id="auth-email" placeholder="name@example.com" value="admin@drozominds.com">
@@ -134,20 +179,19 @@
       <button class="btn" onclick="executePasswordAuth()">Sign In</button>
     </div>
 
-        <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
+    <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
     <div id="method-scanner" style="display:none; text-align:center;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green viewfinder box:</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green box:</p>
       
       <div style="position:relative; width:100%; max-width:280px; height:240px; margin:0 auto; background:#000; border-radius:14px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
         <video id="native-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
         
-        <!-- Viewfinder Targeting Guide -->
         <div id="scanner-viewfinder" style="display:none; position:absolute; inset:25px; border:2px dashed #10B981; border-radius:12px; pointer-events:none; box-shadow:0 0 0 9999px rgba(0,0,0,0.35);">
           <div style="position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #10B981, transparent); animation:laserSweep 1.5s infinite;"></div>
         </div>
         
         <div id="scanner-placeholder" style="color:#fff; font-size:12px; padding:16px;">
-          Camera standby.<br><br>
+          Camera Standby.<br><br>
           <button class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
         </div>
       </div>
@@ -163,9 +207,9 @@
       </div>
     </div>
 
-    <!-- METHOD 3: GOOGLE & MICROSOFT AUTHENTICATOR 2FA -->
+    <!-- METHOD 3: 2FA TOTP -->
     <div id="method-totp" style="display:none;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Open Microsoft Authenticator or Google Authenticator on your mobile device and enter your 6-digit verification code:</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the 6-digit verification code from Google or Microsoft Authenticator:</p>
       <label>Email Identity</label>
       <input type="email" id="totp-email" placeholder="name@example.com" value="admin@drozominds.com">
       <label>6-Digit Authenticator Code</label>
@@ -182,7 +226,7 @@
 <!-- Side Support Drawer -->
 <div id="side-support-drawer" class="support-modal-overlay" onclick="if(event.target===this) toggleSupportDrawer(false)">
   <div class="support-modal-panel">
-    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
       <div style="display:flex; align-items:center; gap:10px;">
         <span style="font-size:22px;">🌿</span>
         <div>
@@ -192,17 +236,22 @@
       </div>
       <button onclick="toggleSupportDrawer(false)" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
     </div>
-    <div style="padding:14px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+
+    <div style="padding:12px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px; flex-shrink:0;">
       <button onclick="startInstantVideoCall()" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:var(--primary);">📹 Video Call</button>
       <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:#5865F2; color:#fff; text-decoration:none;">💬 Discord</a>
     </div>
-    <div style="padding:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+
+    <div style="padding:12px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
         <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Drozo AI Care Assistant</span>
         <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
       </div>
+
+      <!-- CHAT STREAM -->
       <div class="chat-container" id="chat-stream"></div>
-      <div style="display:flex; gap:8px; margin-top:10px;">
+
+      <div style="display:flex; gap:8px; margin-top:10px; flex-shrink:0;">
         <input type="text" id="chat-input-text" placeholder="Ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
         <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
       </div>
@@ -262,17 +311,16 @@
     </div>
   </div>
 
-  <!-- PROFILE & DIGITAL HEALTH PASS / 2FA TAB -->
   <div id="tab-profile" class="tab-content">
     <div class="card">
       <div class="card-title">Digital Health ID & 2FA Pairing</div>
-      <div class="card-caption">Your personal Digital Health Pass and Google / Microsoft Authenticator setup key.</div>
+      <div class="card-caption">Your personal Digital Health Pass and Authenticator setup keys.</div>
 
       <!-- DIGITAL HEALTH PASS ID BADGE -->
       <div class="id-pass-card" id="digital-id-card">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
           <div>
-            <span style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#A7F3D0;">Official Verified ID Pass</span>
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#A7F3D0;">OFFICIAL VERIFIED ID PASS</span>
             <h3 id="id-card-name" style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">OWNER</h3>
           </div>
           <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">2FA ACTIVE</span>
@@ -280,11 +328,11 @@
 
         <div style="display:flex; gap:16px; align-items:center; background:rgba(0,0,0,0.25); padding:12px; border-radius:12px;">
           <div id="id-qrcode-box" style="background:#fff; padding:6px; border-radius:8px; width:92px; height:92px; display:flex; align-items:center; justify-content:center;"></div>
-          <div style="font-size:11px; line-height:1.5;">
-            <div><strong>Email:</strong> <span id="id-card-email">...</span></div>
-            <div><strong>Security Clearance:</strong> Level 4 Encrypted</div>
-            <div><strong>Token Hash:</strong> <span id="id-card-hash">DM-9942</span></div>
-            <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Point camera or scanner at this pass to enter</div>
+          <div id="id-card-clearance-box" style="font-size:11px; line-height:1.5;">
+            <div><strong>Email:</strong> <span id="id-card-email">admin@drozominds.com</span></div>
+            <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
+            <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
+            <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
           </div>
         </div>
       </div>
@@ -297,7 +345,7 @@
           <div id="totp-setup-qr" style="background:#fff; padding:8px; border-radius:10px; border:1px solid var(--border); width:156px; height:156px; display:flex; align-items:center; justify-content:center;"></div>
           <div style="font-size:11px;">
             <div style="font-weight:700; color:var(--text-main);">Base32 Secret Key:</div>
-            <code id="totp-secret-key" style="background:#E5E7EB; padding:3px 6px; border-radius:4px; font-size:11px; display:inline-block; margin-top:4px;">JBSWY3DPEHPK3PXP</code>
+            <code id="totp-secret-key" style="background:#E5E7EB; padding:3px 6px; border-radius:4px; font-size:11px; display:inline-block; margin-top:4px;">JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP</code>
           </div>
         </div>
       </div>
@@ -315,21 +363,14 @@
 </nav>
 
 <script>
-  // ================= GOOGLE AI SURVEILLANCE INTELLIGENCE ENGINE =================
   const OWNER_EMAIL = "admin@drozominds.com";
   let activeUser = null;
   let tickets = [];
   let chatMessages = [];
   let cameraStream = null;
-
-  // Active AI Telemetry Logger
-  function logAiTelemetry(event, severity = "INFO") {
-    const time = new Date().toLocaleTimeString();
-    const telemetryBox = document.getElementById("ai-telemetry-status");
-    if (telemetryBox) {
-      telemetryBox.innerText = `[${time}] GOOGLE AI ENGINE: ${event} • THREAT STATUS: 0 ANOMALIES`;
-    }
-  }
+  let scanInterval = null;
+  const scanCanvas = document.createElement('canvas');
+  const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
 
   // 24/7 Silent Background Sentinel: Autonomous Threat Neutralization & Auto-Purge
   function autonomousSecurityPurge(threatType) {
@@ -342,7 +383,6 @@
   }
 
   setInterval(() => {
-    // Check 1: Injected scripts or unauthorized DOM manipulations
     const suspectNodes = document.querySelectorAll('script[src*="track"], script[src*="inject"], iframe[src*="about:blank"]');
     if (suspectNodes.length > 0) {
       suspectNodes.forEach(n => n.remove());
@@ -350,7 +390,6 @@
       return;
     }
 
-    // Check 2: Storage tampering and payload injection
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -361,49 +400,12 @@
         }
       }
     } catch(e) {}
+  }, 3000);
 
-    // Check 3: Active session credential tampering
-    try {
-      const sessionData = sessionStorage.getItem('drozo_user');
-      if (sessionData) {
-        const parsed = JSON.parse(sessionData);
-        if (parsed.role === 'admin' && parsed.email !== 'admin@drozominds.com' && parsed.email !== 'gamerkids1109@gmail.com') {
-          autonomousSecurityPurge("Privilege Escalation Detected");
-          return;
-        }
-      }
-    } catch(e) {
-      autonomousSecurityPurge("Corrupted Session State");
-    }
-  }, 2000);
-
-  // OWNER-RESTRICTED EMERGENCY DATA PURGE
-  function requestEmergencyWipe() {
-    const inputEmail = prompt("⚠️ OWNER CLEARANCE REQUIRED\n\nEnter Owner Email to authorize permanent data purge:");
-    if (!inputEmail || inputEmail.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
-      alert("❌ ACCESS DENIED: Only the Owner (" + OWNER_EMAIL + ") is permitted to wipe platform records.");
-      logAiTelemetry("Unauthorized wipeout attempt rejected for: " + (inputEmail || "anonymous"), "HIGH");
-      return;
-    }
-
-    const inputPass = prompt("Enter Owner Password for " + OWNER_EMAIL + ":");
-    if (inputPass !== "Dubai@2011") {
-      alert("❌ ACCESS DENIED: Invalid Owner Password. Data wipe aborted.");
-      logAiTelemetry("Owner authentication failed on wipe request.", "HIGH");
-      return;
-    }
-
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch(e) {}
-    alert("⚠️ OWNER PURGE AUTHORIZED: All platform records, sessions, and clinical outcomes have been permanently destroyed.");
-    location.reload();
-  }
-
-  // ================= TOTP RFC 6238 COMPATIBLE WITH GOOGLE & MICROSOFT AUTHENTICATOR =================
+  // TOTP RFC 6238 COMPATIBILITY
   const TOTP_SECRETS = {
     'admin@drozominds.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
+    'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
     'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP',
     'client@drozomind.com': 'MFRGGZDFMZTWQ2LKMFRGGZDFMZTWQ2LK'
   };
@@ -444,9 +446,8 @@
   async function verifyTotpLogin() {
     const email = (document.getElementById('totp-email').value || '').trim().toLowerCase();
     const token = (document.getElementById('totp-token').value || '').trim();
-    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['client@drozomind.com'];
+    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'];
 
-    // Check current step, previous step (-30s), and next step (+30s) for clock drift tolerance
     const [c0, cMinus, cPlus] = await Promise.all([
       calculateTotpCode(secret, 0),
       calculateTotpCode(secret, -1),
@@ -458,7 +459,6 @@
       sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
       document.getElementById('auth-modal').style.display = 'none';
       initApp();
-      logAiTelemetry("User authenticated via Google/Microsoft 2FA: " + email);
     } else {
       const err = document.getElementById('auth-error-msg');
       err.innerText = "Invalid 2FA Authenticator Code. Please verify your phone clock.";
@@ -466,12 +466,8 @@
     }
   }
 
-  // ================= NATIVE CAMERA BARCODE / QR SCANNER =================
-  let scanInterval = null;
-  const scanCanvas = document.createElement('canvas');
-  const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  // HARDWARE BARCODE / QR SCANNER
   let nativeBarcodeDetector = null;
-
   if ('BarcodeDetector' in window) {
     try {
       nativeBarcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
@@ -491,7 +487,6 @@
     document.getElementById('auth-tab-2fa').style.color = method === 'totp' ? 'var(--primary)' : 'var(--text-muted)';
 
     if (method !== 'scanner') stopNativeCameraScanner();
-    else startNativeCameraScanner();
   }
 
   function startNativeCameraScanner() {
@@ -499,16 +494,7 @@
     const placeholder = document.getElementById('scanner-placeholder');
     const viewfinder = document.getElementById('scanner-viewfinder');
 
-    // Request optimal resolution with macro autofocus if supported
-    const constraints = {
-      video: {
-        facingMode: "environment",
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    };
-
-    navigator.mediaDevices.getUserMedia(constraints)
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then(stream => {
         cameraStream = stream;
         video.srcObject = stream;
@@ -523,22 +509,7 @@
         });
       })
       .catch(err => {
-        // Fallback for laptops or older webcams with simple video constraints
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(stream => {
-            cameraStream = stream;
-            video.srcObject = stream;
-            video.style.display = 'block';
-            if (placeholder) placeholder.style.display = 'none';
-            if (viewfinder) viewfinder.style.display = 'block';
-            video.play().then(() => {
-              if (scanInterval) clearInterval(scanInterval);
-              scanInterval = setInterval(scanVideoFrame, 150);
-            });
-          })
-          .catch(e => {
-            alert("Camera access blocked. Please allow camera permissions in Safari / browser settings, or upload an ID badge photo below.");
-          });
+        alert("Camera blocked. Please enable camera access in browser settings, or upload an image file of your badge.");
       });
   }
 
@@ -546,7 +517,6 @@
     const video = document.getElementById('native-camera-feed');
     if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-    // Strategy 1: Hardware-Accelerated Native Browser BarcodeDetector
     if (nativeBarcodeDetector) {
       try {
         const barcodes = await nativeBarcodeDetector.detect(video);
@@ -557,16 +527,13 @@
       } catch(e) {}
     }
 
-    // Strategy 2: High-contrast canvas fallback with jsQR
     scanCanvas.width = video.videoWidth || 640;
     scanCanvas.height = video.videoHeight || 480;
     scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
 
     const imgData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
     if (typeof jsQR !== "undefined") {
-      const code = jsQR(imgData.data, imgData.width, imgData.height, {
-        inversionAttempts: "attemptBoth"
-      });
+      const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
       if (code && code.data) {
         handleScannedIdPayload(code.data);
       }
@@ -574,14 +541,8 @@
   }
 
   function stopNativeCameraScanner() {
-    if (scanInterval) {
-      clearInterval(scanInterval);
-      scanInterval = null;
-    }
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
-    }
+    if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
     const video = document.getElementById('native-camera-feed');
     if (video) video.style.display = 'none';
     const viewfinder = document.getElementById('scanner-viewfinder');
@@ -602,7 +563,6 @@
       email = payload.trim();
     }
 
-    // Default to Owner if payload matches any Drozo Mind pass token
     if (!email || email.includes("drozomind")) {
       email = OWNER_EMAIL;
     }
@@ -611,7 +571,7 @@
     sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
     document.getElementById('auth-modal').style.display = 'none';
     initApp();
-    alert("🎉 SUCCESS: ID Badge Scanned & Verified! Welcome, " + email);
+    alert("🎉 ID Badge Verified: Authenticated as " + email);
   }
 
   function handleFileUploadPass(event) {
@@ -631,7 +591,6 @@
             }
           } catch(err) {}
         }
-
         scanCanvas.width = img.width;
         scanCanvas.height = img.height;
         scanCtx.drawImage(img, 0, 0);
@@ -643,7 +602,6 @@
             return;
           }
         }
-        // Direct image pass verification
         handleScannedIdPayload("DROZO_PASS:" + OWNER_EMAIL + ":IMG_VERIFIED");
       };
       img.src = e.target.result;
@@ -662,24 +620,19 @@
       return;
     }
 
-    // Authenticate Owner or Client
     activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
     sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
     document.getElementById('auth-modal').style.display = 'none';
     initApp();
-    logAiTelemetry("Session initiated for user: " + email);
   }
 
   function renderDigitalIdBadge() {
     if (!activeUser) return;
     const email = (activeUser.email || '').trim().toLowerCase();
-    
-    // Checks for either admin@drozominds.com or admin@drozomind.com or gamerkids
-    const isOwner = email === 'admin@drozominds.com' || email === 'admin@drozomind.com' || email.startsWith('admin');
-    const displayRole = isOwner ? 'OWNER' : email.split('@')[0].toUpperCase();
-    
+    const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
+
     const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = displayRole;
+    if (cardName) cardName.innerText = isOwner ? 'OWNER' : email.split('@')[0].toUpperCase();
 
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
@@ -688,7 +641,7 @@
     const cardHash = document.getElementById('id-card-hash');
     if (cardHash) cardHash.innerText = tokenPayload.split(':')[2];
 
-    const clearanceElem = document.querySelector('#digital-id-card div:nth-child(2) div:nth-child(2)');
+    const clearanceElem = document.getElementById('id-card-clearance-box');
     if (clearanceElem && isOwner) {
       clearanceElem.innerHTML = `
         <div><strong>Email:</strong> <span>${email}</span></div>
@@ -709,7 +662,7 @@
       });
     }
 
-    const secret = (TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'] || 'JBSWY3DPEHPK3PXP').replace(/\s+/g, '').toUpperCase();
+    const secret = (TOTP_SECRETS[email] || TOTP_SECRETS[OWNER_EMAIL]).replace(/\s+/g, '').toUpperCase();
     const secretKeyBox = document.getElementById('totp-secret-key');
     if (secretKeyBox) secretKeyBox.innerText = secret;
 
@@ -765,8 +718,13 @@
 
   function toggleSupportDrawer(open) {
     const drawer = document.getElementById('side-support-drawer');
-    if (open) { drawer.classList.add('open'); renderChat(); }
-    else { drawer.classList.remove('open'); }
+    if (open) {
+      drawer.classList.add('open');
+      renderChat();
+      setTimeout(scrollChatToBottom, 100);
+    } else {
+      drawer.classList.remove('open');
+    }
   }
 
   function startInstantVideoCall() {
@@ -840,9 +798,11 @@
   }
 
   function clearChatHistory() {
-    try { localStorage.removeItem('drozo_chat'); } catch(e){}
-    chatMessages = [];
-    renderChat();
+    if (confirm("Permanently clear your active chat conversation?")) {
+      try { localStorage.removeItem('drozo_chat'); } catch(e){}
+      chatMessages = [];
+      renderChat();
+    }
   }
 
   function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
@@ -858,6 +818,13 @@
     a.click();
   }
 
+  function scrollChatToBottom() {
+    const stream = document.getElementById('chat-stream');
+    if (stream) {
+      stream.scrollTop = stream.scrollHeight;
+    }
+  }
+
   function renderChat() {
     const stream = document.getElementById('chat-stream');
     if (!stream) return;
@@ -865,13 +832,14 @@
     stream.innerHTML = chatMessages.map(m => {
       let docCard = '';
       if (m.isOutcomeDoc) {
-        docCard = '<div style="margin-top:10px; padding:12px; background:#fff; border-radius:10px; border:1px solid #D1D5DB;">' +
-          '<strong>📑 Clinical Outcome Ready</strong><div style="font-size:11px; color:#6B7280; margin:4px 0 8px;">' + m.date + '</div>' +
+        docCard = '<div style="margin-top:10px; padding:12px; background:#fff; border-radius:10px; border:1px solid #D1D5DB; box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
+          '<strong style="color:var(--primary); font-size:12px; display:block;">📑 Official Clinical Outcome Ready</strong><div style="font-size:11px; color:#6B7280; margin:4px 0 8px;">' + m.date + '</div>' +
           '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + m.date + '\', \'' + encodeURIComponent(m.observations || '') + '\', \'' + encodeURIComponent(m.recommendations || '') + '\')" class="btn" style="margin-top:0; padding:8px; font-size:12px;">⬇️ Download RTF Document</button></div>';
       }
-      return '<div class="bubble ' + m.role + '">' + (m.sender ? '<strong style="display:block; font-size:11px; margin-bottom:2px;">' + m.sender + '</strong>' : '') + m.text + docCard + '</div>';
+      return '<div class="bubble ' + m.role + '">' + (m.sender ? '<strong style="display:block; font-size:11px; margin-bottom:2px; opacity:0.85;">' + m.sender + '</strong>' : '') + m.text + docCard + '</div>';
     }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI.</div>';
-    stream.scrollTop = stream.scrollHeight;
+
+    setTimeout(scrollChatToBottom, 40);
   }
 
   function sendUserMessage() {
@@ -884,7 +852,7 @@
     try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
 
     setTimeout(() => {
-      let reply = 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings under Google AI surveillance.';
+      let reply = 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings.';
       const q = text.toLowerCase();
       if (/book|schedule|appoint/.test(q)) {
         const num = Math.floor(100000 + Math.random() * 900000);
@@ -897,13 +865,24 @@
         if (act) { act.status = 'Cancelled'; try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){} renderPipeline(); renderHistory(); reply = 'Cancelled your booking #TCK-' + act.ticketNum + '.'; }
         else reply = 'You have no active appointments.';
       } else if (/drozo/.test(q)) reply = 'Drozo is active in our Discord: https://discord.gg/c8H6CQJTWA';
-      else if (/hi|hello|hey/.test(q)) reply = 'Hello! I am your Drozo Mind assistant operating with Google AI surveillance. How can I help you?';
+      else if (/hi|hello|hey/.test(q)) reply = 'Hello! I am your Drozo Mind assistant operating with 2FA protection. How can I help you?';
 
       chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
       try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
       renderChat();
-    }, 400);
+    }, 350);
   }
+
+  // Periodic Safe Storage Sync without overriding chat state
+  setInterval(() => {
+    try {
+      const stored = localStorage.getItem('drozo_chat');
+      if (stored && stored !== JSON.stringify(chatMessages)) {
+        chatMessages = JSON.parse(stored);
+        renderChat();
+      }
+    } catch(e){}
+  }, 2000);
 
   initApp();
 </script>
