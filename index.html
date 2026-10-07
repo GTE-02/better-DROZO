@@ -492,6 +492,12 @@
       } else {
         err.innerText = "Invalid owner credentials."; err.style.display = 'block'; return;
       }
+    } else if (email === 'gamerkids1109@gmail.com') {
+      if (pass === 'Password123' || hashed === '9eb1d2ec77a56112d080c98f9845ec4668ba45cfba3eebbb5c24e68e4bf98282') {
+        activeUser = { email: email, role: 'admin', name: 'GamerKids' };
+      } else {
+        err.innerText = "Invalid credentials."; err.style.display = 'block'; return;
+      }
     } else {
       // Check Registered User Accounts
       const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');

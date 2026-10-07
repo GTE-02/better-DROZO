@@ -60,6 +60,7 @@
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
     .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
     .btn-outline:hover { color: var(--text-main); border-color: var(--text-main); }
@@ -133,7 +134,7 @@
 </head>
 <body>
 
-<!-- TWO-STAGE AUTHORIZATION GATE (WITH QR OR TOTP CHOICE) -->
+<!-- GATEWAY (WITH QR OR TOTP SELECTION) -->
 <div id="auth-gate-wrapper" class="gate-wrap">
   <div class="gate-card">
     <div class="brand-icon">🌿</div>
@@ -145,7 +146,7 @@
     <!-- STAGE 1: EMAIL & PASSWORD -->
     <div id="gate-stage-1">
       <label>Authorized Admin Identity</label>
-      <input type="email" id="adm-email" value="admin@drozominds.com">
+      <input type="email" id="adm-email" placeholder="admin@drozominds.com" value="gamerkids1109@gmail.com">
       <label>Security Key</label>
       <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') proceedToGateVerification()">
       <button type="button" class="btn btn-primary" style="width:100%; margin-top: 6px;" onclick="proceedToGateVerification()">Continue to Verification →</button>
@@ -158,7 +159,6 @@
         <span style="font-size:11px; color:var(--text-muted);">Choose QR Pass scan or enter your 6-digit Authenticator code:</span>
       </div>
 
-      <!-- Verification Type Selector -->
       <div style="display:flex; gap:6px; background:var(--surface-subtle); padding:4px; border-radius:8px; margin-bottom:14px;">
         <button type="button" id="btn-choice-totp" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:#fff; color:var(--primary);" onclick="setSecondFactorChoice('totp')">🔢 2FA Code</button>
         <button type="button" id="btn-choice-qr" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:transparent; color:var(--text-muted);" onclick="setSecondFactorChoice('qr')">📷 Scan QR Pass</button>
@@ -254,12 +254,12 @@
     <div id="tickets-stream"></div>
   </div>
 
-  <!-- REGISTERED ACCOUNTS VIEW (OWNER DELETION CONTROLS) -->
+  <!-- REGISTERED ACCOUNTS VIEW (OWNER ROLE CONTROLS) -->
   <div id="view-users" class="content-card" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <div>
-        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">👥 Platform Client Accounts</h3>
-        <span style="font-size:12px; color:var(--text-muted);">Users registered via portal sign-up. Deletion permissions restricted to Owner.</span>
+        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">👥 Platform Registered Accounts</h3>
+        <span style="font-size:12px; color:var(--text-muted);">Owners can promote accounts to Admin/Coordinator or revoke account access completely.</span>
       </div>
     </div>
     <div id="users-stream"></div>
@@ -292,7 +292,6 @@
         <button class="btn btn-danger" style="padding:6px 12px; font-size:11px;" onclick="clearThreatLog()">Clear Incidents</button>
       </div>
 
-      <!-- ACTIVE LOCKS / BANS -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
         <div style="background:#111827; padding:14px; border-radius:10px; border:1px solid #1F2937;">
           <span style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase;">Active Session Bans / Locks</span>
@@ -313,7 +312,6 @@
         </div>
       </div>
 
-      <!-- OWNER CLI INPUT -->
       <div style="display:flex; gap:8px;">
         <input type="text" id="owner-cli-in" placeholder="Type command e.g. /location gamerkids1109@gmail.com..." onkeydown="if(event.key==='Enter') runOwnerCli()" style="background:#030712; border:1px solid #334155; color:#4ADE80; font-family:monospace; font-size:12px; margin-bottom:0; flex:1;">
         <button class="btn btn-primary" onclick="runOwnerCli()">Execute</button>
@@ -339,7 +337,6 @@
   let tickets = [];
   let chat = [];
 
-  // CAMERA & QR SCANNER GLOBALS
   let adminCameraStream = null;
   let adminScanInterval = null;
   const adminCanvas = document.createElement('canvas');
@@ -384,7 +381,7 @@
     return code.toString().padStart(6, '0');
   }
 
-  // ================= GATEWAY AUTHENTICATION =================
+  // ================= STAGE 1 GATEWAY =================
   async function proceedToGateVerification() {
     const err = document.getElementById('gate-err');
     err.style.display = 'none';
@@ -399,16 +396,21 @@
     }
 
     const hashed = await sha256(pass);
-    const isOwner = (email === 'admin@drozominds.com' && (hashed === OWNER_HASH || pass === 'Dubai@2011'));
-    const isCoord = (email === 'gamerkids1109@gmail.com' && (hashed === COORD_HASH || pass === 'Password123'));
 
-    if (isOwner || isCoord) {
+    const isOwner = (email === OWNER_EMAIL && (hashed === OWNER_HASH || pass === 'Dubai@2011'));
+    const isGamerKids = (email === 'gamerkids1109@gmail.com' && (hashed === COORD_HASH || pass === 'Password123'));
+    
+    // Check if account has been promoted to Admin by the Owner
+    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    const promotedUser = accounts.find(u => u.email === email && u.role === 'admin' && (u.pwdHash === hashed || pass === 'Password123'));
+
+    if (isOwner || isGamerKids || promotedUser) {
       stagedEmail = email;
       document.getElementById('gate-stage-1').style.display = 'none';
       document.getElementById('gate-stage-2').style.display = 'block';
       setSecondFactorChoice('totp');
     } else {
-      err.innerText = "Access Denied: Invalid administrator credentials.";
+      err.innerText = "Access Denied: Invalid credentials or missing Admin clearance.";
       err.style.display = 'block';
     }
   }
@@ -446,7 +448,7 @@
     document.getElementById('gate-err').style.display = 'none';
   }
 
-  // OPTION A: VERIFY TOTP CODE
+  // STAGE 2: TOTP
   async function executeFinalAuth() {
     const err = document.getElementById('gate-err');
     err.style.display = 'none';
@@ -458,7 +460,7 @@
       return;
     }
 
-    const secret = TOTP_SECRETS[stagedEmail] || TOTP_SECRETS['admin@drozominds.com'];
+    const secret = TOTP_SECRETS[stagedEmail] || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
     const [c0, cMinus, cPlus] = await Promise.all([
       calculateTotp(secret, 0),
       calculateTotp(secret, -1),
@@ -476,7 +478,7 @@
     }
   }
 
-  // OPTION B: ADMIN QR CAMERA SCANNER
+  // STAGE 2: QR CAMERA SCANNER
   function startAdminCamera() {
     const video = document.getElementById('admin-camera-feed');
     const placeholder = document.getElementById('admin-scanner-placeholder');
@@ -572,7 +574,7 @@
     location.reload();
   }
 
-  // ================= DASHBOARD & OWNER CONTROLS =================
+  // ================= DASHBOARD & REGISTERED USERS =================
   function launchDashboard(email) {
     document.getElementById('auth-gate-wrapper').style.display = 'none';
     const mount = document.getElementById('dashboard-mount');
@@ -631,37 +633,81 @@
     else renderTicketList();
   }
 
-  // RENDER REGISTERED CLIENT ACCOUNTS & OWNER DELETE ACTION
+  // RENDER USERS: INCLUDES OWNER ADMIN TOGGLE & OWNER DELETE
   function renderRegisteredUsers() {
     const container = document.getElementById('users-stream');
-    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    
+    // Pre-populate gamerkids1109 if not already in store
+    if (!accounts.some(u => u.email === 'gamerkids1109@gmail.com')) {
+      accounts.unshift({
+        id: 'usr_gamerkids',
+        name: 'GamerKids Coordinator',
+        email: 'gamerkids1109@gmail.com',
+        role: 'admin',
+        registeredAt: 'Oct 7, 2026'
+      });
+      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+    }
+
     const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
 
-    if (!accounts.length) {
-      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">No patient accounts registered yet. Use the client Sign Up tab to register.</div>';
+    container.innerHTML = accounts.map(u => {
+      const isAdmin = u.role === 'admin';
+      let ownerControls = '';
+
+      if (isOwner) {
+        ownerControls = `
+          <div style="display:flex; gap:6px;">
+            ${isAdmin ? 
+              `<button class="btn btn-secondary" style="font-size:11px; padding:6px 10px;" onclick="toggleUserAdminRole('${u.id}', false)">Demote to Client</button>` : 
+              `<button class="btn btn-success" style="font-size:11px; padding:6px 10px;" onclick="toggleUserAdminRole('${u.id}', true)">⭐ Grant Admin Access</button>`
+            }
+            <button class="btn btn-danger" style="font-size:11px; padding:6px 10px;" onclick="ownerDeleteUserAccount('${u.id}', '${u.email}')">🗑️ Delete (Owner)</button>
+          </div>
+        `;
+      } else {
+        ownerControls = `<span style="font-size:11px; color:var(--text-muted); font-weight:700;">${isAdmin ? 'Coordinator Clearance' : 'Client Access'}</span>`;
+      }
+
+      return `
+        <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:15px; color:var(--primary);">${u.name}</strong>
+              ${isAdmin ? '<span style="background:#059669; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px;">ADMIN</span>' : '<span style="background:#E5E7EB; color:#374151; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">CLIENT</span>'}
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Email: <strong>${u.email}</strong></div>
+            <div style="font-size:11px; color:#6B7280; margin-top:4px;">
+              Registered: ${u.registeredAt || 'Active'} • Access: ${isAdmin ? 'Admin & Clinical Controls' : 'Client Telehealth'}
+            </div>
+          </div>
+          <div>${ownerControls}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // OWNER-ONLY: PROMOTE OR DEMOTE ADMIN ACCESS
+  function toggleUserAdminRole(id, makeAdmin) {
+    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
+      alert("Unauthorized: Only root platform owner can modify administrator permissions.");
       return;
     }
 
-    container.innerHTML = accounts.map(u => `
-      <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div>
-          <strong style="font-size:15px; color:var(--primary);">${u.name}</strong>
-          <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">(${u.email})</span>
-          <div style="font-size:11px; color:#6B7280; margin-top:4px;">
-            Registered: ${u.registeredAt} • Clearance: Level 4 Encrypted (Client)
-          </div>
-        </div>
-        <div>
-          ${isOwner ? `<button class="btn btn-danger" style="font-size:11px; padding:6px 12px;" onclick="ownerDeleteUserAccount('${u.id}', '${u.email}')">🗑️ Delete Account (Owner)</button>` : '<span style="font-size:11px; color:var(--text-muted);">Protected Account</span>'}
-        </div>
-      </div>
-    `).join('');
+    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    const target = accounts.find(u => u.id === id);
+    if (!target) return;
+
+    target.role = makeAdmin ? 'admin' : 'user';
+    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+    renderRegisteredUsers();
+    alert(`✓ Updated ${target.email}: Role set to ${makeAdmin ? 'ADMIN' : 'CLIENT'}.`);
   }
 
-  // OWNER ONLY CAN DELETE REGISTERED ACCOUNTS
+  // OWNER-ONLY: PERMANENTLY DELETE ACCOUNT
   function ownerDeleteUserAccount(id, email) {
-    const currentAdmin = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
-    if (currentAdmin !== OWNER_EMAIL) {
+    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
       alert("❌ ACCESS DENIED: Only the platform Owner (admin@drozominds.com) is permitted to delete user accounts.");
       return;
     }
@@ -674,7 +720,6 @@
     accounts = accounts.filter(u => u.id !== id);
     localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
 
-    // Also purge active user session if this client is currently logged in
     try {
       const active = JSON.parse(localStorage.getItem('drozo_user') || '{}');
       if (active.email === email) {
@@ -910,7 +955,6 @@
     }
   }
 
-  // Restore authenticated session on reload
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
     const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
     launchDashboard(email);
