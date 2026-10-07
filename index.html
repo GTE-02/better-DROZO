@@ -80,12 +80,8 @@
     let pollTimer = null;
     let qrScanner = null;
 
-    // Check if user is already logged in
-    if (localStorage.getItem("drozo_auth_state") === "UNLOCKED") {
-      window.location.replace("./admin.html");
-    } else {
-      initGate();
-    }
+    // Always initialize login gate directly without auto-redirecting
+    initGate();
 
     function initGate() {
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -200,7 +196,7 @@
       if (pollTimer) clearInterval(pollTimer);
       stopCamera();
       localStorage.setItem("drozo_auth_state", "UNLOCKED");
-      window.location.replace("./admin.html");
+      window.location.href = "./admin.html";
     }
   </script>
 </body>
