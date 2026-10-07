@@ -135,7 +135,7 @@
     </div>
 
     <label>Admin Identity</label>
-    <select id="adm-identity-select">
+    <select id="adm-identity-select" onchange="checkAdminBound2faMethod()">
       <option value="admin@drozominds.com">Water_Chugger/Owner (admin@drozominds.com)</option>
       <option value="gamerkids1109@gmail.com">Drozo YT (gamerkids1109@gmail.com)</option>
     </select>
@@ -145,30 +145,31 @@
       <button type="button" id="btn-choice-qr" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:transparent; color:var(--text-muted);" onclick="setSecondFactorChoice('qr')">📷 Scan Drozo Pass</button>
     </div>
 
-    <!-- 2FA CODE -->
-    <div id="sec-method-totp">
-      <label>6-Digit Authenticator Code</label>
-      <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:24px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeDirect2faLogin()">
-      <button type="button" class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="executeDirect2faLogin()">Verify 2FA & Access Dashboard →</button>
-    </div>
+    
+    <!-- DYNAMIC 2FA / DROZO GUARD CONTAINER -->
+    <div id="sec-method-container" style="margin-top:10px;">
+      <div id="method-indicator-box" style="background:var(--primary-light); padding:10px 12px; border-radius:10px; margin-bottom:14px; border:1px solid #C6E6D5;">
+        <span id="locked-method-title" style="font-size:12px; color:var(--primary); font-weight:800; display:block;">🛡️ Checking 2FA Method...</span>
+        <span id="locked-method-desc" style="font-size:11px; color:var(--text-muted);">Retrieving locked security protocol from Supabase...</span>
+      </div>
 
-    <!-- SCANNER -->
-    <div id="sec-method-qr" style="display:none; text-align:center;">
-      <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Align your Drozo Pass QR code in the camera viewfinder:</p>
-      <div style="position:relative; width:100%; height:200px; background:#000; border-radius:12px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
-        <video id="admin-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
-        <div id="admin-scanner-placeholder" style="color:#fff; font-size:11px; padding:12px;">
-          Camera Standby.<br><br>
-          <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:11px;" onclick="startAdminCamera()">📷 Start Camera</button>
+      <!-- VIEW A: DROZO GUARD STEAM-STYLE INSTANT QR CHALLENGE -->
+      <div id="guard-live-challenge-view" style="display:none; text-align:center;">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+          Scan with your paired <strong>Drozo Guard Android App</strong> to sign in instantly:
+        </p>
+        <div id="drozo-guard-challenge-qr" style="background:#fff; padding:10px; border-radius:14px; width:180px; height:180px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--primary); box-shadow:0 8px 20px rgba(27,77,62,0.15);"></div>
+        <div style="font-size:11px; color:var(--primary); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <span style="width:8px; height:8px; background:var(--primary); border-radius:50%; animation:pulse 1.5s infinite;"></span>
+          Awaiting Mobile Guard Tap...
         </div>
       </div>
-      <div style="display:flex; gap:6px; margin-top:8px;">
-        <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startAdminCamera()">▶️ Activate</button>
-        <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopAdminCamera()">⏹️ Stop</button>
-      </div>
-      <div style="margin-top:10px; border-top:1px dashed var(--border); padding-top:8px;">
-        <label style="font-size:10px; margin-bottom:4px;">Or Select Pass Photo File:</label>
-        <input type="file" id="admin-pass-file" accept="image/*" style="font-size:11px; padding:4px;" onchange="handleAdminPassUpload(event)">
+
+      <!-- VIEW B: NUMERIC AUTHENTICATOR (MICROSOFT / GOOGLE) -->
+      <div id="guard-totp-view" style="display:none;">
+        <label>6-Digit Authenticator Code</label>
+        <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:24px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeDirect2faLogin()">
+        <button type="button" class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="executeDirect2faLogin()">Verify 2FA & Access Dashboard →</button>
       </div>
     </div>
 
@@ -314,6 +315,86 @@
   const adminCtx = adminCanvas.getContext('2d', { willReadFrequently: true });
 
   // 1. GATEWAY LOGIN
+  
+  let activeChallengeToken = null;
+  let challengePollTimer = null;
+
+  // AUTO-DETECT BOUND 2FA PROTOCOL FOR SELECTED ADMIN
+  async function checkAdminBound2faMethod() {
+    const email = document.getElementById('adm-identity-select').value;
+    const title = document.getElementById('locked-method-title');
+    const desc = document.getElementById('locked-method-desc');
+    const guardView = document.getElementById('guard-live-challenge-view');
+    const totpView = document.getElementById('guard-totp-view');
+
+    let boundMethod = 'authenticator'; // Default
+
+    // Query Supabase for permanent lock-in
+    if (sbClient) {
+      try {
+        const { data } = await sbClient.from('user_accounts').select('two_factor_method').eq('email', email).single();
+        if (data && data.two_factor_method) {
+          boundMethod = data.two_factor_method;
+        }
+      } catch(e) {}
+    }
+
+    if (boundMethod === 'drozo_guard') {
+      title.innerText = "🛡️ Bound to: Drozo Guard (Android)";
+      desc.innerText = "Method is locked. Open the Drozo Guard app on your phone and scan the QR below.";
+      totpView.style.display = 'none';
+      guardView.style.display = 'block';
+      generateLiveGuardChallenge(email);
+    } else {
+      title.innerText = "🔢 Bound to: Microsoft / Google Authenticator";
+      desc.innerText = "Method is locked. Enter the 6-digit rolling code from your authenticator app.";
+      if (challengePollTimer) clearInterval(challengePollTimer);
+      guardView.style.display = 'none';
+      totpView.style.display = 'block';
+    }
+  }
+
+  // GENERATE INSTANT STEAM-STYLE QR CHALLENGE
+  async function generateLiveGuardChallenge(email) {
+    if (challengePollTimer) clearInterval(challengePollTimer);
+    activeChallengeToken = 'DG_SESS_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+    const challengePayload = `DROZO_GUARD_AUTH:${activeChallengeToken}:${email}`;
+    const qrContainer = document.getElementById('drozo-guard-challenge-qr');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+      text: challengePayload,
+      width: 160, height: 160,
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    // Record session in Supabase
+    if (sbClient) {
+      try {
+        await sbClient.from('drozo_guard_sessions').upsert({
+          session_token: activeChallengeToken,
+          admin_email: email,
+          status: 'pending'
+        });
+      } catch(e) {}
+    }
+
+    // Poll for instant mobile authorization
+    challengePollTimer = setInterval(async () => {
+      if (sbClient && activeChallengeToken) {
+        try {
+          const { data } = await sbClient.from('drozo_guard_sessions').select('status').eq('session_token', activeChallengeToken).single();
+          if (data && data.status === 'authorized') {
+            clearInterval(challengePollTimer);
+            sessionStorage.setItem('drozo_admin_session', 'true');
+            sessionStorage.setItem('drozo_admin_email', email);
+            launchDashboard(email);
+          }
+        } catch(e) {}
+      }
+    }, 1500);
+  }
+
   function executeDirect2faLogin() {
     const err = document.getElementById('gate-err');
     if (err) err.style.display = 'none';
@@ -322,51 +403,19 @@
     const code = (document.getElementById('adm-totp').value || '').trim();
 
     if (!code) {
-      if (err) {
-        err.innerText = "Please enter your 6-digit Authenticator code.";
-        err.style.display = 'block';
-      }
+      if (err) { err.innerText = "Please enter your 6-digit Authenticator code."; err.style.display = 'block'; }
       return;
     }
 
     if (code.length === 6) {
-      stopAdminCamera();
       sessionStorage.setItem('drozo_admin_session', 'true');
       sessionStorage.setItem('drozo_admin_email', email);
       launchDashboard(email);
     } else {
-      if (err) {
-        err.innerText = "Code must be 6 digits (e.g. 123456).";
-        err.style.display = 'block';
-      }
+      if (err) { err.innerText = "Code must be 6 digits."; err.style.display = 'block'; }
     }
   }
 
-  function setSecondFactorChoice(choice) {
-    const mTotp = document.getElementById('sec-method-totp');
-    const mQr = document.getElementById('sec-method-qr');
-    const bTotp = document.getElementById('btn-choice-totp');
-    const bQr = document.getElementById('btn-choice-qr');
-
-    if (choice === 'totp') {
-      mTotp.style.display = 'block';
-      mQr.style.display = 'none';
-      bTotp.style.background = '#fff';
-      bTotp.style.color = 'var(--primary)';
-      bQr.style.background = 'transparent';
-      bQr.style.color = 'var(--text-muted)';
-      stopAdminCamera();
-      document.getElementById('adm-totp').focus();
-    } else {
-      mTotp.style.display = 'none';
-      mQr.style.display = 'block';
-      bQr.style.background = '#fff';
-      bQr.style.color = 'var(--primary)';
-      bTotp.style.background = 'transparent';
-      bTotp.style.color = 'var(--text-muted)';
-      startAdminCamera();
-    }
-  }
 
   function startAdminCamera() {
     const video = document.getElementById('admin-camera-feed');
@@ -962,6 +1011,7 @@
   }
 
   // Restore authenticated session on refresh
+  checkAdminBound2faMethod();
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
     const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
     launchDashboard(email);
