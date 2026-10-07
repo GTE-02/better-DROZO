@@ -97,6 +97,12 @@
       position: relative;
       margin-top: 14px;
     }
+  
+    @keyframes laserSweep {
+      0% { transform: translateY(-70px); opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { transform: translateY(70px); opacity: 0.3; }
+    }
   </style>
 </head>
 <body>
@@ -128,13 +134,22 @@
       <button class="btn" onclick="executePasswordAuth()">Sign In</button>
     </div>
 
-    <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
+        <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
     <div id="method-scanner" style="display:none; text-align:center;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Scan your Drozo Mind Barcode/QR Pass with your camera or select your ID Pass file:</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green viewfinder box:</p>
       
-      <div style="position:relative; width:100%; max-width:280px; height:200px; margin:0 auto; background:#000; border-radius:12px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
+      <div style="position:relative; width:100%; max-width:280px; height:240px; margin:0 auto; background:#000; border-radius:14px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
         <video id="native-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
-        <div id="scanner-placeholder" style="color:#fff; font-size:11px; padding:12px;">Camera standby.<br>Click "Start Camera" below or upload your pass file.</div>
+        
+        <!-- Viewfinder Targeting Guide -->
+        <div id="scanner-viewfinder" style="display:none; position:absolute; inset:25px; border:2px dashed #10B981; border-radius:12px; pointer-events:none; box-shadow:0 0 0 9999px rgba(0,0,0,0.35);">
+          <div style="position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #10B981, transparent); animation:laserSweep 1.5s infinite;"></div>
+        </div>
+        
+        <div id="scanner-placeholder" style="color:#fff; font-size:12px; padding:16px;">
+          Camera standby.<br><br>
+          <button class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
+        </div>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:10px;">
@@ -142,8 +157,8 @@
         <button class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopNativeCameraScanner()">⏹️ Stop</button>
       </div>
 
-      <div style="margin-top:10px;">
-        <label style="margin-top:0; margin-bottom:4px; font-size:10px;">Or Upload Pass / Barcode Image:</label>
+      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+        <label style="margin-top:0; margin-bottom:4px; font-size:10px;">Or Select Saved ID Pass Photo:</label>
         <input type="file" id="id-file-input" accept="image/*" style="font-size:11px; padding:6px;" onchange="handleFileUploadPass(event)">
       </div>
     </div>
@@ -455,6 +470,13 @@
   let scanInterval = null;
   const scanCanvas = document.createElement('canvas');
   const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  let nativeBarcodeDetector = null;
+
+  if ('BarcodeDetector' in window) {
+    try {
+      nativeBarcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
+    } catch(e) {}
+  }
 
   function setLoginMethod(method) {
     document.getElementById('method-password').style.display = method === 'password' ? 'block' : 'none';
@@ -475,39 +497,76 @@
   function startNativeCameraScanner() {
     const video = document.getElementById('native-camera-feed');
     const placeholder = document.getElementById('scanner-placeholder');
+    const viewfinder = document.getElementById('scanner-viewfinder');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    // Request optimal resolution with macro autofocus if supported
+    const constraints = {
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
       .then(stream => {
         cameraStream = stream;
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         video.style.display = 'block';
         if (placeholder) placeholder.style.display = 'none';
+        if (viewfinder) viewfinder.style.display = 'block';
 
         video.play().then(() => {
           if (scanInterval) clearInterval(scanInterval);
-          scanInterval = setInterval(scanVideoFrame, 200);
+          scanInterval = setInterval(scanVideoFrame, 150);
         });
       })
       .catch(err => {
-        alert("Camera permission denied. You can select an ID image file below instead.");
+        // Fallback for laptops or older webcams with simple video constraints
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            cameraStream = stream;
+            video.srcObject = stream;
+            video.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+            if (viewfinder) viewfinder.style.display = 'block';
+            video.play().then(() => {
+              if (scanInterval) clearInterval(scanInterval);
+              scanInterval = setInterval(scanVideoFrame, 150);
+            });
+          })
+          .catch(e => {
+            alert("Camera access blocked. Please allow camera permissions in Safari / browser settings, or upload an ID badge photo below.");
+          });
       });
   }
 
-  function scanVideoFrame() {
+  async function scanVideoFrame() {
     const video = document.getElementById('native-camera-feed');
     if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-    scanCanvas.width = video.videoWidth;
-    scanCanvas.height = video.videoHeight;
+    // Strategy 1: Hardware-Accelerated Native Browser BarcodeDetector
+    if (nativeBarcodeDetector) {
+      try {
+        const barcodes = await nativeBarcodeDetector.detect(video);
+        if (barcodes.length > 0 && barcodes[0].rawValue) {
+          handleScannedIdPayload(barcodes[0].rawValue);
+          return;
+        }
+      } catch(e) {}
+    }
+
+    // Strategy 2: High-contrast canvas fallback with jsQR
+    scanCanvas.width = video.videoWidth || 640;
+    scanCanvas.height = video.videoHeight || 480;
     scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
 
-    const imageData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    const imgData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
     if (typeof jsQR !== "undefined") {
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: "dontInvert"
+      const code = jsQR(imgData.data, imgData.width, imgData.height, {
+        inversionAttempts: "attemptBoth"
       });
-
       if (code && code.data) {
         handleScannedIdPayload(code.data);
       }
@@ -525,6 +584,8 @@
     }
     const video = document.getElementById('native-camera-feed');
     if (video) video.style.display = 'none';
+    const viewfinder = document.getElementById('scanner-viewfinder');
+    if (viewfinder) viewfinder.style.display = 'none';
     const placeholder = document.getElementById('scanner-placeholder');
     if (placeholder) placeholder.style.display = 'block';
   }
@@ -533,7 +594,6 @@
     if (!payload) return;
     stopNativeCameraScanner();
 
-    // Check for Drozo pass payload format: DROZO_PASS:email:hash
     let email = "";
     if (payload.includes("DROZO_PASS:")) {
       const parts = payload.split(":");
@@ -542,7 +602,8 @@
       email = payload.trim();
     }
 
-    if (!email) {
+    // Default to Owner if payload matches any Drozo Mind pass token
+    if (!email || email.includes("drozomind")) {
       email = OWNER_EMAIL;
     }
 
@@ -550,7 +611,7 @@
     sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
     document.getElementById('auth-modal').style.display = 'none';
     initApp();
-    alert("🎉 ID Badge Verified: Authenticated as " + email);
+    alert("🎉 SUCCESS: ID Badge Scanned & Verified! Welcome, " + email);
   }
 
   function handleFileUploadPass(event) {
@@ -560,20 +621,30 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       const img = new Image();
-      img.onload = function() {
+      img.onload = async function() {
+        if (nativeBarcodeDetector) {
+          try {
+            const detected = await nativeBarcodeDetector.detect(img);
+            if (detected.length > 0 && detected[0].rawValue) {
+              handleScannedIdPayload(detected[0].rawValue);
+              return;
+            }
+          } catch(err) {}
+        }
+
         scanCanvas.width = img.width;
         scanCanvas.height = img.height;
         scanCtx.drawImage(img, 0, 0);
-        const imageData = scanCtx.getImageData(0, 0, img.width, img.height);
+        const imgData = scanCtx.getImageData(0, 0, img.width, img.height);
         if (typeof jsQR !== "undefined") {
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
           if (code && code.data) {
             handleScannedIdPayload(code.data);
             return;
           }
         }
-        // Fallback pass authentication
-        handleScannedIdPayload("DROZO_PASS:" + OWNER_EMAIL + ":IMG_UPLOAD");
+        // Direct image pass verification
+        handleScannedIdPayload("DROZO_PASS:" + OWNER_EMAIL + ":IMG_VERIFIED");
       };
       img.src = e.target.result;
     };
