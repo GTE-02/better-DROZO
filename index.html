@@ -89,7 +89,6 @@
       font-size: 24px; box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35); border: 2px solid #fff; cursor: pointer; z-index: 400;
     }
 
-    /* Side Support Drawer - STRICT VIEWPORT BOUNDS */
     .support-modal-overlay {
       position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); backdrop-filter: blur(4px);
       z-index: 600; display: none; align-items: flex-end; justify-content: flex-end; padding: 16px;
@@ -97,17 +96,14 @@
     .support-modal-overlay.open { display: flex; }
     .support-modal-panel {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      width: 100%; max-width: 440px; height: 90vh; max-height: 800px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      display: flex; flex-direction: column; overflow: hidden; position: relative;
+      width: 100%; max-width: 440px; height: 85vh; max-height: 720px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; overflow: hidden;
     }
 
-    /* CHAT STREAM CONTAINER - DYNAMIC SCROLL CONTAINER */
     .chat-container {
-      flex: 1 1 auto;
-      min-height: 240px;
-      height: 380px;
-      max-height: 52vh;
-      overflow-y: auto !important;
+      flex: 1 1 0;
+      min-height: 0;
+      overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       background: var(--surface-subtle);
       border: 1px solid var(--border);
@@ -116,7 +112,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      scroll-behavior: smooth;
     }
     .bubble {
       max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; line-height: 1.45;
@@ -157,7 +152,7 @@
 </head>
 <body>
 
-<!-- MULTI-FACTOR AUTHENTICATION MODAL -->
+<!-- AUTH MODAL -->
 <div id="auth-modal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 440px; margin-bottom: 0;">
     <div style="text-align: center; margin-bottom: 14px;">
@@ -168,21 +163,21 @@
 
     <!-- Mode Selector Tabs -->
     <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 14px;">
-      <button id="auth-tab-pass" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setLoginMethod('password')">🔑 Password</button>
-      <button id="auth-tab-qr" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('scanner')">📷 Scan ID</button>
-      <button id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA Code</button>
+      <button type="button" id="auth-tab-pass" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setLoginMethod('password')">🔑 Password</button>
+      <button type="button" id="auth-tab-qr" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('scanner')">📷 Scan ID</button>
+      <button type="button" id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA Code</button>
     </div>
 
     <!-- METHOD 1: PASSWORD LOGIN -->
     <div id="method-password">
       <label>Registered Email</label>
-      <input type="email" id="auth-email" placeholder="name@example.com" value="admin@drozominds.com">
+      <input type="email" id="auth-email" value="admin@drozominds.com">
       <label>Password</label>
-      <input type="password" id="auth-pass" placeholder="••••••••" value="Dubai@2011" onkeydown="if(event.key==='Enter') executePasswordAuth()">
-      <button class="btn" onclick="executePasswordAuth()">Sign In</button>
+      <input type="password" id="auth-pass" value="Dubai@2011" onkeydown="if(event.key==='Enter') executePasswordAuth()">
+      <button type="button" class="btn" onclick="executePasswordAuth()">Sign In</button>
     </div>
 
-    <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
+    <!-- METHOD 2: SCANNER -->
     <div id="method-scanner" style="display:none; text-align:center;">
       <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green box:</p>
       
@@ -195,13 +190,13 @@
         
         <div id="scanner-placeholder" style="color:#fff; font-size:12px; padding:16px;">
           Camera Standby.<br><br>
-          <button class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
+          <button type="button" class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
         </div>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:10px;">
-        <button class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startNativeCameraScanner()">▶️ Start Camera</button>
-        <button class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopNativeCameraScanner()">⏹️ Stop</button>
+        <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startNativeCameraScanner()">▶️ Start Camera</button>
+        <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopNativeCameraScanner()">⏹️ Stop</button>
       </div>
 
       <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
@@ -214,13 +209,13 @@
     <div id="method-totp" style="display:none;">
       <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the 6-digit verification code from Google or Microsoft Authenticator:</p>
       <label>Email Identity</label>
-      <input type="email" id="totp-email" placeholder="name@example.com" value="admin@drozominds.com">
+      <input type="email" id="totp-email" value="admin@drozominds.com">
       <label>6-Digit Authenticator Code</label>
       <input type="text" id="totp-token" placeholder="000 000" maxlength="6" style="text-align:center; font-size:22px; letter-spacing:6px; font-weight:800;" onkeydown="if(event.key==='Enter') verifyTotpLogin()">
-      <button class="btn" onclick="verifyTotpLogin()">Verify 2FA & Sign In</button>
+      <button type="button" class="btn" onclick="verifyTotpLogin()">Verify 2FA & Sign In</button>
     </div>
 
-    <div id="auth-error-msg" style="display:none; pointer-events:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
+    <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
   </div>
 </div>
 
@@ -251,12 +246,11 @@
         <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
       </div>
 
-      <!-- CHAT STREAM -->
       <div class="chat-container" id="chat-stream"></div>
 
       <div style="display:flex; gap:8px; margin-top:10px; flex-shrink:0;">
         <input type="text" id="chat-input-text" placeholder="Ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
-        <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
+        <button type="button" class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
       </div>
     </div>
   </div>
@@ -302,7 +296,7 @@
       <input type="text" id="book-name" placeholder="e.g. Alex Morgan">
       <label>Focus Area or Session Notes (Optional)</label>
       <textarea id="book-notes" rows="3" placeholder="Tell us about the topics or goals you would like to address..."></textarea>
-      <button class="btn" onclick="submitBookingRequest()">Submit Booking Request</button>
+      <button type="button" class="btn" onclick="submitBookingRequest()">Submit Booking Request</button>
     </div>
   </div>
 
@@ -319,7 +313,6 @@
       <div class="card-title">Digital Health ID & 2FA Pairing</div>
       <div class="card-caption">Your personal Digital Health Pass and Authenticator setup keys.</div>
 
-      <!-- DIGITAL HEALTH PASS ID BADGE -->
       <div class="id-pass-card" id="digital-id-card">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
           <div>
@@ -340,7 +333,6 @@
         </div>
       </div>
 
-      <!-- 2FA SETUP SECTION -->
       <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px;">
         <strong style="color:var(--primary); font-size:13px; display:block; margin-bottom:4px;">🔐 Pair Authenticator App (Google or Microsoft)</strong>
         <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Scan with Google Authenticator or Microsoft Authenticator, or paste the Base32 manual code:</p>
@@ -353,7 +345,7 @@
         </div>
       </div>
 
-      <button class="btn btn-danger" onclick="signOutUser()">Sign Out</button>
+      <button type="button" class="btn btn-danger" onclick="signOutUser()">Sign Out</button>
     </div>
   </div>
 </div>
@@ -367,66 +359,6 @@
 
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
-  // LOG INCIDENTS TO OWNER CONSOLE
-    // CAPTURE CLIENT PUBLIC IP & GEOLOCATION ON CONNECTION
-  async function captureClientTelemetry(email) {
-    if (!email) return;
-    try {
-      let geoData = {};
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        geoData = await res.json();
-      } catch(err) {
-        geoData = { ip: '94.200.18.25', city: 'Dubai', country_name: 'United Arab Emirates', org: 'Emirates Integrated Telecom' };
-      }
-
-      const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
-      store[email.toLowerCase()] = {
-        ip: geoData.ip || 'Unknown IP',
-        city: geoData.city || 'Dubai',
-        region: geoData.region || 'Dubai',
-        country: geoData.country_name || 'UAE',
-        org: geoData.org || 'Telecommunications',
-        timezone: geoData.timezone || 'Asia/Dubai',
-        lastSeen: new Date().toLocaleString()
-      };
-      localStorage.setItem('drozo_user_telemetry', JSON.stringify(store));
-    } catch(e) {}
-  }
-
-  function recordSecurityThreat(type, details) {
-    try {
-      const logs = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
-      logs.unshift({
-        timestamp: new Date().toLocaleTimeString(),
-        type: type,
-        target: (activeUser && activeUser.email) ? activeUser.email : 'Anonymous',
-        action: details,
-        ip: (JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}')[(activeUser && activeUser.email ? activeUser.email.toLowerCase() : '')] || {}).ip || 'Captured'
-      });
-      if (logs.length > 50) logs.pop();
-      localStorage.setItem('drozo_threat_logs', JSON.stringify(logs));
-    } catch(e) {}
-  }
-
-  // CHECK ACTIVE BAN LIST BEFORE RENDERING
-  function verifyAccessClearance() {
-    try {
-      const bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-      if (activeUser && activeUser.email) {
-        const email = activeUser.email.toLowerCase();
-        if (bans.includes(email)) {
-          recordSecurityThreat("ACCESS_BLOCKED", "Banned identity rejected during session check.");
-          sessionStorage.clear();
-          alert("❌ Access Revoked: Your session identity has been locked by the Platform Owner.");
-          location.reload();
-          return false;
-        }
-      }
-    } catch(e) {}
-    return true;
-  }
-
   let activeUser = null;
   let tickets = [];
   let chatMessages = [];
@@ -435,166 +367,52 @@
   const scanCanvas = document.createElement('canvas');
   const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
 
-  // 24/7 Silent Background Sentinel: Autonomous Threat Neutralization & Auto-Purge
-  function autonomousSecurityPurge(threatType) {
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch(e) {}
-    console.warn(`[SENTINEL COMPLIANCE] Auto-purged storage due to security violation: ${threatType}`);
-    location.reload();
-  }
-
-  setInterval(() => {
-    const suspectNodes = document.querySelectorAll('script[src*="track"], script[src*="inject"], iframe[src*="about:blank"]');
-    if (suspectNodes.length > 0) {
-      suspectNodes.forEach(n => n.remove());
-      autonomousSecurityPurge("Script Injection Detected");
-      return;
-    }
-
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const val = localStorage.getItem(key) || '';
-        if (/<script|onerror=|javascript:/i.test(val)) {
-          autonomousSecurityPurge("Corrupted/Malicious Data Entry: " + key);
-          return;
-        }
-      }
-    } catch(e) {}
-  }, 3000);
-
-  // TOTP RFC 6238 COMPATIBILITY
-  const TOTP_SECRETS = {
-    'admin@drozominds.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP',
-    'client@drozomind.com': 'MFRGGZDFMZTWQ2LKMFRGGZDFMZTWQ2LK'
-  };
-
-  function base32tohex(base32) {
-    const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    let bits = "", hex = "";
-    for (let i = 0; i < base32.length; i++) {
-      const val = base32chars.indexOf(base32.charAt(i).toUpperCase());
-      if (val === -1) continue;
-      bits += val.toString(2).padStart(5, '0');
-    }
-    for (let i = 0; i + 4 <= bits.length; i += 4) {
-      hex += parseInt(bits.substr(i, 4), 2).toString(16);
-    }
-    return hex;
-  }
-
-  async function calculateTotpCode(secretBase32, timeOffsetSteps = 0) {
-    const epoch = Math.round(new Date().getTime() / 1000.0);
-    const time = Math.floor(epoch / 30) + timeOffsetSteps;
-    const timeHex = time.toString(16).padStart(16, '0');
-
-    const keyHex = base32tohex(secretBase32);
-    const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-    const timeBytes = new Uint8Array(timeHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-
-    const cryptoKey = await window.crypto.subtle.importKey(
-      "raw", keyBytes, { name: "HMAC", hash: { name: "SHA-1" } }, false, ["sign"]
-    );
-    const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, timeBytes);
-    const hmac = new Uint8Array(signature);
-    const offset = hmac[hmac.length - 1] & 0xf;
-    const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff)) % 1000000;
-    return code.toString().padStart(6, '0');
-  }
-
-  async function verifyTotpLogin() {
-    const email = (document.getElementById('totp-email').value || '').trim().toLowerCase();
-    const token = (document.getElementById('totp-token').value || '').trim();
-    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'];
-
-    const [c0, cMinus, cPlus] = await Promise.all([
-      calculateTotpCode(secret, 0),
-      calculateTotpCode(secret, -1),
-      calculateTotpCode(secret, 1)
-    ]);
-
-    if (token === c0 || token === cMinus || token === cPlus || token === '123456') {
-      activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
-      sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-      document.getElementById('auth-modal').style.display = 'none';
-      initApp();
-    } else {
-      const err = document.getElementById('auth-error-msg');
-      err.innerText = "Invalid 2FA Authenticator Code. Please verify your phone clock.";
-      err.style.display = 'block';
-    }
-  }
-
-  // HARDWARE BARCODE / QR SCANNER
-  let nativeBarcodeDetector = null;
-  if ('BarcodeDetector' in window) {
-    try {
-      nativeBarcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
-    } catch(e) {}
-  }
-
+  // 1. FAIL-SAFE TAB SWITCHING
   function setLoginMethod(method) {
-    try {
-      // 1. Hide all panels safely
-      const pPass = document.getElementById('method-password');
-      const pScan = document.getElementById('method-scanner');
-      const pTotp = document.getElementById('method-totp');
-      if (pPass) pPass.style.display = (method === 'password') ? 'block' : 'none';
-      if (pScan) pScan.style.display = (method === 'scanner') ? 'block' : 'none';
-      if (pTotp) pTotp.style.display = (method === 'totp') ? 'block' : 'none';
+    const pPass = document.getElementById('method-password');
+    const pScan = document.getElementById('method-scanner');
+    const pTotp = document.getElementById('method-totp');
+    if (pPass) pPass.style.display = (method === 'password') ? 'block' : 'none';
+    if (pScan) pScan.style.display = (method === 'scanner') ? 'block' : 'none';
+    if (pTotp) pTotp.style.display = (method === 'totp') ? 'block' : 'none';
 
-      // 2. Update Tab Styles safely
-      const tPass = document.getElementById('auth-tab-pass');
-      const tScan = document.getElementById('auth-tab-qr');
-      const tTotp = document.getElementById('auth-tab-2fa');
+    const tPass = document.getElementById('auth-tab-pass');
+    const tScan = document.getElementById('auth-tab-qr');
+    const tTotp = document.getElementById('auth-tab-2fa');
 
-      if (tPass) {
-        tPass.style.background = (method === 'password') ? '#fff' : 'transparent';
-        tPass.style.color = (method === 'password') ? 'var(--primary)' : 'var(--text-muted)';
-      }
-      if (tScan) {
-        tScan.style.background = (method === 'scanner') ? '#fff' : 'transparent';
-        tScan.style.color = (method === 'scanner') ? 'var(--primary)' : 'var(--text-muted)';
-      }
-      if (tTotp) {
-        tTotp.style.background = (method === 'totp') ? '#fff' : 'transparent';
-        tTotp.style.color = (method === 'totp') ? 'var(--primary)' : 'var(--text-muted)';
-      }
+    if (tPass) {
+      tPass.style.background = (method === 'password') ? '#fff' : 'transparent';
+      tPass.style.color = (method === 'password') ? 'var(--primary)' : 'var(--text-muted)';
+    }
+    if (tScan) {
+      tScan.style.background = (method === 'scanner') ? '#fff' : 'transparent';
+      tScan.style.color = (method === 'scanner') ? 'var(--primary)' : 'var(--text-muted)';
+    }
+    if (tTotp) {
+      tTotp.style.background = (method === 'totp') ? '#fff' : 'transparent';
+      tTotp.style.color = (method === 'totp') ? 'var(--primary)' : 'var(--text-muted)';
+    }
 
-      // 3. Stop camera if leaving scanner
-      if (method !== 'scanner') {
-        stopNativeCameraScanner();
-      }
-    } catch(err) {
-      console.warn("Tab switch handled safely:", err);
+    if (method !== 'scanner') {
+      stopNativeCameraScanner();
     }
   }
 
+  // 2. PASSWORD AUTH
   function executePasswordAuth() {
-    const errBox = document.getElementById('auth-error-msg');
-    if (errBox) errBox.style.display = 'none';
-
     const emailEl = document.getElementById('auth-email');
     const passEl = document.getElementById('auth-pass');
     const email = (emailEl ? emailEl.value : '').trim().toLowerCase();
     const pass = (passEl ? passEl.value : '').trim();
 
     if (!email || !pass) {
-      if (errBox) {
-        errBox.innerText = "Please enter email and password.";
-        errBox.style.display = 'block';
-      }
+      const err = document.getElementById('auth-error-msg');
+      if (err) { err.innerText = "Please enter email and password."; err.style.display = 'block'; }
       return;
     }
 
-    // Direct Login Clearance for Owner or Standard User
     const isOwner = (email === OWNER_EMAIL || email === 'admin@drozomind.com');
     activeUser = { email: email, role: isOwner ? 'admin' : 'user' };
-    
     try {
       sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
       localStorage.setItem('drozo_user', JSON.stringify(activeUser));
@@ -602,11 +420,15 @@
 
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'none';
-
     initApp();
+  }
 
-    // Run async telemetry in background without blocking login
-    try { captureClientTelemetry(email); } catch(e) {}
+  // 3. HARDWARE BARCODE / CAMERA SCANNER
+  let nativeBarcodeDetector = null;
+  if ('BarcodeDetector' in window) {
+    try {
+      nativeBarcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
+    } catch(e) {}
   }
 
   function startNativeCameraScanner() {
@@ -629,7 +451,7 @@
         });
       })
       .catch(err => {
-        alert("Camera blocked. Please enable camera access in browser settings, or upload an image file of your badge.");
+        alert("Camera access blocked. Please enable camera in browser settings or upload badge photo.");
       });
   }
 
@@ -729,23 +551,71 @@
     reader.readAsDataURL(file);
   }
 
-  function executePasswordAuth() {
-    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('auth-pass').value || '').trim();
+  // 4. TOTP 2FA
+  const TOTP_SECRETS = {
+    'admin@drozominds.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
+    'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
+    'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP',
+    'client@drozomind.com': 'MFRGGZDFMZTWQ2LKMFRGGZDFMZTWQ2LK'
+  };
 
-    if (!email || !pass) {
-      const err = document.getElementById('auth-error-msg');
-      err.innerText = "Please enter email and password.";
-      err.style.display = 'block';
-      return;
+  function base32tohex(base32) {
+    const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    let bits = "", hex = "";
+    for (let i = 0; i < base32.length; i++) {
+      const val = base32chars.indexOf(base32.charAt(i).toUpperCase());
+      if (val === -1) continue;
+      bits += val.toString(2).padStart(5, '0');
     }
-
-    activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
-    sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-    document.getElementById('auth-modal').style.display = 'none';
-    initApp();
+    for (let i = 0; i + 4 <= bits.length; i += 4) {
+      hex += parseInt(bits.substr(i, 4), 2).toString(16);
+    }
+    return hex;
   }
 
+  async function calculateTotpCode(secretBase32, timeOffsetSteps = 0) {
+    const epoch = Math.round(new Date().getTime() / 1000.0);
+    const time = Math.floor(epoch / 30) + timeOffsetSteps;
+    const timeHex = time.toString(16).padStart(16, '0');
+
+    const keyHex = base32tohex(secretBase32);
+    const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+    const timeBytes = new Uint8Array(timeHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
+    const cryptoKey = await window.crypto.subtle.importKey(
+      "raw", keyBytes, { name: "HMAC", hash: { name: "SHA-1" } }, false, ["sign"]
+    );
+    const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, timeBytes);
+    const hmac = new Uint8Array(signature);
+    const offset = hmac[hmac.length - 1] & 0xf;
+    const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff)) % 1000000;
+    return code.toString().padStart(6, '0');
+  }
+
+  async function verifyTotpLogin() {
+    const email = (document.getElementById('totp-email').value || '').trim().toLowerCase();
+    const token = (document.getElementById('totp-token').value || '').trim();
+    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'];
+
+    const [c0, cMinus, cPlus] = await Promise.all([
+      calculateTotpCode(secret, 0),
+      calculateTotpCode(secret, -1),
+      calculateTotpCode(secret, 1)
+    ]);
+
+    if (token === c0 || token === cMinus || token === cPlus || token === '123456') {
+      activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
+      sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
+      document.getElementById('auth-modal').style.display = 'none';
+      initApp();
+    } else {
+      const err = document.getElementById('auth-error-msg');
+      err.innerText = "Invalid 2FA Authenticator Code. Please check your authenticator clock.";
+      err.style.display = 'block';
+    }
+  }
+
+  // 5. DIGITAL HEALTH PASS CARD & QR GENERATION
   function renderDigitalIdBadge() {
     if (!activeUser) return;
     const email = (activeUser.email || '').trim().toLowerCase();
@@ -757,19 +627,9 @@
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
 
-    const tokenPayload = `DROZO_PASS:${email}:AUTH_${Math.floor(1000 + Math.random()*9000)}`;
+    const tokenPayload = `DROZO_PASS:${email}:AUTH_8829`;
     const cardHash = document.getElementById('id-card-hash');
-    if (cardHash) cardHash.innerText = tokenPayload.split(':')[2];
-
-    const clearanceElem = document.getElementById('id-card-clearance-box');
-    if (clearanceElem && isOwner) {
-      clearanceElem.innerHTML = `
-        <div><strong>Email:</strong> <span>${email}</span></div>
-        <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
-        <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
-        <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
-      `;
-    }
+    if (cardHash) cardHash.innerText = "AUTH_8829";
 
     const qrContainer = document.getElementById('id-qrcode-box');
     if (qrContainer) {
@@ -804,9 +664,8 @@
     }
   }
 
+  // 6. INITIALIZE CORE APP
   function initApp() {
-    if (!verifyAccessClearance()) return;
-
     try {
       const saved = sessionStorage.getItem('drozo_user');
       if (saved) activeUser = JSON.parse(saved);
@@ -820,7 +679,6 @@
     if (modal) modal.style.display = 'none';
 
     document.getElementById('user-display-email').innerText = activeUser.email;
-    captureClientTelemetry(activeUser.email);
     renderPipeline();
     renderChat();
     renderHistory();
@@ -904,7 +762,7 @@
     });
 
     try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
-    alert('Appointment requested securely under Google AI Surveillance encryption.');
+    alert('Appointment requested securely under confidential care protocols.');
     switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
     renderPipeline();
   }
@@ -928,14 +786,7 @@
     }
   }
 
-  function downloadTherapyDoc(
-    // Security validation against automated file scraping
-    if (!patient || patient.length > 100) {
-      recordSecurityThreat("MALICIOUS_DOWNLOAD", "Attempted invalid download payload.");
-      alert("Security anomaly detected. Document export halted.");
-      return;
-    }
-ticketNum, patient, clinician, date, encObs, encRec) {
+  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
     let obs = decodeURIComponent(encObs || '');
     let rec = decodeURIComponent(encRec || '');
     const rtf = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0\\fnil Helvetica;}}\\fs28\\b DROZO MIND CLINICAL OUTCOME\\b0\\fs20\\line\\' +
@@ -951,15 +802,7 @@ ticketNum, patient, clinician, date, encObs, encRec) {
   function scrollChatToBottom() {
     const stream = document.getElementById('chat-stream');
     if (stream) {
-      // Immediate scroll
       stream.scrollTop = stream.scrollHeight;
-      // Staged scroll to catch delayed image/card DOM rendering
-      requestAnimationFrame(() => {
-        stream.scrollTop = stream.scrollHeight;
-      });
-      setTimeout(() => {
-        stream.scrollTop = stream.scrollHeight;
-      }, 80);
     }
   }
 
@@ -972,12 +815,12 @@ ticketNum, patient, clinician, date, encObs, encRec) {
       if (m.isOutcomeDoc) {
         docCard = '<div style="margin-top:10px; padding:12px; background:#fff; border-radius:10px; border:1px solid #D1D5DB; box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
           '<strong style="color:var(--primary); font-size:12px; display:block;">📑 Official Clinical Outcome Ready</strong><div style="font-size:11px; color:#6B7280; margin:4px 0 8px;">' + m.date + '</div>' +
-          '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + m.date + '\', \'' + encodeURIComponent(m.observations || '') + '\', \'' + encodeURIComponent(m.recommendations || '') + '\')" class="btn" style="margin-top:0; padding:8px; font-size:12px;">⬇️ Download RTF Document</button></div>';
+          '<button type="button" onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + m.date + '\', \'' + encodeURIComponent(m.observations || '') + '\', \'' + encodeURIComponent(m.recommendations || '') + '\')" class="btn" style="margin-top:0; padding:8px; font-size:12px;">⬇️ Download RTF Document</button></div>';
       }
       return '<div class="bubble ' + m.role + '">' + (m.sender ? '<strong style="display:block; font-size:11px; margin-bottom:2px; opacity:0.85;">' + m.sender + '</strong>' : '') + m.text + docCard + '</div>';
     }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI.</div>';
 
-    scrollChatToBottom();
+    setTimeout(scrollChatToBottom, 40);
   }
 
   function sendUserMessage() {
@@ -993,14 +836,9 @@ ticketNum, patient, clinician, date, encObs, encRec) {
       const q = text.toLowerCase().trim();
       let reply = "";
 
-      // 1. Direct Booking & Scheduling Intent
       if (/(book|schedule|make|set up|need|want|reserve).*(appoint|session|consult|meet|time|slot)/i.test(q) || /(book|schedule|consultation)/i.test(q)) {
         const num = Math.floor(100000 + Math.random() * 900000);
-        let targetDate = new Date(Date.now() + 86400000); // default tomorrow
-        if (q.includes("today")) targetDate = new Date();
-        if (q.includes("monday") || q.includes("tuesday") || q.includes("wednesday") || q.includes("friday")) {
-          targetDate.setDate(targetDate.getDate() + 2);
-        }
+        let targetDate = new Date(Date.now() + 86400000);
         targetDate.setHours(14, 0, 0, 0);
 
         const clientHandle = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
@@ -1018,7 +856,6 @@ ticketNum, patient, clinician, date, encObs, encRec) {
         renderPipeline();
         reply = `✨ I have scheduled your consultation request (#TCK-${num}) for ${formatDateTime(targetDate.toISOString())}. Our clinical coordinator will review and confirm your slot shortly!`;
       }
-      // 2. Cancellation Intent
       else if (/(cancel|drop|abort|remove|delete).*(appoint|session|slot|meet)/i.test(q)) {
         const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
         if (act) {
@@ -1029,33 +866,28 @@ ticketNum, patient, clinician, date, encObs, encRec) {
           renderHistory();
           reply = `I have successfully cancelled appointment #TCK-${act.ticketNum}. The record has been safely archived to your Session History.`;
         } else {
-          reply = "You do not currently have any active appointments to cancel. If you'd like to arrange a new session, just let me know!";
+          reply = "You do not currently have any active appointments to cancel.";
         }
       }
-      // 3. Status Check / My Appointment
       else if (/(status|check|when|my appoint|my session|pipeline|queue)/i.test(q)) {
         const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
         if (act) {
-          reply = `Your appointment (#TCK-${act.ticketNum}) is currently in status: "${act.status.toUpperCase()}". Scheduled for: ${formatDateTime(act.slot)}. ${act.status === 'Confirmed' ? 'Your video room link is ready in the Overview tab!' : 'A coordinator is finalizing your time.'}`;
+          reply = `Your appointment (#TCK-${act.ticketNum}) is currently "${act.status.toUpperCase()}" for ${formatDateTime(act.slot)}.`;
         } else {
-          reply = "You don't have any pending consultations in the queue right now. You can request one anytime by telling me when you'd like to meet!";
+          reply = "You don't have any pending consultations in the queue right now.";
         }
       }
-      // 4. Who is Drozo / Discord inquiries
-      else if (/(who is|where is|contact|speak to|find).*(drozo)/i.test(q) || q.includes("discord")) {
-        reply = "Drozo and our primary coordination team are live on our official Discord! You can connect directly in voice channels and chat updates here: https://discord.gg/c8H6CQJTWA";
+      else if (/drozo/i.test(q) || /discord/i.test(q)) {
+        reply = "Drozo and our primary coordination team are live on our official Discord: https://discord.gg/c8H6CQJTWA";
       }
-      // 5. Emotional Support, Stress, Anxiety, Therapy Guidance
-      else if (/(stress|anxious|anxiety|depress|sad|overwhelm|tired|panic|help me|talk|listen|feel)/i.test(q)) {
-        reply = "I'm here with you. When dealing with heightened stress or overwhelm, grounding yourself with the 4-7-8 breathing technique (inhale for 4 seconds, hold for 7, exhale gently for 8) can help reset your nervous system. I also strongly recommend booking a 1-on-1 consultation so our team can provide dedicated support.";
+      else if (/stress|anxious|anxiety|depress|sad|overwhelm|tired|panic|help me|talk|listen|feel/i.test(q)) {
+        reply = "I'm here with you. When dealing with heightened stress, try the 4-7-8 breathing technique (inhale for 4 seconds, hold for 7, exhale for 8). I also suggest booking a 1-on-1 session so our clinical team can provide direct support.";
       }
-      // 6. Greetings & Introductions
       else if (/^(hi|hello|hey|good morning|good evening|howdy|greetings)/i.test(q)) {
-        reply = "Hello! I am your Drozo Mind AI Care Assistant. I can book consultations, answer questions about your wellness pathway, check appointment statuses, and guide you through our care network. What can I do for you today?";
+        reply = "Hello! I am your Drozo Mind AI Care Assistant. I can help book consultations, check appointment status, provide wellness exercises, and connect you with live rooms. How can I assist you today?";
       }
-      // 7. General Care & Informational Queries
       else {
-        reply = `Thank you for sharing. At Drozo Mind, we prioritize confidential mental health care, structured telehealth sessions, and proactive wellness strategies. Would you like me to book a consultation for you, or would you like to speak directly with our team on Discord?`;
+        reply = "Thank you for reaching out. We provide confidential mental health care and telehealth sessions. Would you like me to book a consultation for you, or join our community Discord?";
       }
 
       chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
@@ -1063,17 +895,6 @@ ticketNum, patient, clinician, date, encObs, encRec) {
       renderChat();
     }, 350);
   }
-
-  // Periodic Safe Storage Sync without overriding chat state
-  setInterval(() => {
-    try {
-      const stored = localStorage.getItem('drozo_chat');
-      if (stored && stored !== JSON.stringify(chatMessages)) {
-        chatMessages = JSON.parse(stored);
-        renderChat();
-      }
-    } catch(e){}
-  }, 2000);
 
   initApp();
 </script>
