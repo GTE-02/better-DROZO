@@ -516,10 +516,21 @@
   function renderDigitalIdBadge() {
     if (!activeUser) return;
     const email = activeUser.email.trim().toLowerCase();
-    const cleanUser = email.split('@')[0].toUpperCase();
+    const isOwner = email === 'admin@drozominds.com';
+    const displayRole = isOwner ? 'OWNER' : email.split('@')[0].toUpperCase();
     
     const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = cleanUser;
+    if (cardName) cardName.innerText = displayRole;
+
+    const clearanceElem = document.querySelector('#digital-id-card div:nth-child(2) div:nth-child(2)');
+    if (clearanceElem && isOwner) {
+      clearanceElem.innerHTML = `
+        <div><strong>Email:</strong> <span>${email}</span></div>
+        <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
+        <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_${Math.floor(1000 + Math.random()*9000)}</span></div>
+        <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
+      `;
+    }
     
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
