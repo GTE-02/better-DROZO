@@ -363,6 +363,21 @@
 </nav>
 
 <script>
+
+  // FRONTEND ANTI-TAMPER & DEBUGGER TRAP
+  (function() {
+    // Disable right-click inspection if desired
+    document.addEventListener('contextmenu', e => {
+      if (location.hostname !== 'localhost') e.preventDefault();
+    });
+
+    // Detect headless automation drivers (Selenium, Puppeteer, Penligent headless)
+    if (navigator.webdriver) {
+      document.body.innerHTML = "<div style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;'><h3>Access Denied: Automated user-agent detected.</h3></div>";
+      throw new Error("Automated agent blocked.");
+    }
+  })();
+
   const OWNER_EMAIL = "admin@drozominds.com";
   let activeUser = null;
   let tickets = [];
