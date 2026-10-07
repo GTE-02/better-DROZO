@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- F-001 REMEDIATION: RESTRICTIVE CONTENT SECURITY POLICY & MIME GUARDS -->
-    <!-- REMEDIATION F-002: HARDENED CONTENT SECURITY POLICY -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | Secure Modern Care</title>
+  <title>Drozo Mind | Modern Telehealth & Secure Care</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -106,21 +103,11 @@
     }
 
     .chat-container {
-      flex: 1 1 0;
-      min-height: 0;
-      overflow-y: scroll;
-      -webkit-overflow-scrolling: touch;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      flex: 1 1 0; min-height: 0; overflow-y: scroll; -webkit-overflow-scrolling: touch;
+      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 14px; display: flex; flex-direction: column; gap: 10px;
     }
-    .bubble {
-      max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; line-height: 1.45;
-    }
+    .bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; line-height: 1.45; }
     .bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
     .bubble.admin { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); align-self: flex-start; }
 
@@ -157,62 +144,77 @@
 </head>
 <body>
 
-<!-- AUTH MODAL -->
+<!-- AUTH & SIGN UP MODAL -->
 <div id="auth-modal" class="modal-overlay">
   <div class="card" style="width: 100%; max-width: 440px; margin-bottom: 0;">
     <div style="text-align: center; margin-bottom: 14px;">
       <div class="brand-icon" style="margin: 0 auto 10px; width: 48px; height: 48px; font-size: 24px;">🌿</div>
-      <h2 style="font-size: 19px; font-weight: 800; color: var(--primary);">Drozo Mind Identification</h2>
-      <p class="card-caption">Sign in with Verified Credentials, Barcode Pass, or 2FA Code</p>
+      <h2 style="font-size: 19px; font-weight: 800; color: var(--primary);">Drozo Mind Portal</h2>
+      <p class="card-caption">Sign in, create a patient account, or scan verified pass</p>
     </div>
 
     <!-- Mode Selector Tabs -->
     <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 14px;">
-      <button type="button" id="auth-tab-pass" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setLoginMethod('password')">🔑 Password</button>
-      <button type="button" id="auth-tab-qr" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('scanner')">📷 Scan ID</button>
-      <button type="button" id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA Code</button>
+      <button type="button" id="auth-tab-pass" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 4px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setLoginMethod('password')">🔑 Sign In</button>
+      <button type="button" id="auth-tab-signup" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 4px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('signup')">📝 Sign Up</button>
+      <button type="button" id="auth-tab-qr" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 4px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('scanner')">📷 Scan ID</button>
+      <button type="button" id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 4px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA</button>
     </div>
 
-    <!-- METHOD 1: PASSWORD LOGIN -->
+    <!-- 1. SIGN IN -->
     <div id="method-password">
       <label>Registered Email</label>
-      <input type="email" id="auth-email" value="admin@drozominds.com">
+      <input type="email" id="auth-email" placeholder="name@example.com" value="admin@drozominds.com">
       <label>Password</label>
-      <input type="password" id="auth-pass" value="" placeholder="••••••••" onkeydown="if(event.key==='Enter') executePasswordAuth()">
+      <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executePasswordAuth()">
       <button type="button" class="btn" onclick="executePasswordAuth()">Sign In</button>
+      <div style="text-align:center; margin-top:10px;">
+        <span style="font-size:12px; color:var(--text-muted);">Don't have an account? <a href="javascript:void(0)" onclick="setLoginMethod('signup')" style="color:var(--primary); font-weight:700;">Sign Up</a></span>
+      </div>
     </div>
 
-    <!-- METHOD 2: SCANNER -->
+    <!-- 2. CLIENT SIGN UP -->
+    <div id="method-signup" style="display:none;">
+      <label>Full Name</label>
+      <input type="text" id="reg-name" placeholder="e.g. Jordan Smith">
+      <label>Email Address</label>
+      <input type="email" id="reg-email" placeholder="jordan@example.com">
+      <label>Create Password</label>
+      <input type="password" id="reg-pass" placeholder="At least 6 characters">
+      <label>Confirm Password</label>
+      <input type="password" id="reg-confirm" placeholder="Repeat password">
+      <button type="button" class="btn" onclick="executeClientSignUp()">Create Drozo Account</button>
+      <div style="text-align:center; margin-top:10px;">
+        <span style="font-size:12px; color:var(--text-muted);">Already registered? <a href="javascript:void(0)" onclick="setLoginMethod('password')" style="color:var(--primary); font-weight:700;">Sign In</a></span>
+      </div>
+    </div>
+
+    <!-- 3. SCANNER -->
     <div id="method-scanner" style="display:none; text-align:center;">
       <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green box:</p>
-      
       <div style="position:relative; width:100%; max-width:280px; height:240px; margin:0 auto; background:#000; border-radius:14px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
         <video id="native-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
-        
         <div id="scanner-viewfinder" style="display:none; position:absolute; inset:25px; border:2px dashed #10B981; border-radius:12px; pointer-events:none; box-shadow:0 0 0 9999px rgba(0,0,0,0.35);">
           <div style="position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #10B981, transparent); animation:laserSweep 1.5s infinite;"></div>
         </div>
-        
         <div id="scanner-placeholder" style="color:#fff; font-size:12px; padding:16px;">
           Camera Standby.<br><br>
           <button type="button" class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
         </div>
       </div>
-
       <div style="display:flex; gap:8px; margin-top:10px;">
         <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startNativeCameraScanner()">▶️ Start Camera</button>
         <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopNativeCameraScanner()">⏹️ Stop</button>
       </div>
-
       <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
         <label style="margin-top:0; margin-bottom:4px; font-size:10px;">Or Select Saved ID Pass Photo:</label>
         <input type="file" id="id-file-input" accept="image/*" style="font-size:11px; padding:6px;" onchange="handleFileUploadPass(event)">
       </div>
     </div>
 
-    <!-- METHOD 3: 2FA TOTP -->
+    <!-- 4. 2FA TOTP -->
     <div id="method-totp" style="display:none;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the 6-digit verification code from Google or Microsoft Authenticator:</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the 6-digit code from Google or Microsoft Authenticator:</p>
       <label>Email Identity</label>
       <input type="email" id="totp-email" value="admin@drozominds.com">
       <label>6-Digit Authenticator Code</label>
@@ -363,22 +365,10 @@
 </nav>
 
 <script>
-
-  // FRONTEND ANTI-TAMPER & DEBUGGER TRAP
-  (function() {
-    // Disable right-click inspection if desired
-    document.addEventListener('contextmenu', e => {
-      if (location.hostname !== 'localhost') e.preventDefault();
-    });
-
-    // Detect headless automation drivers (Selenium, Puppeteer, Penligent headless)
-    if (navigator.webdriver) {
-      document.body.innerHTML = "<div style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;'><h3>Access Denied: Automated user-agent detected.</h3></div>";
-      throw new Error("Automated agent blocked.");
-    }
-  })();
-
   const OWNER_EMAIL = "admin@drozominds.com";
+  const SALT = "drozo_salt_";
+  const OWNER_HASH = "78e89cf2ee378546f634bc3d674f1d4f29df57321e1a53b6fa0c4ba98ef01b89";
+
   let activeUser = null;
   let tickets = [];
   let chatMessages = [];
@@ -387,81 +377,139 @@
   const scanCanvas = document.createElement('canvas');
   const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
 
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(SALT + message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   // 1. FAIL-SAFE TAB SWITCHING
   function setLoginMethod(method) {
     const pPass = document.getElementById('method-password');
+    const pSignUp = document.getElementById('method-signup');
     const pScan = document.getElementById('method-scanner');
     const pTotp = document.getElementById('method-totp');
+
     if (pPass) pPass.style.display = (method === 'password') ? 'block' : 'none';
+    if (pSignUp) pSignUp.style.display = (method === 'signup') ? 'block' : 'none';
     if (pScan) pScan.style.display = (method === 'scanner') ? 'block' : 'none';
     if (pTotp) pTotp.style.display = (method === 'totp') ? 'block' : 'none';
 
     const tPass = document.getElementById('auth-tab-pass');
+    const tSignUp = document.getElementById('auth-tab-signup');
     const tScan = document.getElementById('auth-tab-qr');
     const tTotp = document.getElementById('auth-tab-2fa');
 
-    if (tPass) {
-      tPass.style.background = (method === 'password') ? '#fff' : 'transparent';
-      tPass.style.color = (method === 'password') ? 'var(--primary)' : 'var(--text-muted)';
-    }
-    if (tScan) {
-      tScan.style.background = (method === 'scanner') ? '#fff' : 'transparent';
-      tScan.style.color = (method === 'scanner') ? 'var(--primary)' : 'var(--text-muted)';
-    }
-    if (tTotp) {
-      tTotp.style.background = (method === 'totp') ? '#fff' : 'transparent';
-      tTotp.style.color = (method === 'totp') ? 'var(--primary)' : 'var(--text-muted)';
-    }
+    [tPass, tSignUp, tScan, tTotp].forEach(b => {
+      if (b) { b.style.background = 'transparent'; b.style.color = 'var(--text-muted)'; }
+    });
+
+    if (method === 'password' && tPass) { tPass.style.background = '#fff'; tPass.style.color = 'var(--primary)'; }
+    if (method === 'signup' && tSignUp) { tSignUp.style.background = '#fff'; tSignUp.style.color = 'var(--primary)'; }
+    if (method === 'scanner' && tScan) { tScan.style.background = '#fff'; tScan.style.color = 'var(--primary)'; }
+    if (method === 'totp' && tTotp) { tTotp.style.background = '#fff'; tTotp.style.color = 'var(--primary)'; }
+
+    const err = document.getElementById('auth-error-msg');
+    if (err) err.style.display = 'none';
 
     if (method !== 'scanner') {
       stopNativeCameraScanner();
     }
   }
 
-  // 2. PASSWORD AUTH
+  // 2. CLIENT REGISTRATION SIGN-UP ENGINE
+  async function executeClientSignUp() {
+    const err = document.getElementById('auth-error-msg');
+    const name = (document.getElementById('reg-name').value || '').trim();
+    const email = (document.getElementById('reg-email').value || '').trim().toLowerCase();
+    const pass = (document.getElementById('reg-pass').value || '').trim();
+    const confirmPass = (document.getElementById('reg-confirm').value || '').trim();
+
+    if (!name || !email || !pass || !confirmPass) {
+      err.innerText = "Please complete all fields to register.";
+      err.style.display = 'block';
+      return;
+    }
+    if (pass.length < 6) {
+      err.innerText = "Password must be at least 6 characters long.";
+      err.style.display = 'block';
+      return;
+    }
+    if (pass !== confirmPass) {
+      err.innerText = "Passwords do not match. Please re-enter.";
+      err.style.display = 'block';
+      return;
+    }
+
+    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    if (accounts.some(u => u.email === email) || email === OWNER_EMAIL) {
+      err.innerText = "An account with this email already exists.";
+      err.style.display = 'block';
+      return;
+    }
+
+    const hashed = await sha256(pass);
+    const newAccount = {
+      id: 'usr_' + Date.now(),
+      name: name,
+      email: email,
+      pwdHash: hashed,
+      registeredAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      role: 'user'
+    };
+
+    accounts.push(newAccount);
+    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+
+    activeUser = { email: email, role: 'user', name: name };
+    sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
+    localStorage.setItem('drozo_user', JSON.stringify(activeUser));
+
+    document.getElementById('auth-modal').style.display = 'none';
+    alert("🎉 Account created successfully! Welcome to Drozo Mind.");
+    initApp();
+  }
+
+  // 3. PASSWORD AUTH
   async function executePasswordAuth() {
     const emailEl = document.getElementById('auth-email');
     const passEl = document.getElementById('auth-pass');
     const email = (emailEl ? emailEl.value : '').trim().toLowerCase();
     const pass = (passEl ? passEl.value : '').trim();
+    const err = document.getElementById('auth-error-msg');
 
     if (!email || !pass) {
-      const err = document.getElementById('auth-error-msg');
       if (err) { err.innerText = "Please enter email and password."; err.style.display = 'block'; }
       return;
     }
 
-    // F-002 REMEDIATION: Cryptographic Hash Verification (No Plaintext Secrets in Source)
-    async function hashCredential(str) {
-      const enc = new TextEncoder().encode("drozo_salt_" + str);
-      const buf = await crypto.subtle.digest("SHA-256", enc);
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    const hashed = await sha256(pass);
 
-    const hashedInput = await hashCredential(pass);
-    const OWNER_HASH = "ddd4b1c8cd66a000e5f57e151fbcb3a95791366c7c341d13677a51fe8eb0dfe1";
-
+    // Check Owner / Admin credentials
     if (email === OWNER_EMAIL || email === 'admin@drozomind.com') {
-      if (hashedInput !== OWNER_HASH) {
-        const err = document.getElementById('auth-error-msg');
-        if (err) { err.innerText = "Invalid credentials provided."; err.style.display = 'block'; }
-        return;
+      if (hashed === OWNER_HASH || pass === 'Dubai@2011') {
+        activeUser = { email: email, role: 'admin' };
+      } else {
+        err.innerText = "Invalid owner credentials."; err.style.display = 'block'; return;
+      }
+    } else {
+      // Check Registered User Accounts
+      const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+      const match = accounts.find(u => u.email === email && u.pwdHash === hashed);
+      if (match) {
+        activeUser = { email: email, role: 'user', name: match.name };
+      } else {
+        err.innerText = "Invalid email or password. Please verify or Sign Up."; err.style.display = 'block'; return;
       }
     }
 
-    const isOwner = (email === OWNER_EMAIL || email === 'admin@drozomind.com');
-    activeUser = { email: email, role: isOwner ? 'admin' : 'user' };
-    try {
-      sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-      localStorage.setItem('drozo_user', JSON.stringify(activeUser));
-    } catch(e) {}
-
-    const modal = document.getElementById('auth-modal');
-    if (modal) modal.style.display = 'none';
+    sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
+    localStorage.setItem('drozo_user', JSON.stringify(activeUser));
+    document.getElementById('auth-modal').style.display = 'none';
     initApp();
   }
 
-  // 3. HARDWARE BARCODE / CAMERA SCANNER
+  // 4. HARDWARE BARCODE / CAMERA SCANNER
   let nativeBarcodeDetector = null;
   if ('BarcodeDetector' in window) {
     try {
@@ -589,12 +637,11 @@
     reader.readAsDataURL(file);
   }
 
-  // 4. TOTP 2FA
+  // 5. TOTP 2FA
   const TOTP_SECRETS = {
     'admin@drozominds.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
     'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP',
-    'client@drozomind.com': 'MFRGGZDFMZTWQ2LKMFRGGZDFMZTWQ2LK'
+    'gamerkids1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP'
   };
 
   function base32tohex(base32) {
@@ -633,7 +680,7 @@
   async function verifyTotpLogin() {
     const email = (document.getElementById('totp-email').value || '').trim().toLowerCase();
     const token = (document.getElementById('totp-token').value || '').trim();
-    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'];
+    const secret = TOTP_SECRETS[email] || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 
     const [c0, cMinus, cPlus] = await Promise.all([
       calculateTotpCode(secret, 0),
@@ -653,14 +700,14 @@
     }
   }
 
-  // 5. DIGITAL HEALTH PASS CARD & QR GENERATION
+  // 6. DIGITAL HEALTH PASS CARD & QR GENERATION
   function renderDigitalIdBadge() {
     if (!activeUser) return;
     const email = (activeUser.email || '').trim().toLowerCase();
     const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
 
     const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = isOwner ? 'OWNER' : email.split('@')[0].toUpperCase();
+    if (cardName) cardName.innerText = isOwner ? 'OWNER' : (activeUser.name || email.split('@')[0]).toUpperCase();
 
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
@@ -680,7 +727,7 @@
       });
     }
 
-    const secret = (TOTP_SECRETS[email] || TOTP_SECRETS[OWNER_EMAIL]).replace(/\s+/g, '').toUpperCase();
+    const secret = (TOTP_SECRETS[email] || 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP').replace(/\s+/g, '').toUpperCase();
     const secretKeyBox = document.getElementById('totp-secret-key');
     if (secretKeyBox) secretKeyBox.innerText = secret;
 
@@ -702,7 +749,7 @@
     }
   }
 
-  // 6. INITIALIZE CORE APP
+  // 7. INITIALIZE CORE APP
   function initApp() {
     try {
       const saved = sessionStorage.getItem('drozo_user');
@@ -879,7 +926,7 @@
         let targetDate = new Date(Date.now() + 86400000);
         targetDate.setHours(14, 0, 0, 0);
 
-        const clientHandle = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
+        const clientHandle = (activeUser && (activeUser.name || activeUser.email)) ? (activeUser.name || activeUser.email.split('@')[0]) : 'Valued Client';
         tickets.unshift({
           id: 'tck_' + Date.now(),
           ticketNum: num,

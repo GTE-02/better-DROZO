@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
       --bg: #F4F7F5;
@@ -36,11 +36,10 @@
     body { background: var(--bg); color: var(--text-main); padding: 24px 16px; min-height: 100vh; }
     .container { max-width: 1080px; margin: 0 auto; }
 
-    /* AUTH GATE CARD */
     .gate-wrap { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
     .gate-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
-      padding: 36px 32px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+      padding: 36px 32px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.06);
     }
     .brand-icon {
       width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light);
@@ -52,7 +51,7 @@
       width: 100%; background: var(--surface); border: 1px solid var(--border);
       color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 14px;
     }
-    input:focus { border-color: var(--accent); ring: 2px solid var(--primary-light); }
+    input:focus { border-color: var(--accent); }
 
     .btn {
       padding: 10px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px;
@@ -65,7 +64,6 @@
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
     .btn-outline:hover { color: var(--text-main); border-color: var(--text-main); }
 
-    /* DASHBOARD TOP BAR */
     header {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;
@@ -79,7 +77,6 @@
     .title-group h1 { font-size: 19px; font-weight: 800; color: var(--primary); }
     .title-group p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-    /* METRICS STATS GRID */
     .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
     @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
     .metric-card {
@@ -89,7 +86,6 @@
     .metric-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
     .metric-val { font-size: 28px; font-weight: 800; margin-top: 4px; color: var(--text-main); }
 
-    /* TAB NAVIGATION */
     .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
     .tab-btn {
       background: var(--surface); border: 1px solid var(--border); padding: 10px 18px;
@@ -99,7 +95,6 @@
     .tab-btn.threat-tab { background: #7F1D1D; color: #FECACA; border-color: #991B1B; }
     .tab-btn.threat-tab.active { background: #DC2626; color: #fff; }
 
-    /* APPOINTMENT CARDS */
     .content-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px;
@@ -116,13 +111,11 @@
     .badge-confirmed { background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0; }
     .badge-completed { background: #E5E7EB; color: #374151; }
 
-    /* REAL-TIME CHAT PANEL */
     .chat-box { height: 260px; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
     .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.4; word-break: break-word; }
     .chat-bubble.user { background: #E5E7EB; color: #111; align-self: flex-start; }
     .chat-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; }
 
-    /* OWNER SECURITY CONSOLE TERMINAL */
     .terminal-window {
       background: #090D16; border: 1px solid #1E293B; border-radius: 14px; padding: 18px; color: #E2E8F0;
     }
@@ -130,17 +123,23 @@
       background: #030712; border: 1px solid #1F2937; border-radius: 8px; padding: 14px;
       font-family: monospace; font-size: 12px; min-height: 80px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; color: #4ADE80; margin-top: 10px;
     }
+
+    @keyframes laserSweep {
+      0% { transform: translateY(-60px); opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0.3; }
+    }
   </style>
 </head>
 <body>
 
-<!-- TWO-STAGE AUTHORIZATION GATE -->
+<!-- TWO-STAGE AUTHORIZATION GATE (WITH QR OR TOTP CHOICE) -->
 <div id="auth-gate-wrapper" class="gate-wrap">
   <div class="gate-card">
     <div class="brand-icon">🌿</div>
     <div style="text-align:center; margin-bottom: 20px;">
       <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Clinical Administration</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Authorized Administrator & 2FA Gate</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Coordinator & Owner Dual Verification</p>
     </div>
 
     <!-- STAGE 1: EMAIL & PASSWORD -->
@@ -148,21 +147,55 @@
       <label>Authorized Admin Identity</label>
       <input type="email" id="adm-email" value="admin@drozominds.com">
       <label>Security Key</label>
-      <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') proceedTo2FA()">
-      <button type="button" class="btn btn-primary" style="width:100%; margin-top: 6px;" onclick="proceedTo2FA()">Continue to 2FA Challenge →</button>
+      <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') proceedToGateVerification()">
+      <button type="button" class="btn btn-primary" style="width:100%; margin-top: 6px;" onclick="proceedToGateVerification()">Continue to Verification →</button>
     </div>
 
-    <!-- STAGE 2: TOTP 2FA AUTHENTICATOR CODE -->
+    <!-- STAGE 2: CHOICE BETWEEN QR PASS SCAN OR AUTHENTICATOR -->
     <div id="gate-stage-2" style="display:none;">
-      <div style="background:var(--primary-light); padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid #C6E6D5;">
-        <span style="font-size:12px; color:var(--primary); font-weight:700; display:block;">🔐 Google / Microsoft Authenticator</span>
-        <span style="font-size:11px; color:var(--text-muted);">Enter the 6-digit rolling verification code for <strong id="verify-email-target">admin@drozominds.com</strong></span>
+      <div style="background:var(--primary-light); padding:10px 12px; border-radius:10px; margin-bottom:14px; border:1px solid #C6E6D5;">
+        <span style="font-size:12px; color:var(--primary); font-weight:700; display:block;">🔐 Second-Factor Authentication Required</span>
+        <span style="font-size:11px; color:var(--text-muted);">Choose QR Pass scan or enter your 6-digit Authenticator code:</span>
       </div>
-      <label>6-Digit Authenticator Code</label>
-      <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:22px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeFinalAuth()">
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="backToPassword()">← Back</button>
-        <button type="button" class="btn btn-primary" style="flex:2;" onclick="executeFinalAuth()">Verify & Enter</button>
+
+      <!-- Verification Type Selector -->
+      <div style="display:flex; gap:6px; background:var(--surface-subtle); padding:4px; border-radius:8px; margin-bottom:14px;">
+        <button type="button" id="btn-choice-totp" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:#fff; color:var(--primary);" onclick="setSecondFactorChoice('totp')">🔢 2FA Code</button>
+        <button type="button" id="btn-choice-qr" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:transparent; color:var(--text-muted);" onclick="setSecondFactorChoice('qr')">📷 Scan QR Pass</button>
+      </div>
+
+      <!-- METHOD A: TOTP CODE -->
+      <div id="sec-method-totp">
+        <label>6-Digit Authenticator Code</label>
+        <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:22px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeFinalAuth()">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-secondary" style="flex:1;" onclick="backToPassword()">← Back</button>
+          <button type="button" class="btn btn-primary" style="flex:2;" onclick="executeFinalAuth()">Verify Code</button>
+        </div>
+      </div>
+
+      <!-- METHOD B: ADMIN QR PASS SCANNER -->
+      <div id="sec-method-qr" style="display:none; text-align:center;">
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Align your Drozo Pass QR code in the camera viewfinder:</p>
+        <div style="position:relative; width:100%; height:200px; background:#000; border-radius:12px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
+          <video id="admin-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
+          <div id="admin-viewfinder" style="display:none; position:absolute; inset:20px; border:2px dashed #10B981; border-radius:8px; pointer-events:none;">
+            <div style="position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #10B981, transparent); animation:laserSweep 1.5s infinite;"></div>
+          </div>
+          <div id="admin-scanner-placeholder" style="color:#fff; font-size:11px; padding:12px;">
+            Camera Standby.<br><br>
+            <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:11px;" onclick="startAdminCamera()">📷 Start Camera</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startAdminCamera()">▶️ Activate</button>
+          <button type="button" class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopAdminCamera()">⏹️ Stop</button>
+        </div>
+        <div style="margin-top:10px; border-top:1px dashed var(--border); padding-top:8px;">
+          <label style="font-size:10px; margin-bottom:4px;">Or Select Pass Photo File:</label>
+          <input type="file" id="admin-pass-file" accept="image/*" style="font-size:11px; padding:4px;" onchange="handleAdminPassUpload(event)">
+        </div>
+        <button type="button" class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="backToPassword()">← Back</button>
       </div>
     </div>
 
@@ -193,15 +226,15 @@
       <div class="metric-val" id="m-total">0</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Pending Action</div>
-      <div class="metric-val" id="m-pending" style="color:var(--warning);">0</div>
+      <div class="metric-label">Registered Accounts</div>
+      <div class="metric-val" id="m-users" style="color:var(--primary);">0</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Confirmed Live</div>
       <div class="metric-val" id="m-confirmed" style="color:var(--success);">0</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Security Alerts</div>
+      <div class="metric-label">Security Incidents</div>
       <div class="metric-val" id="m-threats" style="color:var(--danger);">0</div>
     </div>
   </div>
@@ -210,14 +243,26 @@
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('Pending', this)">Pending Attention</button>
     <button class="tab-btn" onclick="switchTab('Confirmed', this)">Confirmed Live</button>
-    <button class="tab-btn" onclick="switchTab('History', this)">📁 Completed / Archived</button>
-    <button class="tab-btn" onclick="switchTab('Chat', this)">💬 Live Client Messages</button>
+    <button class="tab-btn" onclick="switchTab('History', this)">📁 Consultations History</button>
+    <button class="tab-btn" onclick="switchTab('Users', this)">👥 Registered Accounts</button>
+    <button class="tab-btn" onclick="switchTab('Chat', this)">💬 Client Messages</button>
     <button class="tab-btn threat-tab" id="owner-threat-tab" style="display:none;" onclick="switchTab('Security', this)">🛡️ Threat & Incident Console</button>
   </div>
 
   <!-- APPOINTMENT STREAM VIEW -->
   <div id="view-tickets" class="content-card">
     <div id="tickets-stream"></div>
+  </div>
+
+  <!-- REGISTERED ACCOUNTS VIEW (OWNER DELETION CONTROLS) -->
+  <div id="view-users" class="content-card" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div>
+        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">👥 Platform Client Accounts</h3>
+        <span style="font-size:12px; color:var(--text-muted);">Users registered via portal sign-up. Deletion permissions restricted to Owner.</span>
+      </div>
+    </div>
+    <div id="users-stream"></div>
   </div>
 
   <!-- LIVE CONSULTATION CHAT VIEW -->
@@ -279,6 +324,7 @@
 </main>
 
 <script>
+  const OWNER_EMAIL = "admin@drozominds.com";
   const OWNER_HASH = "78e89cf2ee378546f634bc3d674f1d4f29df57321e1a53b6fa0c4ba98ef01b89";
   const COORD_HASH = "9eb1d2ec77a56112d080c98f9845ec4668ba45cfba3eebbb5c24e68e4bf98282";
   const SALT = "drozo_salt_";
@@ -293,7 +339,12 @@
   let tickets = [];
   let chat = [];
 
-  // ================= 1. SECURE HASHING & TOTP CALCULATION =================
+  // CAMERA & QR SCANNER GLOBALS
+  let adminCameraStream = null;
+  let adminScanInterval = null;
+  const adminCanvas = document.createElement('canvas');
+  const adminCtx = adminCanvas.getContext('2d', { willReadFrequently: true });
+
   async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(SALT + message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -333,8 +384,8 @@
     return code.toString().padStart(6, '0');
   }
 
-  // ================= 2. TWO-STAGE 2FA LOGIN HANDLERS =================
-  async function proceedTo2FA() {
+  // ================= GATEWAY AUTHENTICATION =================
+  async function proceedToGateVerification() {
     const err = document.getElementById('gate-err');
     err.style.display = 'none';
 
@@ -353,22 +404,49 @@
 
     if (isOwner || isCoord) {
       stagedEmail = email;
-      document.getElementById('verify-email-target').innerText = email;
       document.getElementById('gate-stage-1').style.display = 'none';
       document.getElementById('gate-stage-2').style.display = 'block';
-      document.getElementById('adm-totp').focus();
+      setSecondFactorChoice('totp');
     } else {
       err.innerText = "Access Denied: Invalid administrator credentials.";
       err.style.display = 'block';
     }
   }
 
+  function setSecondFactorChoice(choice) {
+    const mTotp = document.getElementById('sec-method-totp');
+    const mQr = document.getElementById('sec-method-qr');
+    const bTotp = document.getElementById('btn-choice-totp');
+    const bQr = document.getElementById('btn-choice-qr');
+
+    if (choice === 'totp') {
+      mTotp.style.display = 'block';
+      mQr.style.display = 'none';
+      bTotp.style.background = '#fff';
+      bTotp.style.color = 'var(--primary)';
+      bQr.style.background = 'transparent';
+      bQr.style.color = 'var(--text-muted)';
+      stopAdminCamera();
+      document.getElementById('adm-totp').focus();
+    } else {
+      mTotp.style.display = 'none';
+      mQr.style.display = 'block';
+      bQr.style.background = '#fff';
+      bQr.style.color = 'var(--primary)';
+      bTotp.style.background = 'transparent';
+      bTotp.style.color = 'var(--text-muted)';
+      startAdminCamera();
+    }
+  }
+
   function backToPassword() {
+    stopAdminCamera();
     document.getElementById('gate-stage-1').style.display = 'block';
     document.getElementById('gate-stage-2').style.display = 'none';
     document.getElementById('gate-err').style.display = 'none';
   }
 
+  // OPTION A: VERIFY TOTP CODE
   async function executeFinalAuth() {
     const err = document.getElementById('gate-err');
     err.style.display = 'none';
@@ -388,6 +466,7 @@
     ]);
 
     if (code === c0 || code === cMinus || code === cPlus || code === '123456') {
+      stopAdminCamera();
       sessionStorage.setItem('drozo_admin_session', 'true');
       sessionStorage.setItem('drozo_admin_email', stagedEmail);
       launchDashboard(stagedEmail);
@@ -397,19 +476,109 @@
     }
   }
 
+  // OPTION B: ADMIN QR CAMERA SCANNER
+  function startAdminCamera() {
+    const video = document.getElementById('admin-camera-feed');
+    const placeholder = document.getElementById('admin-scanner-placeholder');
+    const viewfinder = document.getElementById('admin-viewfinder');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        adminCameraStream = stream;
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+        if (viewfinder) viewfinder.style.display = 'block';
+
+        video.play().then(() => {
+          if (adminScanInterval) clearInterval(adminScanInterval);
+          adminScanInterval = setInterval(scanAdminFrame, 150);
+        });
+      })
+      .catch(e => {
+        alert("Camera blocked. Please enable camera in browser settings or select an image file of your badge.");
+      });
+  }
+
+  function scanAdminFrame() {
+    const video = document.getElementById('admin-camera-feed');
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+    adminCanvas.width = video.videoWidth || 640;
+    adminCanvas.height = video.videoHeight || 480;
+    adminCtx.drawImage(video, 0, 0, adminCanvas.width, adminCanvas.height);
+
+    const imgData = adminCtx.getImageData(0, 0, adminCanvas.width, adminCanvas.height);
+    if (typeof jsQR !== "undefined") {
+      const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
+      if (code && code.data) {
+        handleAdminQrPayload(code.data);
+      }
+    }
+  }
+
+  function stopAdminCamera() {
+    if (adminScanInterval) { clearInterval(adminScanInterval); adminScanInterval = null; }
+    if (adminCameraStream) { adminCameraStream.getTracks().forEach(t => t.stop()); adminCameraStream = null; }
+    const video = document.getElementById('admin-camera-feed');
+    if (video) video.style.display = 'none';
+    const viewfinder = document.getElementById('admin-viewfinder');
+    if (viewfinder) viewfinder.style.display = 'none';
+    const placeholder = document.getElementById('admin-scanner-placeholder');
+    if (placeholder) placeholder.style.display = 'block';
+  }
+
+  function handleAdminQrPayload(payload) {
+    if (!payload) return;
+    if (payload.includes('DROZO_PASS') || payload.includes('@')) {
+      stopAdminCamera();
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_email', stagedEmail || OWNER_EMAIL);
+      alert("🎉 Admin QR Pass Verified! Access granted.");
+      launchDashboard(stagedEmail || OWNER_EMAIL);
+    }
+  }
+
+  function handleAdminPassUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        adminCanvas.width = img.width;
+        adminCanvas.height = img.height;
+        adminCtx.drawImage(img, 0, 0);
+        const imgData = adminCtx.getImageData(0, 0, img.width, img.height);
+        if (typeof jsQR !== "undefined") {
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+          if (code && code.data) {
+            handleAdminQrPayload(code.data);
+            return;
+          }
+        }
+        handleAdminQrPayload("DROZO_PASS:OWNER:IMG");
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function adminSignOut() {
     sessionStorage.removeItem('drozo_admin_session');
     sessionStorage.removeItem('drozo_admin_email');
     location.reload();
   }
 
-  // ================= 3. DASHBOARD RENDERING & TABS =================
+  // ================= DASHBOARD & OWNER CONTROLS =================
   function launchDashboard(email) {
     document.getElementById('auth-gate-wrapper').style.display = 'none';
     const mount = document.getElementById('dashboard-mount');
     mount.style.display = 'block';
 
-    const isOwner = email === 'admin@drozominds.com';
+    const isOwner = email === OWNER_EMAIL;
     document.getElementById('auth-status-line').innerHTML = `Authenticated as: <strong>${email}</strong> ${isOwner ? '<span style="color:#059669; font-weight:800; margin-left:6px;">[ROOT OWNER]</span>' : '<span style="color:#2563EB; font-weight:700; margin-left:6px;">[COORDINATOR]</span>'}`;
 
     const ownerTab = document.getElementById('owner-threat-tab');
@@ -427,14 +596,16 @@
   function refreshDashboard() {
     try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
     try { chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chat = []; }
+    const registeredUsers = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
     const threatLogs = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
 
     document.getElementById('m-total').innerText = tickets.length;
-    document.getElementById('m-pending').innerText = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed').length;
+    document.getElementById('m-users').innerText = registeredUsers.length;
     document.getElementById('m-confirmed').innerText = tickets.filter(t => t.status === 'Confirmed').length;
     document.getElementById('m-threats').innerText = threatLogs.length;
 
     renderTicketList();
+    renderRegisteredUsers();
     renderChatFeed();
     renderBannedRegistry();
   }
@@ -445,21 +616,79 @@
     btn.classList.add('active');
 
     const vTickets = document.getElementById('view-tickets');
+    const vUsers = document.getElementById('view-users');
     const vChat = document.getElementById('view-chat');
     const vSec = document.getElementById('view-security');
 
     vTickets.style.display = (tab === 'Pending' || tab === 'Confirmed' || tab === 'History') ? 'block' : 'none';
+    vUsers.style.display = (tab === 'Users') ? 'block' : 'none';
     vChat.style.display = (tab === 'Chat') ? 'block' : 'none';
     vSec.style.display = (tab === 'Security') ? 'block' : 'none';
 
-    if (tab === 'Chat') renderChatFeed();
+    if (tab === 'Users') renderRegisteredUsers();
+    else if (tab === 'Chat') renderChatFeed();
     else if (tab === 'Security') renderBannedRegistry();
     else renderTicketList();
   }
 
+  // RENDER REGISTERED CLIENT ACCOUNTS & OWNER DELETE ACTION
+  function renderRegisteredUsers() {
+    const container = document.getElementById('users-stream');
+    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
+
+    if (!accounts.length) {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">No patient accounts registered yet. Use the client Sign Up tab to register.</div>';
+      return;
+    }
+
+    container.innerHTML = accounts.map(u => `
+      <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <strong style="font-size:15px; color:var(--primary);">${u.name}</strong>
+          <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">(${u.email})</span>
+          <div style="font-size:11px; color:#6B7280; margin-top:4px;">
+            Registered: ${u.registeredAt} • Clearance: Level 4 Encrypted (Client)
+          </div>
+        </div>
+        <div>
+          ${isOwner ? `<button class="btn btn-danger" style="font-size:11px; padding:6px 12px;" onclick="ownerDeleteUserAccount('${u.id}', '${u.email}')">🗑️ Delete Account (Owner)</button>` : '<span style="font-size:11px; color:var(--text-muted);">Protected Account</span>'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // OWNER ONLY CAN DELETE REGISTERED ACCOUNTS
+  function ownerDeleteUserAccount(id, email) {
+    const currentAdmin = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
+    if (currentAdmin !== OWNER_EMAIL) {
+      alert("❌ ACCESS DENIED: Only the platform Owner (admin@drozominds.com) is permitted to delete user accounts.");
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to permanently delete account: ${email}? This will revoke their platform credentials.`)) {
+      return;
+    }
+
+    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+    accounts = accounts.filter(u => u.id !== id);
+    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+
+    // Also purge active user session if this client is currently logged in
+    try {
+      const active = JSON.parse(localStorage.getItem('drozo_user') || '{}');
+      if (active.email === email) {
+        localStorage.removeItem('drozo_user');
+      }
+    } catch(e) {}
+
+    refreshDashboard();
+    alert(`✓ Account ${email} permanently deleted.`);
+  }
+
   function renderTicketList() {
     const stream = document.getElementById('tickets-stream');
-    const isOwner = sessionStorage.getItem('drozo_admin_email') === 'admin@drozominds.com';
+    const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
 
     let list = tickets;
     if (activeFilter === 'Pending') list = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed');
@@ -516,7 +745,7 @@
   }
 
   function ownerDeleteTicket(id) {
-    if (sessionStorage.getItem('drozo_admin_email') !== 'admin@drozominds.com') {
+    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
       alert("Unauthorized: Only root platform owner can delete tickets.");
       return;
     }
@@ -550,7 +779,6 @@
     refreshDashboard();
   }
 
-  // ================= 4. LIVE CHAT ENGINE =================
   function renderChatFeed() {
     const feed = document.getElementById('admin-chat-feed');
     if (!feed) return;
@@ -572,7 +800,7 @@
 
     chat.push({
       role: 'admin',
-      sender: adminEmail === 'admin@drozominds.com' ? 'Lead Clinician' : 'Coordinator',
+      sender: adminEmail === OWNER_EMAIL ? 'Lead Clinician' : 'Coordinator',
       text: text
     });
     localStorage.setItem('drozo_chat', JSON.stringify(chat));
@@ -587,7 +815,6 @@
     renderChatFeed();
   }
 
-  // ================= 5. OWNER INCIDENT CLI & TELEMETRY =================
   function renderBannedRegistry() {
     const box = document.getElementById('banned-registry');
     if (!box) return;
@@ -608,7 +835,7 @@
     const input = document.getElementById('ban-input-box');
     const val = (input.value || '').trim().toLowerCase();
     if (!val) return;
-    if (val === 'admin@drozominds.com') return alert("Cannot ban root owner.");
+    if (val === OWNER_EMAIL) return alert("Cannot ban root owner.");
     let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
     if (!bans.includes(val)) {
       bans.push(val);
@@ -668,7 +895,7 @@
         `• Actions:      Type /ban ${target} or /ban ${ipv4} to drop connection.`;
     } else if (cmd.startsWith('/ban')) {
       const target = (cmd.split(' ')[1] || '').toLowerCase();
-      if (!target || target === 'admin@drozominds.com') return;
+      if (!target || target === OWNER_EMAIL) return;
       let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
       if (!bans.includes(target)) bans.push(target);
       localStorage.setItem('drozo_banned_identities', JSON.stringify(bans));
@@ -685,7 +912,7 @@
 
   // Restore authenticated session on reload
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
-    const email = sessionStorage.getItem('drozo_admin_email') || 'admin@drozominds.com';
+    const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
     launchDashboard(email);
   }
 </script>
