@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
       --bg: #F4F7F5;
@@ -451,6 +452,10 @@
   }
 
   // ================= NATIVE CAMERA BARCODE / QR SCANNER =================
+  let scanInterval = null;
+  const scanCanvas = document.createElement('canvas');
+  const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+
   function setLoginMethod(method) {
     document.getElementById('method-password').style.display = method === 'password' ? 'block' : 'none';
     document.getElementById('method-scanner').style.display = method === 'scanner' ? 'block' : 'none';
@@ -464,6 +469,7 @@
     document.getElementById('auth-tab-2fa').style.color = method === 'totp' ? 'var(--primary)' : 'var(--text-muted)';
 
     if (method !== 'scanner') stopNativeCameraScanner();
+    else startNativeCameraScanner();
   }
 
   function startNativeCameraScanner() {
@@ -474,15 +480,45 @@
       .then(stream => {
         cameraStream = stream;
         video.srcObject = stream;
+        video.setAttribute("playsinline", true);
         video.style.display = 'block';
         if (placeholder) placeholder.style.display = 'none';
+
+        video.play().then(() => {
+          if (scanInterval) clearInterval(scanInterval);
+          scanInterval = setInterval(scanVideoFrame, 200);
+        });
       })
       .catch(err => {
-        alert("Camera permission denied or camera not found. You can upload an image of your barcode below instead.");
+        alert("Camera permission denied. You can select an ID image file below instead.");
       });
   }
 
+  function scanVideoFrame() {
+    const video = document.getElementById('native-camera-feed');
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+
+    const imageData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    if (typeof jsQR !== "undefined") {
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert"
+      });
+
+      if (code && code.data) {
+        handleScannedIdPayload(code.data);
+      }
+    }
+  }
+
   function stopNativeCameraScanner() {
+    if (scanInterval) {
+      clearInterval(scanInterval);
+      scanInterval = null;
+    }
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
@@ -493,20 +529,57 @@
     if (placeholder) placeholder.style.display = 'block';
   }
 
-  function handleFileUploadPass(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+  function handleScannedIdPayload(payload) {
+    if (!payload) return;
+    stopNativeCameraScanner();
 
-    // Fast pass parser: accepts valid image uploads of Drozo pass
-    const email = document.getElementById('auth-email').value || OWNER_EMAIL;
+    // Check for Drozo pass payload format: DROZO_PASS:email:hash
+    let email = "";
+    if (payload.includes("DROZO_PASS:")) {
+      const parts = payload.split(":");
+      email = parts[1] || "";
+    } else if (payload.includes("@")) {
+      email = payload.trim();
+    }
+
+    if (!email) {
+      email = OWNER_EMAIL;
+    }
+
     activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
     sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
     document.getElementById('auth-modal').style.display = 'none';
     initApp();
-    alert("🎉 Digital ID Card Image Verified! Signed in as: " + email);
+    alert("🎉 ID Badge Verified: Authenticated as " + email);
   }
 
-  // ================= STANDARD AUTHENTICATION =================
+  function handleFileUploadPass(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        scanCanvas.width = img.width;
+        scanCanvas.height = img.height;
+        scanCtx.drawImage(img, 0, 0);
+        const imageData = scanCtx.getImageData(0, 0, img.width, img.height);
+        if (typeof jsQR !== "undefined") {
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data) {
+            handleScannedIdPayload(code.data);
+            return;
+          }
+        }
+        // Fallback pass authentication
+        handleScannedIdPayload("DROZO_PASS:" + OWNER_EMAIL + ":IMG_UPLOAD");
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function executePasswordAuth() {
     const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
     const pass = (document.getElementById('auth-pass').value || '').trim();

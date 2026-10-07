@@ -157,18 +157,54 @@
       return;
     }
 
+    const currentAdminEmail = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
+    const isOwner = currentAdminEmail === 'admin@drozominds.com';
+
     container.innerHTML = list.map(t => {
-      return '<div class="ticket-card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><div><strong style="font-size:15px;">#TCK-' + t.ticketNum + ' — ' + t.name + '</strong><span style="font-size:12px; color:var(--text-muted); margin-left:8px;">' + formatDateTime(t.slot) + '</span></div>' +
-        '<span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:' + (t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)') + '; color:' + (t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)') + ';">' + t.status.toUpperCase() + '</span></div>' +
-        (t.notes ? '<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Note: ' + t.notes + '</p>' : '') +
-        '<div style="display:flex; gap:8px;">' +
-        (t.status === 'Requested' ? '<button class="btn btn-primary" onclick="updateTicket(\'' + t.id + '\', \'Reviewed\')">Mark Reviewed</button>' : '') +
-        (t.status === 'Reviewed' ? '<button class="btn btn-success" onclick="updateTicket(\'' + t.id + '\', \'Confirmed\')">Confirm Slot</button>' : '') +
-        (t.status === 'Confirmed' ? '<a href="' + t.meetUrl + '" target="_blank" class="btn btn-primary">📹 Join Call</a>' : '') +
-        '</div></div>';
+      let actionButtons = '';
+      if (t.status === 'Requested') actionButtons += `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>`;
+      if (t.status === 'Reviewed') actionButtons += `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>`;
+      if (t.status === 'Confirmed') actionButtons += `<a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>`;
+
+      // DELETE / CANCEL IS ONLY RENDERED FOR PLATFORM OWNER (admin@drozominds.com)
+      if (isOwner && t.status !== 'Completed') {
+        actionButtons += `<button class="btn btn-danger" onclick="deleteTicketAsOwner('${t.id}')">🗑️ Delete Appointment (Owner)</button>`;
+      }
+
+      return `<div class="ticket-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <strong style="font-size:15px;">#TCK-${t.ticketNum} — ${t.name}</strong>
+            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${formatDateTime(t.slot)}</span>
+          </div>
+          <span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:${t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)'}; color:${t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)'};">
+            ${t.status.toUpperCase()}
+          </span>
+        </div>
+        ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Note: ${t.notes}</p>` : ''}
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          ${actionButtons}
+        </div>
+      </div>`;
     }).join('');
 
     renderAdminChat();
+  }
+
+  
+  function deleteTicketAsOwner(id) {
+    const currentAdminEmail = (sessionStorage.getItem('drozo_admin_email') || '').trim().toLowerCase();
+    if (currentAdminEmail !== 'admin@drozominds.com') {
+      alert("❌ ACCESS DENIED: Only the Owner (admin@drozominds.com) is permitted to delete appointments.");
+      return;
+    }
+
+    if (!confirm("Permanently delete this appointment from platform records?")) return;
+
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    tickets = tickets.filter(t => t.id !== id);
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
   }
 
   function updateTicket(id, status) {
