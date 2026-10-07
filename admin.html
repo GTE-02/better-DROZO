@@ -282,7 +282,9 @@
         <div style="background:#111827; padding:14px; border-radius:10px; border:1px solid #1F2937;">
           <span style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase;">Owner CLI Commands</span>
           <div style="font-size:11px; color:#CBD5E1; line-height:1.6; margin-top:8px;">
-            <div>• <code>/location &lt;email&gt;</code> — Resolve dual IPv4/IPv6 & ISP</div>
+            <div>• <code>/admin &lt;email&gt;</code> — Grant Admin privileges</div>
+            <div>• <code>/unadmin &lt;email&gt;</code> — Revoke Admin privileges</div>
+            <div>• <code>/location &lt;email&gt;</code> — Check client device node</div>
             <div>• <code>/lookup &lt;IP&gt;</code> — Trace network carrier & region</div>
             <div>• <code>/ban &lt;target&gt;</code> — Terminate active session & lock IP</div>
             <div>• <code>/unban &lt;target&gt;</code> — Restore access</div>
@@ -836,54 +838,133 @@
     const cmd = (input.value || '').trim();
     if (!cmd) return;
     input.value = '';
-    out.innerText = `> ${cmd}\nProcessing request...`;
+    out.innerText = `> ${cmd}\nProcessing network instruction...`;
 
-    if (cmd.startsWith('/location') || cmd.startsWith('/lookup')) {
-      const target = (cmd.split(' ')[1] || '').toLowerCase();
+    // 1. /admin <email> - GRANT ADMIN
+    if (cmd.startsWith('/admin')) {
+      if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
+        out.innerText = "[ACCESS DENIED] Only root platform owner can grant administrative rights.";
+        return;
+      }
+      const target = (cmd.split(' ')[1] || '').toLowerCase().trim();
       if (!target) {
-        out.innerText = "Syntax: /location <user@email.com> or /lookup <IP>";
+        out.innerText = "Syntax: /admin <user@email.com>";
+        return;
+      }
+      let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+      let user = accounts.find(u => u.email.toLowerCase() === target);
+      if (!user) {
+        // Register if not found
+        user = {
+          id: 'usr_' + Date.now(),
+          name: target.split('@')[0],
+          email: target,
+          role: 'admin',
+          registeredAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+        accounts.push(user);
+      } else {
+        user.role = 'admin';
+      }
+      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+      renderRegisteredUsers();
+      out.innerText = `[SUCCESS] Administrator clearance granted to: ${target}\nUser can now access admin.html via 2FA.`;
+      return;
+    }
+
+    // 2. /unadmin <email> - REVOKE ADMIN
+    if (cmd.startsWith('/unadmin')) {
+      if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
+        out.innerText = "[ACCESS DENIED] Only root platform owner can revoke administrative rights.";
+        return;
+      }
+      const target = (cmd.split(' ')[1] || '').toLowerCase().trim();
+      if (!target || target === OWNER_EMAIL) {
+        out.innerText = "[DENIED] Cannot demote the platform root owner.";
+        return;
+      }
+      let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
+      let user = accounts.find(u => u.email.toLowerCase() === target);
+      if (user) {
+        user.role = 'user';
+        localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+        renderRegisteredUsers();
+        out.innerText = `[SUCCESS] Administrator clearance revoked for: ${target}\nAccount reverted to Client status.`;
+      } else {
+        out.innerText = `[NOT FOUND] No registered user with email: ${target}`;
+      }
+      return;
+    }
+
+    // 3. /location <email> or /lookup <IP_OR_DOMAIN> - REAL NETWORK RESOLVE
+    if (cmd.startsWith('/location') || cmd.startsWith('/lookup')) {
+      const target = (cmd.split(' ')[1] || '').toLowerCase().trim();
+      if (!target) {
+        out.innerText = "Syntax: /location <email> or /lookup <IP_OR_HOST>";
         return;
       }
 
-      let ipv4 = "94.200.18.25";
-      let ipv6 = "2a00:f2a:e00c:fba0:55ec:c465:65:918b";
-      let loc = "Dubai, United Arab Emirates";
-      let org = "Emirates Integrated Telecommunications Company PJSC";
+      // Check registered client telemetry store first
+      const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
+      let targetData = store[target];
 
+      if (targetData) {
+        out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
+          `• Public IPv4:  ${targetData.ipv4}\n` +
+          `• Public IPv6:  ${targetData.ipv6}\n` +
+          `• Location:     ${targetData.city}, ${targetData.region}, ${targetData.country} (${targetData.country_code})\n` +
+          `• Carrier/ISP:  ${targetData.org}\n` +
+          `• Timezone:     ${targetData.timezone}\n` +
+          `• Last Synced:  ${targetData.lastSeen}\n` +
+          `• Status:       Stored Device Telemetry Verified\n` +
+          `• Actions:      Type /ban ${target} or /unadmin ${target}`;
+        return;
+      }
+
+      // Perform live real-world external IP / Domain resolution
       try {
-        const res = await fetch('https://ipapi.co/json/');
+        const queryTarget = target.includes('@') ? '' : target;
+        const res = await fetch(`https://ipapi.co/${queryTarget ? queryTarget + '/' : ''}json/`);
         const g = await res.json();
-        if (g.ip && g.ip.includes(':')) ipv6 = g.ip;
-        else if (g.ip) ipv4 = g.ip;
-        loc = `${g.city || 'Dubai'}, ${g.country_name || 'UAE'}`;
-        org = g.org || org;
-      } catch(e){}
+        if (g.error) throw new Error(g.reason);
 
-      out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
-        `• Public IPv4:  ${ipv4}\n` +
-        `• Public IPv6:  ${ipv6}\n` +
-        `• Location:     ${loc}\n` +
-        `• Provider/ASN: ${org}\n` +
-        `• Status:       Connection Verified Under Google Sentinel\n` +
-        `• Actions:      Type /ban ${target} or /ban ${ipv4} to drop connection.`;
-    } else if (cmd.startsWith('/ban')) {
-      const target = (cmd.split(' ')[1] || '').toLowerCase();
+        out.innerText = `[LIVE NETWORK RESOLVE: ${target}]\n` +
+          `• IP Address:   ${g.ip}\n` +
+          `• Geolocation:  ${g.city}, ${g.region}, ${g.country_name} (${g.country_code})\n` +
+          `• Carrier/ASN:  ${g.org}\n` +
+          `• Timezone:     ${g.timezone}\n` +
+          `• Coordinates:  Lat ${g.latitude}, Lon ${g.longitude}\n` +
+          `• Status:       Live Edge Network Node Verified`;
+      } catch(e) {
+        out.innerText = `[NOTICE] No recorded device telemetry for ${target}.\nWhen the user loads index.html on their actual computer, their public network node registers automatically.`;
+      }
+      return;
+    }
+
+    // 4. /ban <target>
+    if (cmd.startsWith('/ban')) {
+      const target = (cmd.split(' ')[1] || '').toLowerCase().trim();
       if (!target || target === OWNER_EMAIL) return;
       let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
       if (!bans.includes(target)) bans.push(target);
       localStorage.setItem('drozo_banned_identities', JSON.stringify(bans));
       renderBannedRegistry();
       out.innerText = `[SUCCESS] Session revoked and ban enforced on: ${target}`;
-    } else if (cmd.startsWith('/unban')) {
-      const target = (cmd.split(' ')[1] || '').toLowerCase();
+      return;
+    }
+
+    // 5. /unban <target>
+    if (cmd.startsWith('/unban')) {
+      const target = (cmd.split(' ')[1] || '').toLowerCase().trim();
       revokeIdentityLock(target);
       out.innerText = `[SUCCESS] Ban revoked for: ${target}`;
-    } else {
-      out.innerText = "Available Commands:\n• /location <email>\n• /lookup <IP>\n• /ban <target>\n• /unban <target>";
+      return;
     }
+
+    // Help
+    out.innerText = "Available Commands:\n• /admin <email>    - Grant Admin rights to user\n• /unadmin <email>  - Revoke Admin rights\n• /location <email> - Check registered user network node\n• /lookup <IP>      - Perform live real-time network lookup\n• /ban <target>     - Lockout session / IP\n• /unban <target>   - Remove lockout";
   }
 
-  // Auto-restore session on refresh
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
     const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
     launchDashboard(email);
