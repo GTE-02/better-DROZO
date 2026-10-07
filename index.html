@@ -3,67 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo - Intelligent Mind & Autonomous Systems</title>
+  <title>DrozoMind - Mind Sanctuary & AI Therapy</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; }
     .mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-teal-500 selection:text-white">
 
   <!-- Client Navigation -->
-  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+  <header class="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🧠</span>
-        <span class="text-xl font-bold tracking-tight text-white">Drozo<span class="text-emerald-400">Mind</span></span>
+        <span class="text-xl font-bold tracking-tight text-white">Drozo<span class="text-teal-400">Mind</span></span>
       </div>
 
       <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-        <a href="#solutions" class="hover:text-white transition">Solutions</a>
-        <a href="#architecture" class="hover:text-white transition">Architecture</a>
-        <a href="#security" class="hover:text-white transition">Security</a>
+        <a href="#sessions" class="hover:text-teal-300 transition">Mind Sessions</a>
+        <a href="#sanctuary" class="hover:text-teal-300 transition">Sanctuary</a>
+        <a href="#reflection" class="hover:text-teal-300 transition">Daily Reflection</a>
       </nav>
 
       <div class="flex items-center gap-3">
-        <!-- Direct entrance to the Dark Green Admin 2FA Gate -->
-        <a href="./auth.html" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30 transition flex items-center gap-2">
+        <!-- Discreet Root Admin 2FA Gateway -->
+        <a href="./auth.html" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-teal-500/50 transition flex items-center gap-2">
           <span>🛡️</span> Admin Portal 2FA
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Client Hero Section -->
-  <main class="max-w-5xl mx-auto px-4 py-16 sm:py-24 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      Drozo Autonomous Neural Node Active
+  <!-- Client Mind Sanctuary Hero -->
+  <main class="max-w-4xl mx-auto px-4 py-16 sm:py-24 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
+    
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-500/10 border border-teal-500/30 text-teal-300 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+      Safe & Encrypted AI Therapy Space
     </div>
 
-    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-3xl leading-tight">
-      Next-Generation Intelligence for <span class="bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">Complex Systems</span>
+    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+      A Calming Sanctuary for Your <span class="bg-gradient-to-r from-teal-400 via-emerald-300 to-teal-200 bg-clip-text text-transparent">Mind & Thoughts</span>
     </h1>
 
-    <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
-      Unified operational architecture powered by machine intelligence, autonomous workflows, and military-grade hardware key authorization.
+    <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+      Compassionate, personalized conversational support designed to help you decompress, reflect, and navigate life's challenges in complete confidentiality.
     </p>
 
-    <div class="flex flex-wrap justify-center gap-4 pt-4">
-      <a href="#solutions" class="px-6 py-3 rounded-xl text-sm font-bold bg-white text-slate-950 hover:bg-slate-200 transition">
-        Explore Platform
-      </a>
-      <a href="./auth.html" class="px-6 py-3 rounded-xl text-sm font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition flex items-center gap-2">
-        <span>🔐</span> Root Sign-In (2FA)
-      </a>
+    <!-- Client CTAs (Explore Platform removed) -->
+    <div class="flex flex-wrap justify-center gap-4 pt-2">
+      <button onclick="alert('Starting interactive mind session...')" class="px-7 py-3 rounded-2xl text-sm font-bold bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-lg shadow-teal-950 transition transform hover:-translate-y-0.5">
+        Begin Session →
+      </button>
+      <button onclick="alert('Opening guided reflection exercises...')" class="px-7 py-3 rounded-2xl text-sm font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition">
+        Guided Reflection
+      </button>
     </div>
+
+    <!-- Client Trust Badges -->
+    <div class="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left">
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-1">
+        <div class="text-teal-400 text-lg">🔒</div>
+        <div class="text-sm font-bold text-white">Zero-Trace Privacy</div>
+        <div class="text-xs text-slate-400">Sessions are private and end-to-end sandboxed.</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-1">
+        <div class="text-teal-400 text-lg">🌱</div>
+        <div class="text-sm font-bold text-white">Cognitive Reframing</div>
+        <div class="text-xs text-slate-400">Gently reframe intrusive thoughts into clarity.</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-1">
+        <div class="text-teal-400 text-lg">✨</div>
+        <div class="text-sm font-bold text-white">24/7 Calm Companion</div>
+        <div class="text-xs text-slate-400">Always present whenever you need a grounded space.</div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Client Footer -->
-  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-600">
-    &copy; 2026 DrozoMind Inc. All rights reserved. Platform security monitored by Google AI Sentinel.
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 DrozoMind Sanctuary. Designed for personal peace and wellbeing. Protected by Drozo Guard.
   </footer>
 
 </body>
