@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg: #F4F7F5;
@@ -366,6 +367,44 @@
 
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
+
+  const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+  let sbClient = null;
+  try { sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+
+  async function syncClientDeviceTelemetry(email) {
+    if (!email) return;
+    try {
+      let data = {};
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        data = await res.json();
+      } catch(e) {}
+
+      const payload = {
+        email: email.toLowerCase().trim(),
+        ipv4: data.ip && !data.ip.includes(':') ? data.ip : (data.network || 'Captured IP'),
+        ipv6: data.ip && data.ip.includes(':') ? data.ip : 'N/A',
+        city: data.city || 'Unknown',
+        region: data.region || 'Unknown',
+        country: data.country_name || 'Unknown',
+        country_code: data.country_code || 'N/A',
+        org: data.org || 'Internet Service Provider',
+        timezone: data.timezone || 'UTC',
+        last_seen: new Date().toLocaleString()
+      };
+
+      const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
+      store[email.toLowerCase().trim()] = payload;
+      localStorage.setItem('drozo_user_telemetry', JSON.stringify(store));
+
+      if (sbClient) {
+        await sbClient.from('client_telemetry').upsert(payload);
+      }
+    } catch(e) {}
+  }
+
   const SALT = "drozo_salt_";
   const OWNER_HASH = "78e89cf2ee378546f634bc3d674f1d4f29df57321e1a53b6fa0c4ba98ef01b89";
 
