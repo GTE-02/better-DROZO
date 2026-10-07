@@ -852,20 +852,73 @@
     try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
 
     setTimeout(() => {
-      let reply = 'I am exclusively dedicated to helping with Drozo Mind consultations, video channels, and care bookings.';
-      const q = text.toLowerCase();
-      if (/book|schedule|appoint/.test(q)) {
+      const q = text.toLowerCase().trim();
+      let reply = "";
+
+      // 1. Direct Booking & Scheduling Intent
+      if (/(book|schedule|make|set up|need|want|reserve).*(appoint|session|consult|meet|time|slot)/i.test(q) || /(book|schedule|consultation)/i.test(q)) {
         const num = Math.floor(100000 + Math.random() * 900000);
-        tickets.unshift({ id: 'tck_' + Date.now(), ticketNum: num, slot: new Date(Date.now() + 86400000).toISOString(), name: (activeUser ? activeUser.email : 'Client'), notes: 'Booked via Drozo AI', status: 'Requested', meetUrl: 'https://meet.jit.si/DrozoMind-' + num, createdAt: new Date().toISOString() });
+        let targetDate = new Date(Date.now() + 86400000); // default tomorrow
+        if (q.includes("today")) targetDate = new Date();
+        if (q.includes("monday") || q.includes("tuesday") || q.includes("wednesday") || q.includes("friday")) {
+          targetDate.setDate(targetDate.getDate() + 2);
+        }
+        targetDate.setHours(14, 0, 0, 0);
+
+        const clientHandle = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
+        tickets.unshift({
+          id: 'tck_' + Date.now(),
+          ticketNum: num,
+          slot: targetDate.toISOString(),
+          name: clientHandle,
+          notes: 'Arranged via Drozo AI Assistant',
+          status: 'Requested',
+          meetUrl: 'https://meet.jit.si/DrozoMind-' + num + '#config.prejoinPageEnabled=false',
+          createdAt: new Date().toISOString()
+        });
         try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
         renderPipeline();
-        reply = 'Done! I created booking request #TCK-' + num + ' for tomorrow at 2:00 PM.';
-      } else if (/cancel/.test(q)) {
+        reply = `✨ I have scheduled your consultation request (#TCK-${num}) for ${formatDateTime(targetDate.toISOString())}. Our clinical coordinator will review and confirm your slot shortly!`;
+      }
+      // 2. Cancellation Intent
+      else if (/(cancel|drop|abort|remove|delete).*(appoint|session|slot|meet)/i.test(q)) {
         const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
-        if (act) { act.status = 'Cancelled'; try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){} renderPipeline(); renderHistory(); reply = 'Cancelled your booking #TCK-' + act.ticketNum + '.'; }
-        else reply = 'You have no active appointments.';
-      } else if (/drozo/.test(q)) reply = 'Drozo is active in our Discord: https://discord.gg/c8H6CQJTWA';
-      else if (/hi|hello|hey/.test(q)) reply = 'Hello! I am your Drozo Mind assistant operating with 2FA protection. How can I help you?';
+        if (act) {
+          act.status = 'Cancelled';
+          act.cancelledAt = new Date().toISOString();
+          try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
+          renderPipeline();
+          renderHistory();
+          reply = `I have successfully cancelled appointment #TCK-${act.ticketNum}. The record has been safely archived to your Session History.`;
+        } else {
+          reply = "You do not currently have any active appointments to cancel. If you'd like to arrange a new session, just let me know!";
+        }
+      }
+      // 3. Status Check / My Appointment
+      else if (/(status|check|when|my appoint|my session|pipeline|queue)/i.test(q)) {
+        const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
+        if (act) {
+          reply = `Your appointment (#TCK-${act.ticketNum}) is currently in status: "${act.status.toUpperCase()}". Scheduled for: ${formatDateTime(act.slot)}. ${act.status === 'Confirmed' ? 'Your video room link is ready in the Overview tab!' : 'A coordinator is finalizing your time.'}`;
+        } else {
+          reply = "You don't have any pending consultations in the queue right now. You can request one anytime by telling me when you'd like to meet!";
+        }
+      }
+      // 4. Who is Drozo / Discord inquiries
+      else if (/(who is|where is|contact|speak to|find).*(drozo)/i.test(q) || q.includes("discord")) {
+        reply = "Drozo and our primary coordination team are live on our official Discord! You can connect directly in voice channels and chat updates here: https://discord.gg/c8H6CQJTWA";
+      }
+      // 5. Emotional Support, Stress, Anxiety, Therapy Guidance
+      else if (/(stress|anxious|anxiety|depress|sad|overwhelm|tired|panic|help me|talk|listen|feel)/i.test(q)) {
+        reply = "I'm here with you. When dealing with heightened stress or overwhelm, grounding yourself with the 4-7-8 breathing technique (inhale for 4 seconds, hold for 7, exhale gently for 8) can help reset your nervous system. I also strongly recommend booking a 1-on-1 consultation so our team can provide dedicated support.";
+      }
+      // 6. Greetings & Introductions
+      else if (/^(hi|hello|hey|good morning|good evening|howdy|greetings)/i.test(q)) {
+        reply = "Hello! I am your Drozo Mind AI Care Assistant. I can book consultations, answer questions about your wellness pathway, check appointment statuses, and guide you through our care network. What can I do for you today?";
+      }
+      // 7. General Care & Informational Queries
+      else {
+        reply = `Thank you for sharing. At Drozo Mind, we prioritize confidential mental health care, structured telehealth sessions, and proactive wellness strategies. Would you like me to book a consultation for you, or would you like to speak directly with our team on Discord?`;
+      }
 
       chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
       try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
