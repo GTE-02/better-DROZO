@@ -1,1021 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | Executive Clinical Portal</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drozo Security Portal & 2FA Pairing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
-    :root {
-      --bg: #F4F7F5;
-      --surface: #FFFFFF;
-      --surface-subtle: #F8FAF9;
-      --primary: #1B4D3E;
-      --primary-hover: #13392E;
-      --primary-light: #E8F3ED;
-      --accent: #2D6A4F;
-      --text-main: #111827;
-      --text-muted: #6B7280;
-      --border: #E5E7EB;
-      --danger: #DC2626;
-      --danger-bg: #FEF2F2;
-      --success: #059669;
-      --success-bg: #ECFDF5;
-      --warning: #D97706;
-      --warning-bg: #FFFBEB;
-      --shadow: 0 10px 25px -5px rgba(27, 77, 62, 0.06);
-      --radius: 16px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b1120;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
-    body { background: var(--bg); color: var(--text-main); padding: 24px 16px; min-height: 100vh; }
-    .container { max-width: 1080px; margin: 0 auto; }
-
-    .gate-wrap { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
-    .gate-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
-      padding: 36px 32px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-    }
-    .brand-icon {
-      width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light);
-      display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;
-    }
-
-    label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
-    input, select {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 14px;
-    }
-    input:focus, select:focus { border-color: var(--accent); }
-
-    .btn {
-      padding: 10px 18px; border: none; border-radius: 10px; font-weight: 700; font-size: 13px;
-      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-
-    header {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: var(--shadow); margin-bottom: 20px;
-    }
-    .header-left { display: flex; align-items: center; gap: 14px; }
-    .header-left .logo {
-      width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light);
-      display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary);
-    }
-    .title-group h1 { font-size: 19px; font-weight: 800; color: var(--primary); }
-    .title-group p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-    @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-    .metric-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-      padding: 16px 20px; box-shadow: var(--shadow);
-    }
-    .metric-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .metric-val { font-size: 28px; font-weight: 800; margin-top: 4px; color: var(--text-main); }
-
-    .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn {
-      background: var(--surface); border: 1px solid var(--border); padding: 10px 18px;
-      border-radius: 10px; font-weight: 700; font-size: 13px; color: var(--text-muted); cursor: pointer;
-    }
-    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .tab-btn.threat-tab { background: #7F1D1D; color: #FECACA; border-color: #991B1B; }
-    .tab-btn.threat-tab.active { background: #DC2626; color: #fff; }
-
-    .content-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px;
-    }
-    .ticket-row {
-      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 14px;
-      padding: 18px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px;
-    }
-    .ticket-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 8px; }
-    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    .badge-pending { background: var(--warning-bg); color: var(--warning); border: 1px solid #FDE68A; }
-    .badge-confirmed { background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0; }
-    .badge-completed { background: #E5E7EB; color: #374151; }
-
-    .chat-box { height: 260px; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.4; }
-    .chat-bubble.user { background: #E5E7EB; color: #111; align-self: flex-start; }
-    .chat-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; }
-
-    .terminal-window {
-      background: #090D16; border: 1px solid #1E293B; border-radius: 14px; padding: 18px; color: #E2E8F0;
-    }
-    .terminal-out {
-      background: #030712; border: 1px solid #1F2937; border-radius: 8px; padding: 14px;
-      font-family: monospace; font-size: 12px; min-height: 80px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; color: #4ADE80; margin-top: 10px;
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
     }
   </style>
 </head>
-<body>
+<body class="text-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6">
 
-<!-- GATEWAY MODAL (2FA ONLY) -->
-<div id="auth-gate-wrapper" class="gate-wrap">
-  <div class="gate-card">
-    <div class="brand-icon">🌿</div>
-    <div style="text-align:center; margin-bottom: 20px;">
-      <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Clinical Administration</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Direct 2FA & ID Pass Access</p>
+  <div class="max-w-xl w-full space-y-6">
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+        <span>🛡️</span> Digital Health ID & 2FA Pairing
+      </h1>
+      <p class="text-sm text-slate-400 mt-1">
+        Your personal Digital Health Pass and Authenticator configuration settings.
+      </p>
     </div>
 
-    <label>Admin Identity</label>
-    <select id="adm-identity-select" onchange="checkAdminBound2faMethod()">
-      <option value="admin@drozominds.com">Water_Chugger/Owner (admin@drozominds.com)</option>
-      <option value="gamerkids1109@gmail.com">Drozo YT (gamerkids1109@gmail.com)</option>
-    </select>
-
-    <div style="display:flex; gap:6px; background:var(--surface-subtle); padding:4px; border-radius:8px; margin-bottom:14px;">
-      <button type="button" id="btn-choice-totp" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:#fff; color:var(--primary);" onclick="setSecondFactorChoice('totp')">🔢 2FA Code</button>
-      <button type="button" id="btn-choice-qr" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:transparent; color:var(--text-muted);" onclick="setSecondFactorChoice('qr')">📷 Scan Drozo Pass</button>
-    </div>
-
-    
-    <!-- DYNAMIC 2FA / DROZO GUARD CONTAINER -->
-    <div id="sec-method-container" style="margin-top:10px;">
-      <div id="method-indicator-box" style="background:var(--primary-light); padding:10px 12px; border-radius:10px; margin-bottom:14px; border:1px solid #C6E6D5;">
-        <span id="locked-method-title" style="font-size:12px; color:var(--primary); font-weight:800; display:block;">🛡️ Checking 2FA Method...</span>
-        <span id="locked-method-desc" style="font-size:11px; color:var(--text-muted);">Retrieving locked security protocol from Supabase...</span>
-      </div>
-
-      <!-- VIEW A: DROZO GUARD STEAM-STYLE INSTANT QR CHALLENGE -->
-      <div id="guard-live-challenge-view" style="display:none; text-align:center;">
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
-          Scan with your paired <strong>Drozo Guard Android App</strong> to sign in instantly:
-        </p>
-        <div id="drozo-guard-challenge-qr" style="background:#fff; padding:10px; border-radius:14px; width:180px; height:180px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--primary); box-shadow:0 8px 20px rgba(27,77,62,0.15);"></div>
-        <div style="font-size:11px; color:var(--primary); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-          <span style="width:8px; height:8px; background:var(--primary); border-radius:50%; animation:pulse 1.5s infinite;"></span>
-          Awaiting Mobile Guard Tap...
-        </div>
-      </div>
-
-      <!-- VIEW B: NUMERIC AUTHENTICATOR (MICROSOFT / GOOGLE) -->
-      <div id="guard-totp-view" style="display:none;">
-        <label>6-Digit Authenticator Code</label>
-        <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:24px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeDirect2faLogin()">
-        <button type="button" class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="executeDirect2faLogin()">Verify 2FA & Access Dashboard →</button>
-      </div>
-    </div>
-
-    <div id="gate-err" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:14px; background:var(--danger-bg); padding:10px; border-radius:8px; border:1px solid #FECACA;"></div>
-  </div>
-</div>
-
-<!-- DASHBOARD MOUNT -->
-<main id="dashboard-mount" class="container" style="display:none;">
-  <header>
-    <div class="header-left">
-      <div class="logo">🌿</div>
-      <div class="title-group">
-        <h1>Drozo Mind Clinical Command</h1>
-        <p id="auth-status-line">Connected as ...</p>
-      </div>
-    </div>
-    <div style="display:flex; gap:10px; align-items:center;">
-      <a href="index.html" class="btn btn-outline">← Client Portal</a>
-      <button class="btn btn-danger" onclick="adminSignOut()">Sign Out</button>
-    </div>
-  </header>
-
-  <!-- METRICS -->
-  <div class="metrics-grid">
-    <div class="metric-card">
-      <div class="metric-label">Total Inquiries</div>
-      <div class="metric-val" id="m-total">0</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Registered Accounts</div>
-      <div class="metric-val" id="m-users" style="color:var(--primary);">0</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Confirmed Live</div>
-      <div class="metric-val" id="m-confirmed" style="color:var(--success);">0</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Security Incidents</div>
-      <div class="metric-val" id="m-threats" style="color:var(--danger);">0</div>
-    </div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('Pending', this)">All Appointments & Queue</button>
-    <button class="tab-btn" onclick="switchTab('Confirmed', this)">Confirmed Live</button>
-    <button class="tab-btn" onclick="switchTab('History', this)">📁 Consultations History</button>
-    <button class="tab-btn" onclick="switchTab('Users', this)">👥 Registered Accounts</button>
-    <button class="tab-btn" onclick="switchTab('Chat', this)">💬 Client Messages</button>
-    <button class="tab-btn threat-tab" id="owner-threat-tab" style="display:none;" onclick="switchTab('Security', this)">🛡️ Threat & Incident Console</button>
-  </div>
-
-  <div id="view-tickets" class="content-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <h3 style="font-size:16px; font-weight:800; color:var(--primary);">Consultation Requests</h3>
-      <button class="btn btn-secondary" style="font-size:11px; padding:6px 12px;" onclick="refreshDashboard()">🔄 Refresh</button>
-    </div>
-    <div id="tickets-stream"></div>
-  </div>
-
-  <div id="view-users" class="content-card" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div>
-        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">👥 Platform Registered Accounts</h3>
-        <span style="font-size:12px; color:var(--text-muted);">Owner exclusively can grant/revoke admin clearance and delete accounts.</span>
-      </div>
-    </div>
-    <div id="users-stream"></div>
-  </div>
-
-  <div id="view-chat" class="content-card" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <div>
-        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">💬 Real-Time Client Support Hub</h3>
-        <span style="font-size:12px; color:var(--text-muted);">Direct message transmission with portal clients</span>
-      </div>
-      <button onclick="clearSupportChat()" class="btn btn-outline" style="font-size:11px;">🗑️ Clear History</button>
-    </div>
-    <div class="chat-box" id="admin-chat-feed"></div>
-    <div style="display:flex; gap:10px; margin-top:14px;">
-      <input type="text" id="admin-chat-input" placeholder="Type direct reply to client..." onkeydown="if(event.key==='Enter') adminSendMsg()" style="margin-bottom:0; flex:1;">
-      <button class="btn btn-primary" onclick="adminSendMsg()">Send Reply</button>
-    </div>
-  </div>
-
-  <div id="view-security" class="content-card" style="display:none;">
-    <div class="terminal-window">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #1E293B; padding-bottom:10px;">
+    <!-- Official Verified ID Pass -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950/80 via-slate-900 to-emerald-900/60 border border-emerald-800/60 p-6 shadow-2xl backdrop-blur-xl">
+      <div class="flex justify-between items-start mb-4">
         <div>
-          <h2 style="font-size:16px; font-weight:800; color:#EF4444;">🛡️ Active Threat Interception & Defense Console</h2>
-          <span style="font-size:11px; color:#94A3B8;">Owner Access Exclusively: <strong>admin@drozominds.com</strong></span>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-400/90">OFFICIAL VERIFIED ID PASS</span>
+          <h2 id="cardOwnerName" class="text-xl font-bold text-white tracking-wide mt-0.5">Water_Chugger/Owner</h2>
         </div>
-        <button class="btn btn-danger" style="padding:6px 12px; font-size:11px;" onclick="clearThreatLog()">Clear Incidents</button>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          2FA ACTIVE
+        </span>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
-        <div style="background:#111827; padding:14px; border-radius:10px; border:1px solid #1F2937;">
-          <span style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase;">Active Session Bans / Locks</span>
-          <div id="banned-registry" style="margin-top:8px; font-size:12px; max-height:110px; overflow-y:auto;"></div>
-          <div style="display:flex; gap:6px; margin-top:10px;">
-            <input type="text" id="ban-input-box" placeholder="Target email or IP..." style="background:#030712; border:1px solid #374151; color:#fff; padding:6px 10px; border-radius:6px; font-size:12px; flex:1; margin-bottom:0;">
-            <button class="btn btn-danger" style="padding:6px 12px; font-size:11px;" onclick="applyManualBan()">Lock</button>
+      <div class="flex flex-col sm:flex-row gap-5 items-center">
+        <!-- Root Card QR -->
+        <div id="verifiedIdQr" class="bg-white p-2 rounded-xl shrink-0 shadow-md">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=DROZO_ROOT_ADMIN_AUTH_8829" alt="ID QR" class="w-24 h-24 sm:w-28 sm:h-28" />
+        </div>
+
+        <div class="text-xs space-y-1.5 text-slate-300 w-full">
+          <div><strong class="text-white">Email:</strong> <span id="userEmailSpan" class="mono text-emerald-300">admin@drozominds.com</span></div>
+          <div><strong class="text-white">Security Clearance:</strong> <span class="text-emerald-400 font-semibold">Platform Owner & Root Admin</span></div>
+          <div><strong class="text-white">Token Hash:</strong> <span class="mono text-slate-400">AUTH_8829</span></div>
+          <div class="pt-1 flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+            Root Owner ID verified by Google AI Sentinel
           </div>
         </div>
-        <div style="background:#111827; padding:14px; border-radius:10px; border:1px solid #1F2937;">
-          <span style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase;">Owner CLI Commands</span>
-          <div style="font-size:11px; color:#CBD5E1; line-height:1.6; margin-top:8px;">
-            <div>• <code>/admin &lt;email&gt;</code> — Grant Admin rights</div>
-            <div>• <code>/unadmin &lt;email&gt;</code> — Revoke Admin rights</div>
-            <div>• <code>/location &lt;email&gt;</code> — Query live device telemetry</div>
-            <div>• <code>/lookup &lt;IP&gt;</code> — Public network lookup</div>
+      </div>
+    </div>
+
+    <!-- 2FA Binding / Setup Box -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+      <div>
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>🔐</span> Authentication Engine Setup
+        </h3>
+        <p id="lockBannerSubtitle" class="text-xs text-slate-400 mt-1">
+          Select an authentication method for your account. <strong>Once selected, this choice is permanent and irreversibly locked.</strong>
+        </p>
+      </div>
+
+      <!-- UNLOCKED STATE: CHOICE SELECTION -->
+      <div id="choiceSelectionGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Option 1: Drozo Guard -->
+        <button onclick="confirmAndLock2FA('drozo_guard')" class="group text-left p-4 rounded-xl bg-slate-950/70 border-2 border-slate-800 hover:border-emerald-500 hover:bg-emerald-950/20 transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-2xl">🛡️</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Native Hardware</span>
+          </div>
+          <h4 class="font-bold text-white group-hover:text-emerald-300 text-sm">Drozo Guard APK</h4>
+          <p class="text-[11px] text-slate-400 mt-1">One-tap push and live QR scanning via the dedicated Android mobile security app.</p>
+        </button>
+
+        <!-- Option 2: Google/Microsoft Authenticator -->
+        <button onclick="confirmAndLock2FA('standard_totp')" class="group text-left p-4 rounded-xl bg-slate-950/70 border-2 border-slate-800 hover:border-blue-500 hover:bg-blue-950/20 transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-2xl">🔑</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Classic TOTP</span>
+          </div>
+          <h4 class="font-bold text-white group-hover:text-blue-300 text-sm">Authenticator App</h4>
+          <p class="text-[11px] text-slate-400 mt-1">Compatible with Google Authenticator, Microsoft Authenticator, 1Password, or Authy.</p>
+        </button>
+      </div>
+
+      <!-- LOCKED STATE: DROZO GUARD DISPLAY -->
+      <div id="drozoGuardSection" class="hidden space-y-4">
+        <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🔒</span> Permanent Provider: Drozo Guard
+            </span>
+            <span class="text-[11px] mono text-slate-400">Status: Listening</span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-5">
+            <div id="drozoQrCanvas" class="bg-white p-2 rounded-xl shrink-0"></div>
+            <div class="space-y-2 text-xs text-slate-300">
+              <p class="font-semibold text-white">Pair your mobile device:</p>
+              <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                <li>Install the Drozo Guard application on your phone.</li>
+                <li>Tap <strong>🔗 Pair with Drozo Portal</strong> inside the app.</li>
+                <li>Scan this provisioning QR code.</li>
+              </ol>
+              <div class="pt-2">
+                <a href="./DrozoGuard.apk" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">
+                  <span>📥</span> Download DrozoGuard.apk
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="owner-cli-in" placeholder="Type command e.g. /unadmin gamerkids1109@gmail.com..." onkeydown="if(event.key==='Enter') runOwnerCli()" style="background:#030712; border:1px solid #334155; color:#4ADE80; font-family:monospace; font-size:12px; margin-bottom:0; flex:1;">
-        <button class="btn btn-primary" onclick="runOwnerCli()">Execute</button>
+      <!-- LOCKED STATE: STANDARD TOTP DISPLAY -->
+      <div id="standardTotpSection" class="hidden space-y-4">
+        <div class="p-4 rounded-xl bg-blue-950/30 border border-blue-500/40">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🔒</span> Permanent Provider: Standard TOTP
+            </span>
+            <span class="text-[11px] mono text-slate-400">RFC 6238</span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-5">
+            <div id="totpQrCanvas" class="bg-white p-2 rounded-xl shrink-0"></div>
+            <div class="space-y-2 text-xs text-slate-300 w-full">
+              <p class="font-semibold text-white">Scan with Google or Microsoft Authenticator:</p>
+              <p class="text-slate-400 text-[11px]">Or paste this manual Base32 key into your app:</p>
+              <div class="p-2 rounded bg-slate-950 border border-slate-800 mono text-[11px] text-blue-300 select-all break-all">
+                JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="terminal-out" id="owner-cli-out">> Console ready. Awaiting root instruction.</div>
+
     </div>
   </div>
-</main>
 
-<script>
-  const OWNER_EMAIL = "admin@drozominds.com";
-  const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+  <script>
+    const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  let sbClient = null;
-  try {
-    sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  } catch(e) {}
+    const currentUserEmail = "admin@drozominds.com";
+    const userStorageKey = `drozo_2fa_locked_${currentUserEmail}`;
 
-  let activeFilter = 'Pending';
-  let tickets = [];
-  let chat = [];
+    document.addEventListener("DOMContentLoaded", () => {
+      checkPermanent2FA();
+    });
 
-  let adminCameraStream = null;
-  let adminScanInterval = null;
-  const adminCanvas = document.createElement('canvas');
-  const adminCtx = adminCanvas.getContext('2d', { willReadFrequently: true });
+    async function checkPermanent2FA() {
+      let savedMethod = localStorage.getItem(userStorageKey);
 
-  // 1. GATEWAY LOGIN
-  
-  let activeChallengeToken = null;
-  let challengePollTimer = null;
-
-  // AUTO-DETECT BOUND 2FA PROTOCOL FOR SELECTED ADMIN
-  async function checkAdminBound2faMethod() {
-    const email = document.getElementById('adm-identity-select').value;
-    const title = document.getElementById('locked-method-title');
-    const desc = document.getElementById('locked-method-desc');
-    const guardView = document.getElementById('guard-live-challenge-view');
-    const totpView = document.getElementById('guard-totp-view');
-
-    let boundMethod = 'authenticator'; // Default
-
-    // Query Supabase for permanent lock-in
-    if (sbClient) {
       try {
-        const { data } = await sbClient.from('user_accounts').select('two_factor_method').eq('email', email).single();
-        if (data && data.two_factor_method) {
-          boundMethod = data.two_factor_method;
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("two_factor_provider, two_factor_locked")
+          .eq("email", currentUserEmail)
+          .single();
+
+        if (data && data.two_factor_locked && data.two_factor_provider) {
+          savedMethod = data.two_factor_provider;
+          localStorage.setItem(userStorageKey, savedMethod);
         }
-      } catch(e) {}
+      } catch (err) {
+        console.warn("Supabase profile sync:", err);
+      }
+
+      if (savedMethod) {
+        renderLockedMethod(savedMethod);
+      }
     }
 
-    if (boundMethod === 'drozo_guard') {
-      title.innerText = "🛡️ Bound to: Drozo Guard (Android)";
-      desc.innerText = "Method is locked. Open the Drozo Guard app on your phone and scan the QR below.";
-      totpView.style.display = 'none';
-      guardView.style.display = 'block';
-      generateLiveGuardChallenge(email);
-    } else {
-      title.innerText = "🔢 Bound to: Microsoft / Google Authenticator";
-      desc.innerText = "Method is locked. Enter the 6-digit rolling code from your authenticator app.";
-      if (challengePollTimer) clearInterval(challengePollTimer);
-      guardView.style.display = 'none';
-      totpView.style.display = 'block';
-    }
-  }
+    async function confirmAndLock2FA(method) {
+      const methodName = method === "drozo_guard" ? "Drozo Guard Android App" : "Standard Authenticator (Google/Microsoft)";
+      const isConfirmed = confirm(
+        `PERMANENT LOCK-IN WARNING:\n\nYou are selecting ${methodName}.\n\nThis choice is irreversible and will permanently lock to your account for all future logins. Continue?`
+      );
 
-  // GENERATE INSTANT STEAM-STYLE QR CHALLENGE
-  async function generateLiveGuardChallenge(email) {
-    if (challengePollTimer) clearInterval(challengePollTimer);
-    activeChallengeToken = 'DG_SESS_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+      if (!isConfirmed) return;
 
-    const challengePayload = `DROZO_GUARD_AUTH:${activeChallengeToken}:${email}`;
-    const qrContainer = document.getElementById('drozo-guard-challenge-qr');
-    qrContainer.innerHTML = '';
-    new QRCode(qrContainer, {
-      text: challengePayload,
-      width: 160, height: 160,
-      correctLevel: QRCode.CorrectLevel.M
-    });
+      localStorage.setItem(userStorageKey, method);
 
-    // Record session in Supabase
-    if (sbClient) {
       try {
-        await sbClient.from('drozo_guard_sessions').upsert({
-          session_token: activeChallengeToken,
-          admin_email: email,
-          status: 'pending'
-        });
-      } catch(e) {}
-    }
-
-    // Poll for instant mobile authorization
-    challengePollTimer = setInterval(async () => {
-      if (sbClient && activeChallengeToken) {
-        try {
-          const { data } = await sbClient.from('drozo_guard_sessions').select('status').eq('session_token', activeChallengeToken).single();
-          if (data && data.status === 'authorized') {
-            clearInterval(challengePollTimer);
-            sessionStorage.setItem('drozo_admin_session', 'true');
-            sessionStorage.setItem('drozo_admin_email', email);
-            launchDashboard(email);
-          }
-        } catch(e) {}
-      }
-    }, 1500);
-  }
-
-  function executeDirect2faLogin() {
-    const err = document.getElementById('gate-err');
-    if (err) err.style.display = 'none';
-
-    const email = document.getElementById('adm-identity-select').value;
-    const code = (document.getElementById('adm-totp').value || '').trim();
-
-    if (!code) {
-      if (err) { err.innerText = "Please enter your 6-digit Authenticator code."; err.style.display = 'block'; }
-      return;
-    }
-
-    if (code.length === 6) {
-      sessionStorage.setItem('drozo_admin_session', 'true');
-      sessionStorage.setItem('drozo_admin_email', email);
-      launchDashboard(email);
-    } else {
-      if (err) { err.innerText = "Code must be 6 digits."; err.style.display = 'block'; }
-    }
-  }
-
-
-  function startAdminCamera() {
-    const video = document.getElementById('admin-camera-feed');
-    const placeholder = document.getElementById('admin-scanner-placeholder');
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        adminCameraStream = stream;
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        video.style.display = 'block';
-        if (placeholder) placeholder.style.display = 'none';
-
-        video.play().then(() => {
-          if (adminScanInterval) clearInterval(adminScanInterval);
-          adminScanInterval = setInterval(scanAdminFrame, 150);
-        });
-      })
-      .catch(e => {
-        alert("Camera blocked. Please allow camera permissions or upload badge photo.");
-      });
-  }
-
-  function scanAdminFrame() {
-    const video = document.getElementById('admin-camera-feed');
-    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-    adminCanvas.width = video.videoWidth || 640;
-    adminCanvas.height = video.videoHeight || 480;
-    adminCtx.drawImage(video, 0, 0, adminCanvas.width, adminCanvas.height);
-
-    const imgData = adminCtx.getImageData(0, 0, adminCanvas.width, adminCanvas.height);
-    if (typeof jsQR !== "undefined") {
-      const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
-      if (code && code.data) {
-        stopAdminCamera();
-        const email = document.getElementById('adm-identity-select').value || OWNER_EMAIL;
-        sessionStorage.setItem('drozo_admin_session', 'true');
-        sessionStorage.setItem('drozo_admin_email', email);
-        launchDashboard(email);
-      }
-    }
-  }
-
-  function stopAdminCamera() {
-    if (adminScanInterval) { clearInterval(adminScanInterval); adminScanInterval = null; }
-    if (adminCameraStream) { adminCameraStream.getTracks().forEach(t => t.stop()); adminCameraStream = null; }
-    const video = document.getElementById('admin-camera-feed');
-    if (video) video.style.display = 'none';
-    const placeholder = document.getElementById('admin-scanner-placeholder');
-    if (placeholder) placeholder.style.display = 'block';
-  }
-
-  function handleAdminPassUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = function() {
-        adminCanvas.width = img.width;
-        adminCanvas.height = img.height;
-        adminCtx.drawImage(img, 0, 0);
-        const email = document.getElementById('adm-identity-select').value || OWNER_EMAIL;
-        sessionStorage.setItem('drozo_admin_session', 'true');
-        sessionStorage.setItem('drozo_admin_email', email);
-        launchDashboard(email);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function adminSignOut() {
-    sessionStorage.removeItem('drozo_admin_session');
-    sessionStorage.removeItem('drozo_admin_email');
-    location.reload();
-  }
-
-  // 2. DASHBOARD INIT
-  function launchDashboard(email) {
-    document.getElementById('auth-gate-wrapper').style.display = 'none';
-    const mount = document.getElementById('dashboard-mount');
-    mount.style.display = 'block';
-
-    const isOwner = email === OWNER_EMAIL;
-    const isDrozo = email === 'gamerkids1109@gmail.com';
-
-    let displayTag = '<span style="color:#2563EB; font-weight:700; margin-left:6px;">[COORDINATOR]</span>';
-    if (isOwner) displayTag = '<span style="color:#059669; font-weight:800; margin-left:6px;">[Water_Chugger/Owner]</span>';
-    else if (isDrozo) displayTag = '<span style="color:#2563EB; font-weight:800; margin-left:6px;">[Drozo YT (Admin)]</span>';
-
-    document.getElementById('auth-status-line').innerHTML = `Authenticated as: <strong>${email}</strong> ${displayTag}`;
-
-    const ownerTab = document.getElementById('owner-threat-tab');
-    if (ownerTab) ownerTab.style.display = isOwner ? 'inline-flex' : 'none';
-
-    refreshDashboard();
-  }
-
-  function formatDateTime(str) {
-    if (!str) return 'Pending Consultation Slot';
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? str : d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function refreshDashboard() {
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
-    try { chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chat = []; }
-    const registeredUsers = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-    const threatLogs = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
-
-    document.getElementById('m-total').innerText = tickets.length;
-    document.getElementById('m-users').innerText = registeredUsers.length;
-    document.getElementById('m-confirmed').innerText = tickets.filter(t => (t.status || '').toLowerCase() === 'confirmed').length;
-    document.getElementById('m-threats').innerText = threatLogs.length;
-
-    renderTicketList();
-    renderRegisteredUsers();
-    renderChatFeed();
-    renderBannedRegistry();
-
-    // Pull latest cloud appointments
-    if (sbClient) {
-      sbClient.from('appointments').select('*').then(res => {
-        if (res.data && res.data.length) {
-          tickets = res.data.map(d => ({
-            id: d.id,
-            ticketNum: d.ticket_num,
-            name: d.name,
-            slot: d.slot,
-            notes: d.notes,
-            status: d.status,
-            meetUrl: d.meet_url
-          }));
-          renderTicketList();
-          document.getElementById('m-total').innerText = tickets.length;
-        }
-      });
-    }
-  }
-
-  function switchTab(tab, btn) {
-    activeFilter = tab;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const vTickets = document.getElementById('view-tickets');
-    const vUsers = document.getElementById('view-users');
-    const vChat = document.getElementById('view-chat');
-    const vSec = document.getElementById('view-security');
-
-    vTickets.style.display = (tab === 'Pending' || tab === 'Confirmed' || tab === 'History') ? 'block' : 'none';
-    vUsers.style.display = (tab === 'Users') ? 'block' : 'none';
-    vChat.style.display = (tab === 'Chat') ? 'block' : 'none';
-    vSec.style.display = (tab === 'Security') ? 'block' : 'none';
-
-    if (tab === 'Users') renderRegisteredUsers();
-    else if (tab === 'Chat') renderChatFeed();
-    else if (tab === 'Security') renderBannedRegistry();
-    else renderTicketList();
-  }
-
-  // 3. APPOINTMENTS
-  function renderTicketList() {
-    const stream = document.getElementById('tickets-stream');
-    const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
-
-    let list = tickets;
-    if (activeFilter === 'Confirmed') {
-      list = tickets.filter(t => (t.status || '').toLowerCase() === 'confirmed');
-    } else if (activeFilter === 'History') {
-      list = tickets.filter(t => (t.status || '').toLowerCase() === 'completed' || (t.status || '').toLowerCase() === 'cancelled');
-    } else {
-      const pendingList = tickets.filter(t => (t.status || '').toLowerCase() !== 'completed' && (t.status || '').toLowerCase() !== 'cancelled');
-      list = pendingList.length ? pendingList : tickets;
-    }
-
-    if (!list.length) {
-      stream.innerHTML = `<div style="text-align:center; padding:36px; color:var(--text-muted); font-size:13px;">No consultation records in queue. Client requests will appear here automatically.</div>`;
-      return;
-    }
-
-    stream.innerHTML = list.map(t => {
-      const st = (t.status || 'Requested').toLowerCase();
-      let badgeCls = 'badge-pending';
-      if (st === 'confirmed') badgeCls = 'badge-confirmed';
-      if (st === 'completed' || st === 'cancelled') badgeCls = 'badge-completed';
-
-      let actions = '';
-      if (st !== 'confirmed' && st !== 'completed' && st !== 'cancelled') {
-        actions += `<button class="btn btn-primary" onclick="setTicketState('${t.id}', 'Reviewed')">Mark Reviewed</button>`;
-        actions += `<button class="btn btn-primary" style="background:#059669;" onclick="setTicketState('${t.id}', 'Confirmed')">Confirm Slot</button>`;
-      }
-      if (st === 'confirmed') {
-        actions += `<a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Video Room</a>`;
-        actions += `<button class="btn btn-secondary" onclick="generateOutcomeDialog('${t.ticketNum}', '${t.name}')">📑 Issue Outcome</button>`;
-        actions += `<button class="btn btn-secondary" onclick="setTicketState('${t.id}', 'Completed')">✓ Complete Session</button>`;
-      }
-      if (isOwner) {
-        actions += `<button class="btn btn-danger" onclick="ownerDeleteTicket('${t.id}')">🗑️ Delete (Owner)</button>`;
+        await supabase
+          .from("profiles")
+          .upsert({
+            email: currentUserEmail,
+            two_factor_provider: method,
+            two_factor_locked: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "email" });
+      } catch (err) {
+        console.error("Failed saving 2FA selection to Supabase:", err);
       }
 
-      return `
-        <div class="ticket-row">
-          <div class="ticket-header">
-            <div>
-              <strong style="font-size:15px; color:var(--text-main);">#TCK-${t.ticketNum || 'N/A'} — ${t.name || 'Anonymous Client'}</strong>
-              <span style="font-size:12px; color:var(--text-muted); margin-left:10px;">${formatDateTime(t.slot)}</span>
-            </div>
-            <span class="badge ${badgeCls}">${t.status || 'Requested'}</span>
-          </div>
-          ${t.notes ? `<div style="font-size:13px; color:var(--text-muted); background:#fff; padding:10px; border-radius:8px; border:1px solid var(--border);"><strong>Client Focus:</strong> ${t.notes}</div>` : ''}
-          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            ${actions}
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function setTicketState(id, state) {
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    const target = tickets.find(t => t.id === id);
-    if (!target) return;
-    target.status = state;
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    if (sbClient) {
-      sbClient.from('appointments').update({ status: state }).eq('id', id).then(() => {});
-    }
-    refreshDashboard();
-  }
-
-  function ownerDeleteTicket(id) {
-    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-      alert("Unauthorized: Only root platform owner can delete tickets.");
-      return;
-    }
-    if (!confirm("Permanently delete this appointment record?")) return;
-    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-    tickets = tickets.filter(t => t.id !== id);
-    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
-    if (sbClient) {
-      sbClient.from('appointments').delete().eq('id', id).then(() => {});
-    }
-    refreshDashboard();
-  }
-
-  function generateOutcomeDialog(ticketNum, name) {
-    const obs = prompt(`Clinical Observations for ${name} (#TCK-${ticketNum}):`, "Client presented with focus on routine balance and stress mitigation.");
-    if (!obs) return;
-    const rec = prompt(`Clinical Recommendations for ${name}:`, "Practice daily 4-7-8 breathing exercises and schedule bi-weekly check-ins.");
-    if (!rec) return;
-
-    chat.push({
-      role: 'admin',
-      sender: 'Lead Clinician',
-      text: `Official Clinical Outcome Document generated for Consultation #TCK-${ticketNum}.`,
-      isOutcomeDoc: true,
-      ticketNum: ticketNum,
-      patientName: name,
-      clinician: 'Drozo Mind Clinical Lead',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      observations: obs,
-      recommendations: rec
-    });
-    localStorage.setItem('drozo_chat', JSON.stringify(chat));
-    alert("✓ Clinical outcome generated and dispatched to the client portal!");
-    refreshDashboard();
-  }
-
-  // 4. REGISTERED USERS
-  function renderRegisteredUsers() {
-    const container = document.getElementById('users-stream');
-    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-
-    if (!accounts.some(u => u.email === 'gamerkids1109@gmail.com')) {
-      accounts.unshift({
-        id: 'usr_drozo_yt',
-        name: 'Drozo YT',
-        email: 'gamerkids1109@gmail.com',
-        role: 'admin',
-        registeredAt: 'Oct 7, 2026'
-      });
-      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+      renderLockedMethod(method);
     }
 
-    const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
+    function renderLockedMethod(method) {
+      document.getElementById("choiceSelectionGrid").classList.add("hidden");
+      document.getElementById("lockBannerSubtitle").innerHTML = 
+        `Method locked: <strong class="text-white">${method === 'drozo_guard' ? 'Drozo Guard Hardware App' : 'Standard TOTP'}</strong>. Binding is permanent.`;
 
-    container.innerHTML = accounts.map(u => {
-      const isAdmin = u.role === 'admin';
-      let ownerControls = '';
-
-      if (isOwner) {
-        ownerControls = `
-          <div style="display:flex; gap:6px;">
-            ${isAdmin ? 
-              `<button class="btn btn-secondary" style="font-size:11px; padding:6px 10px;" onclick="toggleUserAdminRole('${u.id}', false)">Demote to Client</button>` : 
-              `<button class="btn btn-success" style="font-size:11px; padding:6px 10px;" onclick="toggleUserAdminRole('${u.id}', true)">⭐ Grant Admin Access</button>`
-            }
-            <button class="btn btn-danger" style="font-size:11px; padding:6px 10px;" onclick="ownerDeleteUserAccount('${u.id}', '${u.email}')">🗑️ Delete (Owner)</button>
-          </div>
-        `;
+      if (method === "drozo_guard") {
+        document.getElementById("drozoGuardSection").classList.remove("hidden");
+        document.getElementById("standardTotpSection").classList.add("hidden");
+        
+        const secretToken = "SEC_" + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const drozoPayload = `DROZO_GUARD_LINK:${currentUserEmail}:${secretToken}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(drozoPayload)}`;
+        document.getElementById("drozoQrCanvas").innerHTML = `<img src="${qrUrl}" alt="Drozo Guard Link QR" class="w-28 h-28" />`;
       } else {
-        ownerControls = `<span style="font-size:11px; color:var(--text-muted); font-weight:700;">${isAdmin ? 'Staff Coordinator' : 'Client Access'}</span>`;
+        document.getElementById("standardTotpSection").classList.remove("hidden");
+        document.getElementById("drozoGuardSection").classList.add("hidden");
+
+        const totpPayload = `otpauth://totp/Drozo:${currentUserEmail}?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=Drozo`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(totpPayload)}`;
+        document.getElementById("totpQrCanvas").innerHTML = `<img src="${qrUrl}" alt="Standard TOTP QR" class="w-28 h-28" />`;
       }
-
-      return `
-        <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <strong style="font-size:15px; color:var(--primary);">${u.name}</strong>
-              ${isAdmin ? '<span style="background:#059669; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px;">ADMIN</span>' : '<span style="background:#E5E7EB; color:#374151; font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px;">CLIENT</span>'}
-            </div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Email: <strong>${u.email}</strong></div>
-            <div style="font-size:11px; color:#6B7280; margin-top:4px;">
-              Registered: ${u.registeredAt || 'Active'} • Access: ${isAdmin ? 'Admin & Clinical Controls' : 'Client Telehealth'}
-            </div>
-          </div>
-          <div>${ownerControls}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function toggleUserAdminRole(id, makeAdmin) {
-    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-      alert("Unauthorized: Only root platform owner can modify administrator permissions.");
-      return;
     }
-    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-    const target = accounts.find(u => u.id === id);
-    if (!target) return;
-
-    target.role = makeAdmin ? 'admin' : 'user';
-    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
-    if (sbClient) {
-      sbClient.from('user_accounts').upsert({ email: target.email, name: target.name, role: target.role }).then(() => {});
-    }
-    renderRegisteredUsers();
-    alert(`✓ Updated ${target.email}: Role set to ${makeAdmin ? 'ADMIN' : 'CLIENT'}.`);
-  }
-
-  function ownerDeleteUserAccount(id, email) {
-    if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-      alert("❌ ACCESS DENIED: Only root platform owner can delete user accounts.");
-      return;
-    }
-    if (!confirm(`Are you sure you want to permanently delete account: ${email}?`)) return;
-
-    let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-    accounts = accounts.filter(u => u.id !== id);
-    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
-    if (sbClient) {
-      sbClient.from('user_accounts').delete().eq('email', email).then(() => {});
-    }
-    refreshDashboard();
-    alert(`✓ Account ${email} permanently deleted.`);
-  }
-
-  // 5. CHAT FEED
-  function renderChatFeed() {
-    const feed = document.getElementById('admin-chat-feed');
-    if (!feed) return;
-    try { chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){}
-    feed.innerHTML = chat.map(m => `
-      <div class="chat-bubble ${m.role}">
-        <strong style="display:block; font-size:10px; margin-bottom:2px; opacity:0.8;">${m.sender || (m.role === 'admin' ? 'Coordinator' : 'Client')}</strong>
-        ${m.text}
-      </div>
-    `).join('') || '<div style="color:var(--text-muted); font-size:12px; margin:auto;">No messages yet.</div>';
-    feed.scrollTop = feed.scrollHeight;
-  }
-
-  function adminSendMsg() {
-    const input = document.getElementById('admin-chat-input');
-    const text = (input.value || '').trim();
-    if (!text) return;
-    const adminEmail = sessionStorage.getItem('drozo_admin_email') || 'Coordinator';
-
-    chat.push({
-      role: 'admin',
-      sender: adminEmail === OWNER_EMAIL ? 'Water_Chugger/Owner' : 'Drozo YT',
-      text: text
-    });
-    localStorage.setItem('drozo_chat', JSON.stringify(chat));
-    input.value = '';
-    renderChatFeed();
-  }
-
-  function clearSupportChat() {
-    if (!confirm("Clear all active client chat messages?")) return;
-    localStorage.removeItem('drozo_chat');
-    chat = [];
-    renderChatFeed();
-  }
-
-  // 6. SECURITY BANS
-  function renderBannedRegistry() {
-    const box = document.getElementById('banned-registry');
-    if (!box) return;
-    const bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-    if (!bans.length) {
-      box.innerHTML = '<span style="color:#64748B;">No active identity locks.</span>';
-      return;
-    }
-    box.innerHTML = bans.map(b => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#0B132B; padding:5px 8px; border-radius:6px; margin-bottom:4px;">
-        <span style="color:#EF4444; font-weight:700;">🚫 ${b}</span>
-        <button onclick="revokeIdentityLock('${b}')" style="background:#059669; color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px; cursor:pointer; font-weight:700;">Revoke</button>
-      </div>
-    `).join('');
-  }
-
-  function applyManualBan() {
-    const input = document.getElementById('ban-input-box');
-    const val = (input.value || '').trim().toLowerCase();
-    if (!val) return;
-    if (val === OWNER_EMAIL) return alert("Cannot ban root owner.");
-    let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-    if (!bans.includes(val)) {
-      bans.push(val);
-      localStorage.setItem('drozo_banned_identities', JSON.stringify(bans));
-    }
-    input.value = '';
-    renderBannedRegistry();
-  }
-
-  function revokeIdentityLock(id) {
-    let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-    bans = bans.filter(x => x !== id);
-    localStorage.setItem('drozo_banned_identities', JSON.stringify(bans));
-    renderBannedRegistry();
-  }
-
-  function clearThreatLog() {
-    localStorage.removeItem('drozo_threat_logs');
-    document.getElementById('m-threats').innerText = '0';
-  }
-
-  // 7. RELIABLE CLI ENGINE
-  function runOwnerCli() {
-    const input = document.getElementById('owner-cli-in');
-    const out = document.getElementById('owner-cli-out');
-    if (!input || !out) return;
-
-    const cmd = (input.value || '').trim();
-    if (!cmd) return;
-    input.value = '';
-
-    const parts = cmd.split(' ');
-    const action = parts[0].toLowerCase();
-    const target = (parts[1] || '').toLowerCase().trim();
-
-    // 1. /admin <email>
-    if (action === '/admin') {
-      if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-        out.innerText = "[ACCESS DENIED] Only root platform owner can grant administrative rights.";
-        return;
-      }
-      if (!target) {
-        out.innerText = "Syntax: /admin <user@email.com>";
-        return;
-      }
-
-      let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-      let user = accounts.find(u => u.email.toLowerCase() === target);
-      if (!user) {
-        user = {
-          id: 'usr_' + Date.now(),
-          name: target.split('@')[0],
-          email: target,
-          role: 'admin',
-          registeredAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        };
-        accounts.push(user);
-      } else {
-        user.role = 'admin';
-      }
-      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
-      renderRegisteredUsers();
-
-      if (sbClient) {
-        sbClient.from('user_accounts').upsert({ email: target, name: user.name, role: 'admin' }).then(() => {});
-      }
-
-      out.innerText = `[SUCCESS] Administrator clearance GRANTED to: ${target}\n• Status: Active Coordinator\n• Supabase: Synced`;
-      return;
-    }
-
-    // 2. /unadmin <email>
-    if (action === '/unadmin') {
-      if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-        out.innerText = "[ACCESS DENIED] Only root platform owner can revoke administrative rights.";
-        return;
-      }
-      if (!target || target === OWNER_EMAIL) {
-        out.innerText = "[DENIED] Cannot demote the platform root owner.";
-        return;
-      }
-
-      let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-      let user = accounts.find(u => u.email.toLowerCase() === target);
-      if (user) {
-        user.role = 'user';
-      } else {
-        user = {
-          id: 'usr_' + Date.now(),
-          name: target.split('@')[0],
-          email: target,
-          role: 'user',
-          registeredAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        };
-        accounts.push(user);
-      }
-      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
-      renderRegisteredUsers();
-
-      if (sbClient) {
-        sbClient.from('user_accounts').upsert({ email: target, name: user.name, role: 'user' }).then(() => {});
-      }
-
-      out.innerText = `[SUCCESS] Administrator clearance REVOKED for: ${target}\n• Status: Demoted to Client Telehealth\n• Supabase: Synced`;
-      return;
-    }
-
-    // 3. /location <email> or /lookup <IP>
-    if (action === '/location' || action === '/lookup') {
-      if (!target) {
-        out.innerText = "Syntax: /location <email> or /lookup <IP>";
-        return;
-      }
-      out.innerText = `> Querying network records for ${target}...`;
-
-      if (sbClient) {
-        sbClient.from('client_telemetry').select('*').eq('email', target).single().then(res => {
-          if (res.data) {
-            const d = res.data;
-            out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
-              `• Public IPv4:  ${d.ipv4}\n` +
-              `• Public IPv6:  ${d.ipv6}\n` +
-              `• Location:     ${d.city}, ${d.region}, ${d.country} (${d.country_code})\n` +
-              `• Carrier/ISP:  ${d.org}\n` +
-              `• Timezone:     ${d.timezone}\n` +
-              `• Last Synced:  ${d.last_seen}\n` +
-              `• Cloud Status: Verified Live`;
-          } else {
-            fallbackLocalLookup(target, out);
-          }
-        }).catch(() => fallbackLocalLookup(target, out));
-      } else {
-        fallbackLocalLookup(target, out);
-      }
-      return;
-    }
-
-    // 4. /ban & /unban
-    if (action === '/ban') {
-      if (!target || target === OWNER_EMAIL) return;
-      let bans = JSON.parse(localStorage.getItem('drozo_banned_identities') || '[]');
-      if (!bans.includes(target)) bans.push(target);
-      localStorage.setItem('drozo_banned_identities', JSON.stringify(bans));
-      renderBannedRegistry();
-      out.innerText = `[SUCCESS] Session revoked and ban enforced on: ${target}`;
-      return;
-    }
-
-    if (action === '/unban') {
-      revokeIdentityLock(target);
-      out.innerText = `[SUCCESS] Ban revoked for: ${target}`;
-      return;
-    }
-
-    out.innerText = "Available Commands:\n• /admin <email>\n• /unadmin <email>\n• /location <email>\n• /lookup <IP>\n• /ban <target>\n• /unban <target>";
-  }
-
-  function fallbackLocalLookup(target, out) {
-    const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
-    const local = store[target];
-    if (local) {
-      out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
-        `• Public IPv4:  ${local.ipv4}\n` +
-        `• Public IPv6:  ${local.ipv6}\n` +
-        `• Location:     ${local.city}, ${local.region}, ${local.country}\n` +
-        `• Carrier/ISP:  ${local.org}\n` +
-        `• Timezone:     ${local.timezone}\n` +
-        `• Source:       Cached Device Node`;
-    } else {
-      out.innerText = `[NOTICE] No device record found for ${target}.\nWhen the user opens index.html on their device, their real IP registers automatically.`;
-    }
-  }
-
-  // Restore authenticated session on refresh
-  checkAdminBound2faMethod();
-  if (sessionStorage.getItem('drozo_admin_session') === 'true') {
-    const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
-    launchDashboard(email);
-  }
-</script>
+  </script>
 </body>
 </html>
