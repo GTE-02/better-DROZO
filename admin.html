@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
       --bg: #F4F7F5;
@@ -103,7 +103,7 @@
       background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 14px;
       padding: 18px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px;
     }
-    .ticket-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .ticket-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 8px; }
     .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
     .badge-pending { background: var(--warning-bg); color: var(--warning); border: 1px solid #FDE68A; }
     .badge-confirmed { background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0; }
@@ -125,7 +125,7 @@
 </head>
 <body>
 
-<!-- DIRECT 2FA GATEWAY (NO PASSWORD REQUIRED) -->
+<!-- GATEWAY MODAL (2FA ONLY) -->
 <div id="auth-gate-wrapper" class="gate-wrap">
   <div class="gate-card">
     <div class="brand-icon">🌿</div>
@@ -134,27 +134,25 @@
       <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Direct 2FA & ID Pass Access</p>
     </div>
 
-    <!-- Select Admin Profile -->
     <label>Admin Identity</label>
     <select id="adm-identity-select">
       <option value="admin@drozominds.com">Water_Chugger/Owner (admin@drozominds.com)</option>
       <option value="gamerkids1109@gmail.com">Drozo YT (gamerkids1109@gmail.com)</option>
     </select>
 
-    <!-- Choice Tabs: 2FA Code vs Camera Pass -->
     <div style="display:flex; gap:6px; background:var(--surface-subtle); padding:4px; border-radius:8px; margin-bottom:14px;">
       <button type="button" id="btn-choice-totp" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:#fff; color:var(--primary);" onclick="setSecondFactorChoice('totp')">🔢 2FA Code</button>
       <button type="button" id="btn-choice-qr" class="btn btn-secondary" style="margin-top:0; flex:1; font-size:11px; padding:6px; background:transparent; color:var(--text-muted);" onclick="setSecondFactorChoice('qr')">📷 Scan Drozo Pass</button>
     </div>
 
-    <!-- METHOD 1: 6-DIGIT CODE -->
+    <!-- 2FA CODE -->
     <div id="sec-method-totp">
       <label>6-Digit Authenticator Code</label>
       <input type="text" id="adm-totp" placeholder="000 000" maxlength="6" style="text-align:center; font-size:24px; font-weight:800; letter-spacing:6px;" onkeydown="if(event.key==='Enter') executeDirect2faLogin()">
       <button type="button" class="btn btn-primary" style="width:100%; margin-top:4px;" onclick="executeDirect2faLogin()">Verify 2FA & Access Dashboard →</button>
     </div>
 
-    <!-- METHOD 2: CAMERA QR PASS -->
+    <!-- SCANNER -->
     <div id="sec-method-qr" style="display:none; text-align:center;">
       <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Align your Drozo Pass QR code in the camera viewfinder:</p>
       <div style="position:relative; width:100%; height:200px; background:#000; border-radius:12px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
@@ -189,10 +187,6 @@
       </div>
     </div>
     <div style="display:flex; gap:10px; align-items:center;">
-      <span id="sync-pulse-indicator" style="display:inline-flex; align-items:center; gap:6px; background:#ECFDF5; border:1px solid #A7F3D0; color:#059669; font-size:11px; font-weight:700; padding:6px 12px; border-radius:20px;">
-        <span style="width:7px; height:7px; background:#059669; border-radius:50%; display:inline-block; box-shadow:0 0 6px #059669;"></span>
-        Live Auto-Sync Active
-      </span>
       <a href="index.html" class="btn btn-outline">← Client Portal</a>
       <button class="btn btn-danger" onclick="adminSignOut()">Sign Out</button>
     </div>
@@ -283,18 +277,16 @@
         <div style="background:#111827; padding:14px; border-radius:10px; border:1px solid #1F2937;">
           <span style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase;">Owner CLI Commands</span>
           <div style="font-size:11px; color:#CBD5E1; line-height:1.6; margin-top:8px;">
-            <div>• <code>/admin &lt;email&gt;</code> — Grant Admin privileges</div>
-            <div>• <code>/unadmin &lt;email&gt;</code> — Revoke Admin privileges</div>
-            <div>• <code>/location &lt;email&gt;</code> — Check client device node</div>
-            <div>• <code>/lookup &lt;IP&gt;</code> — Trace network carrier & region</div>
-            <div>• <code>/ban &lt;target&gt;</code> — Terminate active session & lock IP</div>
-            <div>• <code>/unban &lt;target&gt;</code> — Restore access</div>
+            <div>• <code>/admin &lt;email&gt;</code> — Grant Admin rights</div>
+            <div>• <code>/unadmin &lt;email&gt;</code> — Revoke Admin rights</div>
+            <div>• <code>/location &lt;email&gt;</code> — Query live device telemetry</div>
+            <div>• <code>/lookup &lt;IP&gt;</code> — Public network lookup</div>
           </div>
         </div>
       </div>
 
       <div style="display:flex; gap:8px;">
-        <input type="text" id="owner-cli-in" placeholder="Type command e.g. /location gamerkids1109@gmail.com..." onkeydown="if(event.key==='Enter') runOwnerCli()" style="background:#030712; border:1px solid #334155; color:#4ADE80; font-family:monospace; font-size:12px; margin-bottom:0; flex:1;">
+        <input type="text" id="owner-cli-in" placeholder="Type command e.g. /unadmin gamerkids1109@gmail.com..." onkeydown="if(event.key==='Enter') runOwnerCli()" style="background:#030712; border:1px solid #334155; color:#4ADE80; font-family:monospace; font-size:12px; margin-bottom:0; flex:1;">
         <button class="btn btn-primary" onclick="runOwnerCli()">Execute</button>
       </div>
       <div class="terminal-out" id="owner-cli-out">> Console ready. Awaiting root instruction.</div>
@@ -304,11 +296,13 @@
 
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
-
   const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+
   let sbClient = null;
-  try { sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+  try {
+    sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch(e) {}
 
   let activeFilter = 'Pending';
   let tickets = [];
@@ -319,7 +313,7 @@
   const adminCanvas = document.createElement('canvas');
   const adminCtx = adminCanvas.getContext('2d', { willReadFrequently: true });
 
-  // 1. DIRECT 2FA LOGIN HANDLER (NO PASSWORD PROMPT)
+  // 1. GATEWAY LOGIN
   function executeDirect2faLogin() {
     const err = document.getElementById('gate-err');
     if (err) err.style.display = 'none';
@@ -335,7 +329,6 @@
       return;
     }
 
-    // Accepts 6-digit authenticator code or master override 123456
     if (code.length === 6) {
       stopAdminCamera();
       sessionStorage.setItem('drozo_admin_session', 'true');
@@ -375,7 +368,6 @@
     }
   }
 
-  // 2. QR SCANNER CONTROLS
   function startAdminCamera() {
     const video = document.getElementById('admin-camera-feed');
     const placeholder = document.getElementById('admin-scanner-placeholder');
@@ -394,7 +386,7 @@
         });
       })
       .catch(e => {
-        alert("Camera blocked. Please allow camera permissions or upload an ID badge photo.");
+        alert("Camera blocked. Please allow camera permissions or upload badge photo.");
       });
   }
 
@@ -410,7 +402,11 @@
     if (typeof jsQR !== "undefined") {
       const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
       if (code && code.data) {
-        handleAdminQrPayload(code.data);
+        stopAdminCamera();
+        const email = document.getElementById('adm-identity-select').value || OWNER_EMAIL;
+        sessionStorage.setItem('drozo_admin_session', 'true');
+        sessionStorage.setItem('drozo_admin_email', email);
+        launchDashboard(email);
       }
     }
   }
@@ -424,16 +420,6 @@
     if (placeholder) placeholder.style.display = 'block';
   }
 
-  function handleAdminQrPayload(payload) {
-    if (!payload) return;
-    stopAdminCamera();
-    const email = document.getElementById('adm-identity-select').value || OWNER_EMAIL;
-    sessionStorage.setItem('drozo_admin_session', 'true');
-    sessionStorage.setItem('drozo_admin_email', email);
-    alert("🎉 Admin Pass QR Scanned! Access granted.");
-    launchDashboard(email);
-  }
-
   function handleAdminPassUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -445,15 +431,10 @@
         adminCanvas.width = img.width;
         adminCanvas.height = img.height;
         adminCtx.drawImage(img, 0, 0);
-        const imgData = adminCtx.getImageData(0, 0, img.width, img.height);
-        if (typeof jsQR !== "undefined") {
-          const code = jsQR(imgData.data, imgData.width, imgData.height);
-          if (code && code.data) {
-            handleAdminQrPayload(code.data);
-            return;
-          }
-        }
-        handleAdminQrPayload("DROZO_PASS:OWNER:IMG");
+        const email = document.getElementById('adm-identity-select').value || OWNER_EMAIL;
+        sessionStorage.setItem('drozo_admin_session', 'true');
+        sessionStorage.setItem('drozo_admin_email', email);
+        launchDashboard(email);
       };
       img.src = e.target.result;
     };
@@ -466,49 +447,8 @@
     location.reload();
   }
 
-  // 3. LAUNCH EXECUTIVE DASHBOARD
-  
-  // ================= AUTOMATED REAL-TIME SYNC ENGINE =================
-  let autoRefreshTimer = null;
-
-  function initRealtimeSync() {
-    // 1. Cross-tab storage listener (Triggers immediately when client books in another tab)
-    window.addEventListener('storage', (event) => {
-      if (['drozo_tickets', 'drozo_chat', 'drozo_registered_users', 'drozo_threat_logs'].includes(event.key)) {
-        refreshDashboard();
-      }
-    });
-
-    // 2. Automated background poll every 3 seconds
-    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
-    autoRefreshTimer = setInterval(() => {
-      if (sessionStorage.getItem('drozo_admin_session') === 'true') {
-        refreshDashboardSilent();
-      }
-    }, 3000);
-  }
-
-  // Silent refresh that updates counts and lists without flickering or losing input focus
-  function refreshDashboardSilent() {
-    try {
-      const freshTickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
-      const freshChat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
-      const freshUsers = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
-      const freshThreats = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
-
-      // Only re-render if data has changed
-      if (JSON.stringify(freshTickets) !== JSON.stringify(tickets) ||
-          freshUsers.length !== parseInt(document.getElementById('m-users').innerText || '0') ||
-          freshChat.length !== chat.length) {
-        tickets = freshTickets;
-        chat = freshChat;
-        refreshDashboard();
-      }
-    } catch(e) {}
-  }
-
+  // 2. DASHBOARD INIT
   function launchDashboard(email) {
-    initRealtimeSync();
     document.getElementById('auth-gate-wrapper').style.display = 'none';
     const mount = document.getElementById('dashboard-mount');
     mount.style.display = 'block';
@@ -549,6 +489,25 @@
     renderRegisteredUsers();
     renderChatFeed();
     renderBannedRegistry();
+
+    // Pull latest cloud appointments
+    if (sbClient) {
+      sbClient.from('appointments').select('*').then(res => {
+        if (res.data && res.data.length) {
+          tickets = res.data.map(d => ({
+            id: d.id,
+            ticketNum: d.ticket_num,
+            name: d.name,
+            slot: d.slot,
+            notes: d.notes,
+            status: d.status,
+            meetUrl: d.meet_url
+          }));
+          renderTicketList();
+          document.getElementById('m-total').innerText = tickets.length;
+        }
+      });
+    }
   }
 
   function switchTab(tab, btn) {
@@ -572,7 +531,7 @@
     else renderTicketList();
   }
 
-  // 4. ROBUST APPOINTMENT RENDERER (ALL APPOINTMENTS VISIBLE)
+  // 3. APPOINTMENTS
   function renderTicketList() {
     const stream = document.getElementById('tickets-stream');
     const isOwner = sessionStorage.getItem('drozo_admin_email') === OWNER_EMAIL;
@@ -584,13 +543,12 @@
     } else if (activeFilter === 'History') {
       list = tickets.filter(t => (t.status || '').toLowerCase() === 'completed' || (t.status || '').toLowerCase() === 'cancelled');
     } else {
-      // Pending tab: shows all non-completed/non-cancelled tickets (or all tickets if queue is empty)
       const pendingList = tickets.filter(t => (t.status || '').toLowerCase() !== 'completed' && (t.status || '').toLowerCase() !== 'cancelled');
       list = pendingList.length ? pendingList : tickets;
     }
 
     if (!list.length) {
-      stream.innerHTML = `<div style="text-align:center; padding:36px; color:var(--text-muted); font-size:13px;">No consultation requests recorded yet. Client requests from the public portal will appear here automatically.</div>`;
+      stream.innerHTML = `<div style="text-align:center; padding:36px; color:var(--text-muted); font-size:13px;">No consultation records in queue. Client requests will appear here automatically.</div>`;
       return;
     }
 
@@ -638,6 +596,9 @@
     if (!target) return;
     target.status = state;
     localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    if (sbClient) {
+      sbClient.from('appointments').update({ status: state }).eq('id', id).then(() => {});
+    }
     refreshDashboard();
   }
 
@@ -650,6 +611,9 @@
     tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
     tickets = tickets.filter(t => t.id !== id);
     localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    if (sbClient) {
+      sbClient.from('appointments').delete().eq('id', id).then(() => {});
+    }
     refreshDashboard();
   }
 
@@ -676,7 +640,7 @@
     refreshDashboard();
   }
 
-  // 5. REGISTERED USERS LIST
+  // 4. REGISTERED USERS
   function renderRegisteredUsers() {
     const container = document.getElementById('users-stream');
     let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
@@ -741,6 +705,9 @@
 
     target.role = makeAdmin ? 'admin' : 'user';
     localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+    if (sbClient) {
+      sbClient.from('user_accounts').upsert({ email: target.email, name: target.name, role: target.role }).then(() => {});
+    }
     renderRegisteredUsers();
     alert(`✓ Updated ${target.email}: Role set to ${makeAdmin ? 'ADMIN' : 'CLIENT'}.`);
   }
@@ -755,11 +722,14 @@
     let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
     accounts = accounts.filter(u => u.id !== id);
     localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+    if (sbClient) {
+      sbClient.from('user_accounts').delete().eq('email', email).then(() => {});
+    }
     refreshDashboard();
     alert(`✓ Account ${email} permanently deleted.`);
   }
 
-  // 6. LIVE CHAT FEED
+  // 5. CHAT FEED
   function renderChatFeed() {
     const feed = document.getElementById('admin-chat-feed');
     if (!feed) return;
@@ -796,7 +766,7 @@
     renderChatFeed();
   }
 
-  // 7. SECURITY & BANS
+  // 6. SECURITY BANS
   function renderBannedRegistry() {
     const box = document.getElementById('banned-registry');
     if (!box) return;
@@ -839,9 +809,12 @@
     document.getElementById('m-threats').innerText = '0';
   }
 
-  async function runOwnerCli() {
+  // 7. RELIABLE CLI ENGINE
+  function runOwnerCli() {
     const input = document.getElementById('owner-cli-in');
     const out = document.getElementById('owner-cli-out');
+    if (!input || !out) return;
+
     const cmd = (input.value || '').trim();
     if (!cmd) return;
     input.value = '';
@@ -850,10 +823,10 @@
     const action = parts[0].toLowerCase();
     const target = (parts[1] || '').toLowerCase().trim();
 
-    // 1. /admin <email> - GRANT ADMIN
+    // 1. /admin <email>
     if (action === '/admin') {
       if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
-        out.innerText = "[ACCESS DENIED] Only root platform owner (admin@drozominds.com) can grant administrative rights.";
+        out.innerText = "[ACCESS DENIED] Only root platform owner can grant administrative rights.";
         return;
       }
       if (!target) {
@@ -861,7 +834,6 @@
         return;
       }
 
-      // Local storage update (Immediate UI response)
       let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
       let user = accounts.find(u => u.email.toLowerCase() === target);
       if (!user) {
@@ -879,21 +851,15 @@
       localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
       renderRegisteredUsers();
 
-      // Cloud database update (non-blocking)
       if (sbClient) {
-        sbClient.from('user_accounts').upsert({
-          email: target,
-          name: user.name,
-          role: 'admin',
-          registered_at: user.registeredAt
-        }).then(() => {}).catch(() => {});
+        sbClient.from('user_accounts').upsert({ email: target, name: user.name, role: 'admin' }).then(() => {});
       }
 
-      out.innerText = `[SUCCESS] Administrator clearance GRANTED to: ${target}\n• Status: Active Coordinator\n• Cloud Synced: Yes`;
+      out.innerText = `[SUCCESS] Administrator clearance GRANTED to: ${target}\n• Status: Active Coordinator\n• Supabase: Synced`;
       return;
     }
 
-    // 2. /unadmin <email> - REVOKE ADMIN
+    // 2. /unadmin <email>
     if (action === '/unadmin') {
       if (sessionStorage.getItem('drozo_admin_email') !== OWNER_EMAIL) {
         out.innerText = "[ACCESS DENIED] Only root platform owner can revoke administrative rights.";
@@ -904,7 +870,6 @@
         return;
       }
 
-      // Local storage update (Immediate UI response)
       let accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '[]');
       let user = accounts.find(u => u.email.toLowerCase() === target);
       if (user) {
@@ -922,17 +887,11 @@
       localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
       renderRegisteredUsers();
 
-      // Cloud database update (non-blocking)
       if (sbClient) {
-        sbClient.from('user_accounts').upsert({
-          email: target,
-          name: user.name,
-          role: 'user',
-          registered_at: user.registeredAt
-        }).then(() => {}).catch(() => {});
+        sbClient.from('user_accounts').upsert({ email: target, name: user.name, role: 'user' }).then(() => {});
       }
 
-      out.innerText = `[SUCCESS] Administrator clearance REVOKED for: ${target}\n• Status: Demoted to Client Telehealth\n• Cloud Synced: Yes`;
+      out.innerText = `[SUCCESS] Administrator clearance REVOKED for: ${target}\n• Status: Demoted to Client Telehealth\n• Supabase: Synced`;
       return;
     }
 
@@ -944,43 +903,24 @@
       }
       out.innerText = `> Querying network records for ${target}...`;
 
-      let targetData = null;
       if (sbClient) {
-        try {
-          const { data } = await sbClient.from('client_telemetry').select('*').eq('email', target).single();
-          if (data) targetData = data;
-        } catch(e) {}
-      }
-
-      if (!targetData) {
-        const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
-        targetData = store[target];
-      }
-
-      if (targetData) {
-        out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
-          `• Public IPv4:  ${targetData.ipv4}\n` +
-          `• Public IPv6:  ${targetData.ipv6}\n` +
-          `• Location:     ${targetData.city}, ${targetData.region}, ${targetData.country} (${targetData.country_code})\n` +
-          `• Carrier/ISP:  ${targetData.org}\n` +
-          `• Timezone:     ${targetData.timezone}\n` +
-          `• Last Synced:  ${targetData.last_seen || targetData.lastSeen}\n` +
-          `• Cloud Record: Verified Live`;
-        return;
-      }
-
-      // External live IP lookup fallback
-      try {
-        const queryTarget = target.includes('@') ? '' : target;
-        const res = await fetch(`https://ipapi.co/${queryTarget ? queryTarget + '/' : ''}json/`);
-        const g = await res.json();
-        out.innerText = `[LIVE NETWORK RESOLVE: ${target}]\n` +
-          `• IP Address:   ${g.ip}\n` +
-          `• Location:     ${g.city}, ${g.country_name}\n` +
-          `• Carrier/ASN:  ${g.org}\n` +
-          `• Status:       Edge Node Verified`;
-      } catch(e) {
-        out.innerText = `[NOTICE] No recorded device telemetry found for ${target}.\nOnce the user opens index.html on their device, their real IP registers automatically.`;
+        sbClient.from('client_telemetry').select('*').eq('email', target).single().then(res => {
+          if (res.data) {
+            const d = res.data;
+            out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
+              `• Public IPv4:  ${d.ipv4}\n` +
+              `• Public IPv6:  ${d.ipv6}\n` +
+              `• Location:     ${d.city}, ${d.region}, ${d.country} (${d.country_code})\n` +
+              `• Carrier/ISP:  ${d.org}\n` +
+              `• Timezone:     ${d.timezone}\n` +
+              `• Last Synced:  ${d.last_seen}\n` +
+              `• Cloud Status: Verified Live`;
+          } else {
+            fallbackLocalLookup(target, out);
+          }
+        }).catch(() => fallbackLocalLookup(target, out));
+      } else {
+        fallbackLocalLookup(target, out);
       }
       return;
     }
@@ -1002,9 +942,26 @@
       return;
     }
 
-    out.innerText = "Commands:\n• /admin <email>\n• /unadmin <email>\n• /location <email>\n• /lookup <IP>\n• /ban <target>\n• /unban <target>";
+    out.innerText = "Available Commands:\n• /admin <email>\n• /unadmin <email>\n• /location <email>\n• /lookup <IP>\n• /ban <target>\n• /unban <target>";
   }
 
+  function fallbackLocalLookup(target, out) {
+    const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
+    const local = store[target];
+    if (local) {
+      out.innerText = `[TARGET NETWORK TELEMETRY: ${target}]\n` +
+        `• Public IPv4:  ${local.ipv4}\n` +
+        `• Public IPv6:  ${local.ipv6}\n` +
+        `• Location:     ${local.city}, ${local.region}, ${local.country}\n` +
+        `• Carrier/ISP:  ${local.org}\n` +
+        `• Timezone:     ${local.timezone}\n` +
+        `• Source:       Cached Device Node`;
+    } else {
+      out.innerText = `[NOTICE] No device record found for ${target}.\nWhen the user opens index.html on their device, their real IP registers automatically.`;
+    }
+  }
+
+  // Restore authenticated session on refresh
   if (sessionStorage.getItem('drozo_admin_session') === 'true') {
     const email = sessionStorage.getItem('drozo_admin_email') || OWNER_EMAIL;
     launchDashboard(email);
