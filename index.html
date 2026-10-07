@@ -278,6 +278,12 @@
         <span>🛡️ Drozo Guard 2FA</span>
       </a>
 
+    
+        <!-- Drozo Guard 2FA Gateway -->
+        <a href="./auth.html" id="drozo-guard-badge-nav" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#064e3b; color:#6ee7b7; border:1px solid #10b981; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; margin-left:8px;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#064e3b'">
+          <span>🛡️</span> Drozo Guard 2FA
+        </a>
+    
     </header>
 
   <div id="tab-overview" class="tab-content active">
@@ -645,7 +651,7 @@
     const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
 
     const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = isOwner ? 'OWNER' : email.split('@')[0].toUpperCase();
+    if (cardName) cardName.innerText = isOwner ? 'Water_Chugger/Owner' : (email === 'gamerkids1109@gmail.com' ? 'Drozo YT' : email.split('@')[0].toUpperCase();
 
     const cardEmail = document.getElementById('id-card-email');
     if (cardEmail) cardEmail.innerText = email;
