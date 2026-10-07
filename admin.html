@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drozo Mind | Clinical Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAF9;
+      --surface: #FFFFFF;
+      --primary: #1B4D3E;
+      --primary-light: #E8F3ED;
+      --border: #E5E7EB;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --warning: #D97706;
+      --warning-bg: #FFFBEB;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 24px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .metric-card { background: var(--surface); padding: 18px; border-radius: 14px; border: 1px solid var(--border); }
+    .metric-card span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .metric-card h3 { font-size: 28px; font-weight: 800; margin-top: 4px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .tab-btn { background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+    .btn { padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); }
+    
+    /* Live Chat Support Console */
+    .admin-chat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 24px; }
+    .chat-stream { height: 260px; overflow-y: auto; background: #F9FAFB; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; }
+    .chat-bubble.user { background: #E5E7EB; color: #111; align-self: flex-start; }
+    .chat-bubble.admin { background: var(--primary); color: #fff; align-self: flex-end; }
+  </style>
+</head>
+<body>
+
+<div id="admin-login-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:999;">
+  <div style="background:#fff; padding:28px; border-radius:16px; width:100%; max-width:380px;">
+    <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:14px;">Drozo Mind Coordinator Login</h2>
+    <input type="email" id="adm-email" placeholder="admin@drozomind.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
+    <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
+    <button onclick="executeAdminLogin()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Unlock Dashboard</button>
+    <div id="adm-err" style="color:var(--danger); font-size:12px; font-weight:700; display:none; margin-top:10px;"></div>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <div>
+      <h1 style="font-size:20px; font-weight:800; color:var(--primary);">Drozo Mind Clinical Administration</h1>
+      <span style="font-size:12px; color:var(--text-muted);">Real-Time Appointment Coordinator & Live Chat Hub</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <a href="index.html" class="btn btn-outline">← Client Portal</a>
+      <button class="btn btn-danger" onclick="adminSignOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="metrics">
+    <div class="metric-card"><span>Total Inquiries</span><h3 id="m-total">0</h3></div>
+    <div class="metric-card"><span>Pending Attention</span><h3 id="m-pending" style="color:var(--warning);">0</h3></div>
+    <div class="metric-card"><span>Confirmed Live</span><h3 id="m-confirmed" style="color:var(--success);">0</h3></div>
+    <div class="metric-card"><span>Closed / History</span><h3 id="m-history">0</h3></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchFilter('Pending', this)">Pending Attention</button>
+    <button class="tab-btn" onclick="switchFilter('Confirmed', this)">Confirmed Live</button>
+    <button class="tab-btn" onclick="switchFilter('History', this)">📁 Completed & History (30 Days)</button>
+    <button class="tab-btn" onclick="switchFilter('All', this)">All Appointments</button>
+  </div>
+
+  <div id="tickets-container"></div>
+
+  <!-- ADMIN DIRECT CHAT CONSOLE -->
+  <div class="admin-chat-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div>
+        <h3 style="font-size:16px; font-weight:800; color:var(--primary);">💬 Live Client Consultation Chat</h3>
+        <span style="font-size:12px; color:var(--text-muted);">Reply directly to clients in real-time or delete chat log</span>
+      </div>
+      <button onclick="adminClearChat()" class="btn btn-danger" style="padding:6px 12px;">🗑️ Clear Support Chat</button>
+    </div>
+    <div class="chat-stream" id="admin-chat-stream"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <input type="text" id="admin-chat-input" placeholder="Type direct reply to client..." onkeydown="if(event.key==='Enter') adminSendMessage()" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:13px;">
+      <button class="btn btn-primary" onclick="adminSendMessage()" style="padding:12px 20px;">Send Message</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let activeFilter = 'Pending';
+  let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+  let chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+
+  function executeAdminLogin() {
+    const e = (document.getElementById('adm-email').value || '').trim().toLowerCase();
+    const p = (document.getElementById('adm-pass').value || '').trim();
+    const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
+    accounts['admin@drozomind.com'] = 'Dubai@2011';
+    accounts['gamerkids1109@gmail.com'] = 'Password123';
+
+    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') || (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      document.getElementById('admin-login-modal').style.display = 'none';
+      renderDashboard();
+    } else {
+      const err = document.getElementById('adm-err');
+      err.innerText = "Invalid credentials. Access restricted to authorized admins.";
+      err.style.display = 'block';
+    }
+  }
+
+  function adminSignOut() {
+    sessionStorage.removeItem('drozo_admin_session');
+    location.reload();
+  }
+
+  function prune30DayHistory() {
+    const now = Date.now();
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const fresh = tickets.filter(t => {
+      if (t.status === 'Completed' || t.status === 'Closed' || t.status === 'Cancelled') {
+        const d = new Date(t.completedAt || t.cancelledAt || t.createdAt).getTime();
+        return (now - d) < THIRTY_DAYS;
+      }
+      return true;
+    });
+    if (fresh.length !== tickets.length) {
+      localStorage.setItem('drozo_tickets', JSON.stringify(fresh));
+      tickets = fresh;
+    }
+  }
+
+  function switchFilter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDashboard();
+  }
+
+  function renderDashboard() {
+    prune30DayHistory();
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    
+    // Metrics
+    document.getElementById('m-total').innerText = tickets.length;
+    document.getElementById('m-pending').innerText = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed').length;
+    document.getElementById('m-confirmed').innerText = tickets.filter(t => t.status === 'Confirmed').length;
+    document.getElementById('m-history').innerText = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed').length;
+
+    const container = document.getElementById('tickets-container');
+    let list = tickets;
+    if (activeFilter === 'Pending') list = tickets.filter(t => t.status === 'Requested' || t.status === 'Reviewed');
+    else if (activeFilter === 'Confirmed') list = tickets.filter(t => t.status === 'Confirmed');
+    else if (activeFilter === 'History') list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed');
+
+    if (!list.length) {
+      container.innerHTML = `<div style="background:#fff; padding:24px; border-radius:14px; text-align:center; color:var(--text-muted); font-size:13px; border:1px solid var(--border);">No tickets in this section.</div>`;
+      renderAdminChat();
+      return;
+    }
+
+    container.innerHTML = list.map(t => `
+      <div class="ticket-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <strong style="font-size:15px;">#TCK-${t.ticketNum} — ${t.name}</strong>
+            <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">${new Date(t.slot).toLocaleString()}</span>
+          </div>
+          <span style="padding:4px 10px; border-radius:6px; font-weight:700; font-size:11px; background:${t.status === 'Confirmed' ? 'var(--success-bg)' : t.status === 'Completed' ? '#E5E7EB' : 'var(--warning-bg)'}; color:${t.status === 'Confirmed' ? 'var(--success)' : t.status === 'Completed' ? '#374151' : 'var(--warning)'};">
+            ${t.status.toUpperCase()}
+          </span>
+        </div>
+        ${t.notes ? `<p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Notes: ${t.notes}</p>` : ''}
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${t.status === 'Requested' ? `<button class="btn btn-primary" onclick="updateTicket('${t.id}', 'Reviewed')">Mark Reviewed</button>` : ''}
+          ${t.status === 'Reviewed' ? `<button class="btn btn-success" onclick="updateTicket('${t.id}', 'Confirmed')">Confirm Slot</button>` : ''}
+          ${t.status === 'Confirmed' ? `
+            <a href="${t.meetUrl}" target="_blank" class="btn btn-primary">📹 Join Call</a>
+            <button class="btn btn-success" onclick="completeTicket('${t.id}')">✓ Mark Meeting Completed</button>
+          ` : ''}
+          ${t.status !== 'Completed' && t.status !== 'Cancelled' ? `<button class="btn btn-danger" onclick="cancelTicket('${t.id}')">Cancel Appointment</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    renderAdminChat();
+  }
+
+  function updateTicket(id, status) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = status;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
+  }
+
+  function completeTicket(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Completed';
+    t.completedAt = new Date().toISOString();
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
+  }
+
+  function cancelTicket(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Cancelled';
+    t.cancelledAt = new Date().toISOString();
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderDashboard();
+  }
+
+  // Admin Direct Chat Functions
+  function renderAdminChat() {
+    chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+    const stream = document.getElementById('admin-chat-stream');
+    stream.innerHTML = chat.map(m => `
+      <div class="chat-bubble ${m.role}">
+        <strong style="display:block; font-size:10px; opacity:0.8; margin-bottom:2px;">${m.sender || (m.role === 'admin' ? 'Coordinator' : 'Client')}</strong>
+        ${m.text}
+      </div>
+    `).join('') || '<div style="color:var(--text-muted); font-size:12px; margin:auto;">No active messages in chat stream.</div>';
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function adminSendMessage() {
+    const input = document.getElementById('admin-chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    chat.push({ role: 'admin', text: text, sender: 'Clinical Coordinator' });
+    localStorage.setItem('drozo_chat', JSON.stringify(chat));
+    input.value = '';
+    renderAdminChat();
+  }
+
+  function adminClearChat() {
+    if (confirm("Permanently erase all client and coordinator chat logs?")) {
+      chat = [];
+      localStorage.setItem('drozo_chat', JSON.stringify(chat));
+      renderAdminChat();
+    }
+  }
+
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'drozo_chat' || e.key === 'drozo_tickets') renderDashboard();
+  });
+
+  if (sessionStorage.getItem('drozo_admin_session') === 'true') {
+    document.getElementById('admin-login-modal').style.display = 'none';
+    renderDashboard();
+  }
+</script>
+</body>
+</html>

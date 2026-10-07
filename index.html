@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drozo Mind | Modern Care & Wellness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F7F5;
+      --surface: #FFFFFF;
+      --surface-subtle: #F0F4F1;
+      --primary: #1B4D3E;
+      --primary-hover: #13392E;
+      --primary-light: #E8F3ED;
+      --accent: #2D6A4F;
+      --accent-subtle: #52B788;
+      --discord: #5865F2;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --shadow-card: 0 10px 25px -5px rgba(27, 77, 62, 0.07);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 24px 16px 110px; }
+    .container { max-width: 640px; margin: 0 auto; }
+
+    header {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow-card); margin-bottom: 20px;
+    }
+    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light);
+      display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary);
+    }
+    .brand-title { font-size: 17px; font-weight: 800; color: var(--primary); }
+    .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    
+    .status-pill {
+      font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 20px;
+      background: var(--success-bg); color: var(--success); border: 1px solid #A7F3D0;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #10B981; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px;
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .card-title { font-size: 18px; font-weight: 800; color: var(--text-main); }
+    .card-caption { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+
+    .pipeline-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0; }
+    .step-item {
+      background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent;
+    }
+    .step-item.active { background: var(--primary-light); color: var(--primary); border-color: var(--accent-subtle); }
+    .step-item.done { background: #F0FDF4; color: var(--success); }
+
+    .active-slot-box {
+      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px;
+    }
+    .ticket-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;
+      background: var(--primary); color: #fff; margin-bottom: 10px;
+    }
+
+    label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin: 14px 0 6px; }
+    input, textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none;
+    }
+
+    .btn {
+      width: 100%; padding: 12px 18px; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
+      background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 14px;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
+    .btn-danger { background: var(--danger); }
+    .btn-discord { background: var(--discord); color: #fff; }
+
+    .chat-container {
+      height: 300px; overflow-y: auto; background: var(--surface-subtle); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; }
+    .bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
+    .bubble.admin { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); align-self: flex-start; }
+
+    .bottom-dock {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100;
+    }
+    .dock-btn {
+      background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700;
+      cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    }
+    .dock-btn.active { color: var(--primary); }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65);
+      backdrop-filter: blur(5px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="card" style="width: 100%; max-width: 420px; margin-bottom: 0;">
+    <div style="text-align: center; margin-bottom: 18px;">
+      <div class="brand-icon" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 26px;">🌿</div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Drozo Mind Portal</h2>
+      <p class="card-caption">Secure client consultation access.</p>
+    </div>
+
+    <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 16px;">
+      <button id="btn-login-tab" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:#fff; color:var(--primary);" onclick="setAuthTab('login')">Sign In</button>
+      <button id="btn-signup-tab" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:700; background:transparent; color:var(--text-muted);" onclick="setAuthTab('signup')">Create Account</button>
+    </div>
+
+    <div>
+      <label>Email Address</label>
+      <input type="email" id="auth-email" placeholder="name@example.com">
+      <label>Password</label>
+      <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAuth()">
+      <button class="btn" id="auth-submit-btn" onclick="executeAuth()">Sign In</button>
+      <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <div class="brand-group">
+      <div class="brand-icon">🌿</div>
+      <div>
+        <div class="brand-title">Drozo Mind</div>
+        <div class="brand-subtitle" id="user-display-email">Connecting...</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" style="background:#5865F2; color:#fff; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700;">💬 Discord</a>
+      <span class="status-pill">Active Care</span>
+    </div>
+  </header>
+
+  <!-- OVERVIEW TAB -->
+  <div id="tab-overview" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Care Pathway Tracker</div>
+          <div class="card-caption">Track your appointment progress from initial request to confirmed video session.</div>
+        </div>
+      </div>
+
+      <div class="pipeline-bar">
+        <div class="step-item" id="p-req">1. Requested</div>
+        <div class="step-item" id="p-rev">2. Reviewed</div>
+        <div class="step-item" id="p-off">3. Slot Offered</div>
+        <div class="step-item" id="p-conf">4. Confirmed</div>
+      </div>
+
+      <div id="pipeline-body" class="active-slot-box">
+        <span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKING TAB -->
+  <div id="tab-book" class="tab-content">
+    <div class="card">
+      <div class="card-title">Schedule a Consultation</div>
+      <div class="card-caption">Submit your preferred date and time for coordinator review.</div>
+
+      <label>Preferred Date & Time</label>
+      <input type="datetime-local" id="book-slot">
+
+      <label>Full Name / Preferred Handle</label>
+      <input type="text" id="book-name" placeholder="e.g. Alex Morgan">
+
+      <label>Focus Area or Session Notes (Optional)</label>
+      <textarea id="book-notes" rows="3" placeholder="Tell us about the topics or goals you would like to address..."></textarea>
+
+      <button class="btn" onclick="submitBookingRequest()">Submit Booking Request</button>
+    </div>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div id="tab-chat" class="tab-content">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div class="card-title" style="margin-bottom:0;">Direct Coordinator Care</div>
+        <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Clear Chat</button>
+      </div>
+      <div class="card-caption">Chat with Drozo AI, speak directly with your therapist, or connect on Discord.</div>
+      <div class="chat-container" id="chat-stream"></div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <input type="text" id="chat-input-text" placeholder="Ask Drozo AI or send coordinator message..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+        <button class="btn" style="width: 100px; margin-top: 0;" onclick="sendUserMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-content">
+    <div class="card">
+      <div class="card-title">Session History</div>
+      <div class="card-caption">All concluded or cancelled consultations (auto-cleans after 30 days).</div>
+      <div id="history-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div id="tab-profile" class="tab-content">
+    <div class="card">
+      <div class="card-title">User Account</div>
+      <label>Registered Email</label>
+      <input type="text" id="profile-email-box" readonly style="background: var(--surface-subtle);">
+      
+      <div style="margin: 18px 0; padding: 14px; background: var(--surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+        <strong style="font-size: 13px; color: var(--primary); display: block; margin-bottom: 4px;">💬 Official Discord Hub</strong>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Direct voice rooms and live community updates.</p>
+        <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0;">Open Discord Hub</a>
+      </div>
+
+      <button class="btn btn-danger" onclick="signOutUser()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- DOCK NAVIGATION -->
+<nav class="bottom-dock">
+  <button class="dock-btn active" onclick="switchNav('overview', this)">Overview</button>
+  <button class="dock-btn" onclick="switchNav('book', this)">Schedule</button>
+  <button class="dock-btn" onclick="switchNav('chat', this)">Support</button>
+  <button class="dock-btn" onclick="switchNav('history', this)">History</button>
+  <button class="dock-btn" onclick="switchNav('profile', this)">Profile</button>
+</nav>
+
+<script>
+  let activeUser = JSON.parse(sessionStorage.getItem('drozo_active_session') || 'null');
+  let authMode = 'login';
+  let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+  let chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
+
+  function getRegisteredAccounts() {
+    let users = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
+    users['admin@drozomind.com'] = 'Dubai@2011';
+    users['gamerkids1109@gmail.com'] = 'Password123';
+    localStorage.setItem('drozo_registered_users', JSON.stringify(users));
+    return users;
+  }
+
+  function setAuthTab(mode) {
+    authMode = mode;
+    const isLogin = mode === 'login';
+    document.getElementById('btn-login-tab').style.background = isLogin ? '#fff' : 'transparent';
+    document.getElementById('btn-login-tab').style.color = isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('btn-signup-tab').style.background = !isLogin ? '#fff' : 'transparent';
+    document.getElementById('btn-signup-tab').style.color = !isLogin ? 'var(--primary)' : 'var(--text-muted)';
+    document.getElementById('auth-submit-btn').innerText = isLogin ? 'Sign In' : 'Create Account';
+    hideAuthError();
+  }
+
+  function showAuthError(msg) {
+    const errBox = document.getElementById('auth-error-msg');
+    errBox.innerText = msg;
+    errBox.style.display = 'block';
+  }
+  function hideAuthError() {
+    const errBox = document.getElementById('auth-error-msg');
+    if (errBox) errBox.style.display = 'none';
+  }
+
+  function executeAuth() {
+    hideAuthError();
+    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
+    const pass = (document.getElementById('auth-pass').value || '').trim();
+
+    if (!email || !pass) return showAuthError("Please enter both email and password.");
+
+    const accounts = getRegisteredAccounts();
+
+    if (authMode === 'signup') {
+      if (accounts[email]) return showAuthError("Account already exists. Please Sign In.");
+      if (pass.length < 6) return showAuthError("Password must be at least 6 characters.");
+      accounts[email] = pass;
+      localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
+      activeUser = { id: 'usr_' + Date.now(), email: email, role: 'user' };
+      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
+      initApp();
+    } else {
+      if (!accounts[email]) return showAuthError("No account found. Click 'Create Account' first.");
+      if (accounts[email] !== pass) return showAuthError("Incorrect password. Access denied.");
+
+      activeUser = {
+        id: 'usr_' + Date.now(),
+        email: email,
+        role: (email === 'admin@drozomind.com' || email === 'gamerkids1109@gmail.com') ? 'admin' : 'user'
+      };
+      sessionStorage.setItem('drozo_active_session', JSON.stringify(activeUser));
+      initApp();
+    }
+  }
+
+  function initApp() {
+    if (!activeUser) {
+      document.getElementById('auth-modal').style.display = 'flex';
+      return;
+    }
+    document.getElementById('auth-modal').style.display = 'none';
+    document.getElementById('user-display-email').innerText = activeUser.email;
+    document.getElementById('profile-email-box').value = activeUser.email;
+    pruneOldHistory();
+    renderPipeline();
+    renderChat();
+    renderHistory();
+  }
+
+  function signOutUser() {
+    sessionStorage.removeItem('drozo_active_session');
+    localStorage.removeItem('drozo_user');
+    location.reload();
+  }
+
+  function switchNav(tab, el) {
+    document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  function renderPipeline() {
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const container = document.getElementById('pipeline-body');
+    const pReq = document.getElementById('p-req');
+    const pRev = document.getElementById('p-rev');
+    const pOff = document.getElementById('p-off');
+    const pConf = document.getElementById('p-conf');
+
+    [pReq, pRev, pOff, pConf].forEach(s => s.className = 'step-item');
+
+    const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
+    if (!active) {
+      container.innerHTML = `<span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>`;
+      return;
+    }
+
+    pReq.classList.add('active');
+    if (active.status === 'Reviewed') pRev.classList.add('active');
+    else if (active.status === 'Slot Offered') { pRev.classList.add('done'); pOff.classList.add('active'); }
+    else if (active.status === 'Confirmed') { pRev.classList.add('done'); pOff.classList.add('done'); pConf.classList.add('active'); }
+
+    container.innerHTML = `
+      <div class="ticket-badge">#TCK-${active.ticketNum} • ${active.status.toUpperCase()}</div>
+      <div><strong>Client:</strong> ${active.name}</div>
+      <div><strong>Requested Slot:</strong> ${new Date(active.slot).toLocaleString()}</div>
+      ${active.counterSlot ? `<div style="color:#D97706; margin-top:6px;"><strong>Proposed Slot:</strong> ${new Date(active.counterSlot).toLocaleString()}</div>` : ''}
+
+      ${active.status === 'Slot Offered' ? `
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn" style="background:#059669; margin-top:0;" onclick="acceptCounterSlot('${active.id}')">Accept Offered Time</button>
+          <button class="btn btn-danger" style="margin-top:0;" onclick="cancelClientSlot('${active.id}')">Decline</button>
+        </div>
+      ` : ''}
+
+      ${active.status === 'Confirmed' ? `
+        <div style="margin-top:14px; background:#fff; padding:16px; border-radius:12px; border:1px solid var(--border);">
+          <strong style="color:var(--primary); display:block; margin-bottom:6px;">🎉 Appointment Confirmed! Choose Platform:</strong>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <a href="${active.meetUrl}" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px;">📹 Video Room</a>
+            <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0; padding:10px; font-size:12px;">💬 Discord</a>
+          </div>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  function submitBookingRequest() {
+    const slot = document.getElementById('book-slot').value;
+    const name = document.getElementById('book-name').value.trim();
+    const notes = document.getElementById('book-notes').value.trim();
+    if (!slot || !name) return alert("Please fill in preferred date/time and name.");
+
+    const ticketNum = Math.floor(100000 + Math.random() * 900000);
+    tickets.unshift({
+      id: 'tck_' + Date.now(),
+      ticketNum: ticketNum,
+      slot: slot,
+      name: name,
+      notes: notes,
+      status: 'Requested',
+      meetUrl: `https://meet.jit.si/DrozoMind-${ticketNum}#config.prejoinPageEnabled=false`,
+      createdAt: new Date().toISOString()
+    });
+
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    alert("Appointment requested! Coordinator will review shortly.");
+    switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
+    renderPipeline();
+  }
+
+  function acceptCounterSlot(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Confirmed';
+    t.slot = t.counterSlot || t.slot;
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderPipeline();
+  }
+
+  function cancelClientSlot(id) {
+    const t = tickets.find(x => x.id === id);
+    if (!t) return;
+    t.status = 'Cancelled';
+    t.cancelledAt = new Date().toISOString();
+    localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+    renderPipeline();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    pruneOldHistory();
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const container = document.getElementById('history-container');
+    const list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled' || t.status === 'Closed');
+
+    if (!list.length) {
+      container.innerHTML = `<span style="color:var(--text-muted); font-size:13px;">No past sessions. Records remain here for 30 days.</span>`;
+      return;
+    }
+
+    const now = Date.now();
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+    container.innerHTML = list.map(t => {
+      const finishedTime = new Date(t.completedAt || t.cancelledAt || t.createdAt).getTime();
+      const daysLeft = Math.max(1, Math.round((THIRTY_DAYS - (now - finishedTime)) / (24 * 60 * 60 * 1000)));
+      const isDone = t.status === 'Completed';
+
+      return `
+        <div style="background:var(--surface-subtle); border:1px solid var(--border); padding:12px; border-radius:10px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong>#TCK-${t.ticketNum} (${t.name})</strong>
+            <span style="font-weight:700; color:${isDone ? 'var(--success)' : 'var(--danger)'}">${isDone ? 'COMPLETED' : 'CANCELLED'}</span>
+          </div>
+          <div style="color:var(--text-muted); font-size:12px;">Date: ${new Date(t.slot).toLocaleString()}</div>
+          <div style="font-size:11px; color:#9CA3AF; margin-top:2px;">Auto-cleans in ${daysLeft} days</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function pruneOldHistory() {
+    let t = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    const filtered = t.filter(ticket => {
+      if (ticket.status === 'Completed' || ticket.status === 'Cancelled' || ticket.status === 'Closed') {
+        const itemDate = new Date(ticket.completedAt || ticket.cancelledAt || ticket.createdAt).getTime();
+        return (now - itemDate) < THIRTY_DAYS;
+      }
+      return true;
+    });
+
+    if (filtered.length !== t.length) localStorage.setItem('drozo_tickets', JSON.stringify(filtered));
+  }
+
+  // Drozo Mind AI Chat & Deletion
+  function clearChatHistory() {
+    if (confirm("Are you sure you want to clear your support chat history?")) {
+      chatMessages = [];
+      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+      renderChat();
+    }
+  }
+
+  function generateDrozoAIResponse(query) {
+    const q = query.toLowerCase();
+    if (q.includes('book') || q.includes('schedule') || q.includes('appointment')) {
+      return "To book a session, click the 'Schedule' tab in the bottom dock. Choose your date, enter your details, and submit for coordinator review.";
+    }
+    if (q.includes('discord') || q.includes('voice')) {
+      return "Connect with us on our official Discord hub at https://discord.gg/c8H6CQJTWA for live voice consultation rooms and real-time updates.";
+    }
+    if (q.includes('video') || q.includes('call') || q.includes('meet') || q.includes('room')) {
+      return "Once confirmed, your appointment card in the Overview tab lets you enter your private Web Video Call or join via Discord.";
+    }
+    if (q.includes('cancel') || q.includes('history') || q.includes('30 days')) {
+      return "Completed and cancelled sessions are saved in the 'History' tab and automatically erased after 30 days for privacy.";
+    }
+    if (q.includes('hi') || q.includes('hello') || q.includes('drozo') || q.includes('help')) {
+      return "Hello! I am your Drozo Mind assistant. I can guide you through booking consultations, joining live video/Discord rooms, and tracking your care pipeline. How can I help?";
+    }
+    return "I am exclusively dedicated to helping you with Drozo Mind consultations, video channels, and care bookings. For outside questions, please ask your coordinator directly.";
+  }
+
+  function renderChat() {
+    const stream = document.getElementById('chat-stream');
+    stream.innerHTML = chatMessages.map(m => `
+      <div class="bubble ${m.role}">
+        ${m.sender ? `<strong style="display:block; font-size:11px; opacity:0.8; margin-bottom:2px;">${m.sender}</strong>` : ''}
+        ${m.text}
+      </div>
+    `).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI or your clinical coordinator.</div>';
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function sendUserMessage() {
+    const input = document.getElementById('chat-input-text');
+    const text = input.value.trim();
+    if (!text) return;
+
+    chatMessages.push({ role: 'user', text: text, sender: 'You' });
+    input.value = '';
+    renderChat();
+    localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+
+    setTimeout(() => {
+      const reply = generateDrozoAIResponse(text);
+      chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
+      localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+      renderChat();
+    }, 400);
+  }
+
+  // Live Auto-Refresh Listener
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'drozo_chat') { chatMessages = JSON.parse(e.newValue || '[]'); renderChat(); }
+    if (e.key === 'drozo_tickets') { tickets = JSON.parse(e.newValue || '[]'); renderPipeline(); renderHistory(); }
+  });
+
+  getRegisteredAccounts();
+  initApp();
+</script>
+</body>
+</html>
