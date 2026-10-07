@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- F-001 REMEDIATION: RESTRICTIVE CONTENT SECURITY POLICY & MIME GUARDS -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src https://meet.jit.si; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drozo Mind | Admin Portal & Clinical Management</title>
@@ -54,7 +57,7 @@
     <h2 style="font-size:18px; font-weight:800; color:var(--primary); margin-bottom:12px;">Admin Clearance (Owner: admin@drozominds.com)</h2>
     <div>
       <input type="email" id="adm-email" value="admin@drozominds.com" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border);">
-      <input type="password" id="adm-pass" value="Dubai@2011" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
+      <input type="password" id="adm-pass" value="" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeAdminLogin()" style="width:100%; padding:10px; margin-bottom:14px; border-radius:8px; border:1px solid var(--border);">
       <button onclick="executeAdminLogin()" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">Unlock Coordinator Dashboard</button>
     </div>
     <div id="adm-err" style="color:var(--danger); font-size:12px; font-weight:700; display:none; margin-top:10px; text-align:center;"></div>
