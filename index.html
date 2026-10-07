@@ -14,7 +14,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Top Navigation Bar (Admin Gate Button completely removed for stealth) -->
+  <!-- Clean Header: Drozo Guard Gate completely removed -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -35,18 +35,18 @@
     </div>
   </header>
 
-  <!-- Protected Client Application Workspace (Locked until signed in) -->
+  <!-- Protected Sanctuary Content (Locked and blurred until user signs in) -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Left 2 Cols: Sanctuary Overview -->
+      <!-- Sanctuary Overview -->
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confidentially Sandboxed
           </div>
           <h1 class="text-2xl font-bold text-slate-900">Welcome to your personal Sanctuary</h1>
-          <p class="text-sm text-slate-500 mt-1">Your sessions, clinical wellness notes, and AI conversational exercises are ready. Click the assistant button on the bottom-right to open chat.</p>
+          <p class="text-sm text-slate-500 mt-1">Your sessions, clinical wellness notes, and AI conversational exercises are ready. Click the assistant icon on the bottom right to talk or schedule.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -63,10 +63,8 @@
         </div>
       </div>
 
-      <!-- Right Col: Schedule & History -->
+      <!-- Schedule & History -->
       <div class="space-y-6">
-        
-        <!-- Upcoming Schedule -->
         <div id="schedule" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -85,7 +83,6 @@
           </div>
         </div>
 
-        <!-- 30-Day Session History -->
         <div id="history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span>🕒</span> 30-Day History & Documents
@@ -100,22 +97,20 @@
             </div>
           </div>
         </div>
-
       </div>
 
     </main>
   </div>
 
-  <!-- FLOATING SIDE AI BOT BUTTON & EXPANDABLE DRAWER -->
+  <!-- FLOATING SIDE AI BOT (Bottom Right) -->
   <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
-    <!-- Chat Drawer (Initially Hidden) -->
     <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
       <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="text-lg">🤖</span>
           <div>
             <div class="text-xs font-bold">Drozo AI Therapy Assistant</div>
-            <div class="text-[10px] text-emerald-100">Ready to book or listen</div>
+            <div class="text-[10px] text-emerald-100">Ready to book or talk</div>
           </div>
         </div>
         <button onclick="toggleAiBot()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
@@ -125,7 +120,7 @@
         <div class="flex gap-2">
           <span class="text-base">🤖</span>
           <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed">
-            Hello! I am your AI therapy assistant. You can share your thoughts or tell me: <em>"Book a session for tomorrow at 4 PM"</em>.
+            Hello! I am your AI therapy assistant. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.
           </div>
         </div>
       </div>
@@ -143,13 +138,13 @@
       </form>
     </div>
 
-    <!-- Floating Circular Action Button -->
-    <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-xl flex items-center justify-center text-2xl transition transform hover:scale-105">
+    <!-- Floating Circular Trigger -->
+    <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">
       💬
     </button>
   </div>
 
-  <!-- ================= AUTHENTICATION MODAL (REQUIRED FIRST) ================= -->
+  <!-- MANDATORY SIGN-IN MODAL (FIRST THING USER SEES) -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     
     <!-- STEP 1: Email / Password -->
@@ -157,7 +152,7 @@
       <div class="text-center">
         <span class="text-3xl">🧠</span>
         <h3 class="text-lg font-extrabold text-slate-900 mt-2">Sign In to DrozoMind</h3>
-        <p class="text-xs text-slate-500 mt-1">Authentication is required to access your therapy sanctuary.</p>
+        <p class="text-xs text-slate-500 mt-1">Please sign in to access your confidential therapy sanctuary.</p>
       </div>
 
       <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-2">
@@ -175,10 +170,10 @@
       </form>
     </div>
 
-    <!-- STEP 2: Choose 2FA Method -->
+    <!-- STEP 2: 2FA Choice -->
     <div id="authStep2" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
-      <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification Method</h3>
-      <p class="text-xs text-slate-500">Choose how to complete two-factor authentication:</p>
+      <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification</h3>
+      <p class="text-xs text-slate-500">Choose how you want to authorize:</p>
       
       <div class="space-y-3 pt-2">
         <!-- Branch 1: Drozo Guard Hardware -->
@@ -193,7 +188,7 @@
           <span class="text-xs font-bold">→</span>
         </button>
 
-        <!-- Branch 2: Standard Authenticator App -->
+        <!-- Branch 2: Standard Authenticator -->
         <button onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">📱</span>
@@ -209,14 +204,14 @@
       <button onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
     </div>
 
-    <!-- STEP 3A: Drozo Guard Hardware Flow (Dark Green) -->
+    <!-- STEP 3A: Drozo Guard Hardware Gate -->
     <div id="authStep3Guard" class="bg-[#02140d] text-emerald-50 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#0d4f34] space-y-4 hidden text-center">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#0a3825] text-emerald-300 border border-emerald-500/30">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Drozo Guard Handshake
       </div>
       <div>
         <h3 class="text-sm font-bold text-white">Scan Challenge QR</h3>
-        <p class="text-[11px] text-emerald-300/80">Open Drozo Guard APK on your phone, or enter token below.</p>
+        <p class="text-[11px] text-emerald-300/80">Scan via Drozo Guard APK, or enter token below.</p>
       </div>
 
       <div class="flex justify-center">
@@ -241,7 +236,7 @@
       <button onclick="backToStep2()" class="text-xs text-emerald-400/80 hover:underline">← Change method</button>
     </div>
 
-    <!-- STEP 3B: Standard Authenticator 6-Digit Flow -->
+    <!-- STEP 3B: Standard Authenticator 6-Digit -->
     <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Enter Authenticator Code</h3>
       <p class="text-xs text-slate-500">Enter the 6-digit TOTP code generated by your Authenticator app.</p>
@@ -295,7 +290,7 @@
       }
     });
 
-    // AI Bot Toggle
+    // AI Bot Drawer Toggle
     function toggleAiBot() {
       const drawer = document.getElementById('aiChatDrawer');
       drawer.classList.toggle('hidden');
@@ -312,10 +307,10 @@
 
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
-          appendChatMessage("Drozo AI", "I have registered your booking request for tomorrow at 4:00 PM with Dr. Elena Vance.", "bot");
+          appendChatMessage("Drozo AI", "I have registered your appointment for tomorrow at 4:00 PM with Dr. Elena Vance. It is updated in your schedule.", "bot");
           document.getElementById('appointmentCount').innerText = "2 Active";
         } else {
-          appendChatMessage("Drozo AI", "I hear you. Let us take a deep, mindful breath and work through it together.", "bot");
+          appendChatMessage("Drozo AI", "I am here with you. Take a deep, steady breath and we will explore this together.", "bot");
         }
       }, 500);
     }
@@ -334,7 +329,7 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // Modal Handlers
+    // Modal Navigation Handlers
     function openLoginModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authStep1').classList.remove('hidden');
@@ -363,7 +358,7 @@
       document.getElementById('authStep2').classList.remove('hidden');
     }
 
-    // Branch 1: Drozo Guard
+    // Branch 1: Drozo Guard Hardware
     function startDrozoGuard2FA() {
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
@@ -420,7 +415,7 @@
       }
     }
 
-    // Webcam Scanner
+    // Webcam ID Pass Scanner
     function openModalWebcamScanner() {
       document.getElementById('modalWebcamBox').classList.remove('hidden');
       try {
@@ -451,6 +446,7 @@
       }
     }
 
+    // Final Login Dispatch
     function executeFinalLogin() {
       if (pollTimer) clearInterval(pollTimer);
       closeModalWebcamScanner();
