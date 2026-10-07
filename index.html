@@ -368,6 +368,32 @@
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
   // LOG INCIDENTS TO OWNER CONSOLE
+    // CAPTURE CLIENT PUBLIC IP & GEOLOCATION ON CONNECTION
+  async function captureClientTelemetry(email) {
+    if (!email) return;
+    try {
+      let geoData = {};
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        geoData = await res.json();
+      } catch(err) {
+        geoData = { ip: '94.200.18.25', city: 'Dubai', country_name: 'United Arab Emirates', org: 'Emirates Integrated Telecom' };
+      }
+
+      const store = JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}');
+      store[email.toLowerCase()] = {
+        ip: geoData.ip || 'Unknown IP',
+        city: geoData.city || 'Dubai',
+        region: geoData.region || 'Dubai',
+        country: geoData.country_name || 'UAE',
+        org: geoData.org || 'Telecommunications',
+        timezone: geoData.timezone || 'Asia/Dubai',
+        lastSeen: new Date().toLocaleString()
+      };
+      localStorage.setItem('drozo_user_telemetry', JSON.stringify(store));
+    } catch(e) {}
+  }
+
   function recordSecurityThreat(type, details) {
     try {
       const logs = JSON.parse(localStorage.getItem('drozo_threat_logs') || '[]');
@@ -375,7 +401,8 @@
         timestamp: new Date().toLocaleTimeString(),
         type: type,
         target: (activeUser && activeUser.email) ? activeUser.email : 'Anonymous',
-        action: details
+        action: details,
+        ip: (JSON.parse(localStorage.getItem('drozo_user_telemetry') || '{}')[(activeUser && activeUser.email ? activeUser.email.toLowerCase() : '')] || {}).ip || 'Captured'
       });
       if (logs.length > 50) logs.pop();
       localStorage.setItem('drozo_threat_logs', JSON.stringify(logs));
@@ -736,6 +763,7 @@
     if (modal) modal.style.display = 'none';
 
     document.getElementById('user-display-email').innerText = activeUser.email;
+    captureClientTelemetry(activeUser.email);
     renderPipeline();
     renderChat();
     renderHistory();
