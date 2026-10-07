@@ -360,7 +360,13 @@
   <button class="dock-btn" onclick="switchNav('book', this)">Schedule</button>
   <button class="dock-btn" onclick="switchNav('history', this)">History</button>
   <button class="dock-btn" onclick="switchNav('profile', this)">ID & 2FA</button>
-</nav>
+
+        <!-- Drozo Guard Hardware 2FA Portal Link -->
+        <a href="./auth.html" id="drozo-guard-nav-btn" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#042f1a; color:#4ade80; border:1px solid #166534; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='#064e28'" onmouseout="this.style.background='#042f1a'">
+          <span>🛡️</span> Drozo Guard 2FA
+        </a>
+
+      </nav>
 
 <script>
   const OWNER_EMAIL = "admin@drozominds.com";
