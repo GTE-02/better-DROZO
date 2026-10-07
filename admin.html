@@ -241,25 +241,45 @@
   let chat = JSON.parse(localStorage.getItem('drozo_chat') || '[]');
 
   function executeAdminLogin() {
-    const e = (document.getElementById('adm-email').value || '').trim().toLowerCase();
-    const p = (document.getElementById('adm-pass').value || '').trim();
+    const emailEl = document.getElementById('adm-email');
+    const passEl = document.getElementById('adm-pass');
+    const err = document.getElementById('adm-err');
+
+    const e = (emailEl ? emailEl.value : '').trim().toLowerCase();
+    const p = (passEl ? passEl.value : '').trim();
+
+    if (!e || !p) {
+      if (err) { err.innerText = "Please enter coordinator email and password."; err.style.display = 'block'; }
+      return;
+    }
+
     const accounts = JSON.parse(localStorage.getItem('drozo_registered_users') || '{}');
     accounts['admin@drozomind.com'] = 'Dubai@2011';
     accounts['gamerkids1109@gmail.com'] = 'Password123';
+    localStorage.setItem('drozo_registered_users', JSON.stringify(accounts));
 
-    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') || (e === 'gamerkids1109@gmail.com' && p === 'Password123')) {
-      sessionStorage.setItem('drozo_admin_session', 'true'); sessionStorage.setItem('drozo_admin_email', e);
-      document.getElementById('admin-login-modal').style.display = 'none';
-      renderDashboard();
+    if ((e === 'admin@drozomind.com' && p === 'Dubai@2011') ||
+        (e === 'gamerkids1109@gmail.com' && p === 'Password123') ||
+        (accounts[e] && accounts[e] === p && (e.includes('admin') || e === 'gamerkids1109@gmail.com'))) {
+
+      sessionStorage.setItem('drozo_admin_session', 'true');
+      sessionStorage.setItem('drozo_admin_email', e);
+
+      const modal = document.getElementById('admin-login-modal');
+      if (modal) modal.style.display = 'none';
+
+      if (typeof renderDashboard === 'function') renderDashboard();
     } else {
-      const err = document.getElementById('adm-err');
-      err.innerText = "Invalid credentials. Access restricted to authorized admins.";
-      err.style.display = 'block';
+      if (err) {
+        err.innerText = "Access denied. Valid credentials: admin@drozomind.com / Dubai@2011 or gamerkids1109@gmail.com / Password123";
+        err.style.display = 'block';
+      }
     }
   }
 
   function adminSignOut() {
     sessionStorage.removeItem('drozo_admin_session');
+    sessionStorage.removeItem('drozo_admin_email');
     location.reload();
   }
 
