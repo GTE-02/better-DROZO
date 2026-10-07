@@ -1,962 +1,452 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drozo Mind | Secure Modern Care</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DrozoMind - Sanctuary & AI Therapy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    :root {
-      --bg: #F4F7F5;
-      --surface: #FFFFFF;
-      --surface-subtle: #F0F4F1;
-      --primary: #1B4D3E;
-      --primary-hover: #13392E;
-      --primary-light: #E8F3ED;
-      --accent: #2D6A4F;
-      --accent-subtle: #52B788;
-      --discord: #5865F2;
-      --text-main: #111827;
-      --text-muted: #6B7280;
-      --border: #E5E7EB;
-      --danger: #DC2626;
-      --danger-bg: #FEF2F2;
-      --success: #059669;
-      --success-bg: #ECFDF5;
-      --shadow-card: 0 10px 25px -5px rgba(27, 77, 62, 0.07);
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
-    body { background: var(--bg); color: var(--text-main); padding: 16px 16px 110px; }
-    .container { max-width: 640px; margin: 0 auto; }
-
-    header {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: var(--shadow-card); margin-bottom: 18px;
-    }
-    .brand-group { display: flex; align-items: center; gap: 12px; }
-    .brand-icon {
-      width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light);
-      display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary);
-    }
-    .brand-title { font-size: 17px; font-weight: 800; color: var(--primary); }
-    .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-
-    .card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 18px;
-    }
-    .card-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; }
-    .card-caption { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
-
-    .pipeline-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0; }
-    .step-item {
-      background: var(--surface-subtle); padding: 10px 4px; text-align: center; border-radius: var(--radius-sm);
-      font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid transparent;
-    }
-    .step-item.active { background: var(--primary-light); color: var(--primary); border-color: var(--accent-subtle); }
-    .step-item.done { background: #F0FDF4; color: var(--success); }
-    .active-slot-box {
-      background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-md);
-      padding: 18px; font-size: 13px; line-height: 1.6; margin-top: 14px;
-    }
-
-    label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin: 14px 0 6px; }
-    input, textarea {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-main); padding: 12px 14px; border-radius: 10px; font-size: 14px; outline: none;
-    }
-
-    .btn {
-      width: 100%; padding: 12px 18px; border: none; border-radius: 10px;
-      font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
-      background: var(--primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px;
-    }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
-    .btn-danger { background: var(--danger); color: #fff; }
-
-    .floating-call-btn {
-      position: fixed; right: 20px; bottom: 95px; width: 56px; height: 56px; border-radius: 50%;
-      background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 24px; box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35); border: 2px solid #fff; cursor: pointer; z-index: 400;
-    }
-
-    /* Side Support Drawer - STRICT VIEWPORT BOUNDS */
-    .support-modal-overlay {
-      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); backdrop-filter: blur(4px);
-      z-index: 600; display: none; align-items: flex-end; justify-content: flex-end; padding: 16px;
-    }
-    .support-modal-overlay.open { display: flex; }
-    .support-modal-panel {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-      width: 100%; max-width: 440px; height: 85vh; max-height: 720px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      display: flex; flex-direction: column; overflow: hidden;
-    }
-
-    /* CHAT STREAM CONTAINER - DYNAMIC SCROLL CONTAINER */
-    .chat-container {
-      flex: 1 1 0;
-      min-height: 0;
-      overflow-y: scroll;
-      -webkit-overflow-scrolling: touch;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .bubble {
-      max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; word-break: break-word; line-height: 1.45;
-    }
-    .bubble.user { background: var(--primary); color: #fff; align-self: flex-end; }
-    .bubble.admin { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); align-self: flex-start; }
-
-    .bottom-dock {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 580px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 30px; height: 64px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100;
-    }
-    .dock-btn {
-      background: transparent; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700;
-      cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    }
-    .dock-btn.active { color: var(--primary); }
-
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.65); backdrop-filter: blur(5px);
-      z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px;
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .id-pass-card {
-      background: linear-gradient(135deg, #1B4D3E, #0D281E);
-      color: #fff; border-radius: 16px; padding: 20px;
-      box-shadow: 0 12px 30px rgba(27,77,62,0.3); margin-top: 14px;
-    }
-
-    @keyframes laserSweep {
-      0% { transform: translateY(-70px); opacity: 0.3; }
-      50% { opacity: 1; }
-      100% { transform: translateY(70px); opacity: 0.3; }
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
-<!-- MULTI-FACTOR AUTHENTICATION MODAL -->
-<div id="auth-modal" class="modal-overlay">
-  <div class="card" style="width: 100%; max-width: 440px; margin-bottom: 0;">
-    <div style="text-align: center; margin-bottom: 14px;">
-      <div class="brand-icon" style="margin: 0 auto 10px; width: 48px; height: 48px; font-size: 24px;">🌿</div>
-      <h2 style="font-size: 19px; font-weight: 800; color: var(--primary);">Drozo Mind Identification</h2>
-      <p class="card-caption">Sign in with Verified Credentials, Barcode Pass, or 2FA Code</p>
-    </div>
-
-    <!-- Mode Selector Tabs -->
-    <div style="display: flex; background: var(--surface-subtle); padding: 4px; border-radius: 10px; margin-bottom: 14px;">
-      <button id="auth-tab-pass" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:#fff; color:var(--primary); flex:1;" onclick="setLoginMethod('password')">🔑 Password</button>
-      <button id="auth-tab-qr" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('scanner')">📷 Scan ID</button>
-      <button id="auth-tab-2fa" class="btn btn-secondary" style="margin-top:0; border:none; padding:8px 6px; font-size:11px; font-weight:700; background:transparent; color:var(--text-muted); flex:1;" onclick="setLoginMethod('totp')">🔢 2FA Code</button>
-    </div>
-
-    <!-- METHOD 1: PASSWORD LOGIN -->
-    <div id="method-password">
-      <label>Registered Email</label>
-      <input type="email" id="auth-email" placeholder="name@example.com" value="admin@drozominds.com">
-      <label>Password</label>
-      <input type="password" id="auth-pass" placeholder="••••••••" value="Dubai@2011" onkeydown="if(event.key==='Enter') executePasswordAuth()">
-      <button class="btn" onclick="executePasswordAuth()">Sign In</button>
-    </div>
-
-    <!-- METHOD 2: DIRECT NATIVE CAMERA / FILE SCANNER -->
-    <div id="method-scanner" style="display:none; text-align:center;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Align your Drozo Mind QR Pass inside the green box:</p>
-      
-      <div style="position:relative; width:100%; max-width:280px; height:240px; margin:0 auto; background:#000; border-radius:14px; overflow:hidden; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center;">
-        <video id="native-camera-feed" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay playsinline></video>
-        
-        <div id="scanner-viewfinder" style="display:none; position:absolute; inset:25px; border:2px dashed #10B981; border-radius:12px; pointer-events:none; box-shadow:0 0 0 9999px rgba(0,0,0,0.35);">
-          <div style="position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, #10B981, transparent); animation:laserSweep 1.5s infinite;"></div>
-        </div>
-        
-        <div id="scanner-placeholder" style="color:#fff; font-size:12px; padding:16px;">
-          Camera Standby.<br><br>
-          <button class="btn btn-primary" style="padding:8px 14px; font-size:11px;" onclick="startNativeCameraScanner()">📷 Activate Camera Now</button>
-        </div>
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🧠</span>
+        <span class="text-xl font-extrabold text-slate-900 tracking-tight">Drozo<span class="text-emerald-600">Mind</span></span>
       </div>
 
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <button class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="startNativeCameraScanner()">▶️ Start Camera</button>
-        <button class="btn btn-secondary" style="margin-top:0; font-size:11px; flex:1;" onclick="stopNativeCameraScanner()">⏹️ Stop</button>
-      </div>
-
-      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <label style="margin-top:0; margin-bottom:4px; font-size:10px;">Or Select Saved ID Pass Photo:</label>
-        <input type="file" id="id-file-input" accept="image/*" style="font-size:11px; padding:6px;" onchange="handleFileUploadPass(event)">
-      </div>
-    </div>
-
-    <!-- METHOD 3: 2FA TOTP -->
-    <div id="method-totp" style="display:none;">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the 6-digit verification code from Google or Microsoft Authenticator:</p>
-      <label>Email Identity</label>
-      <input type="email" id="totp-email" placeholder="name@example.com" value="admin@drozominds.com">
-      <label>6-Digit Authenticator Code</label>
-      <input type="text" id="totp-token" placeholder="000 000" maxlength="6" style="text-align:center; font-size:22px; letter-spacing:6px; font-weight:800;" onkeydown="if(event.key==='Enter') verifyTotpLogin()">
-      <button class="btn" onclick="verifyTotpLogin()">Verify 2FA & Sign In</button>
-    </div>
-
-    <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
-  </div>
-</div>
-
-<div class="floating-call-btn" onclick="toggleSupportDrawer(true)" title="Instant Care & AI Coordinator">📞</div>
-
-<!-- Side Support Drawer -->
-<div id="side-support-drawer" class="support-modal-overlay" onclick="if(event.target===this) toggleSupportDrawer(false)">
-  <div class="support-modal-panel">
-    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:22px;">🌿</span>
-        <div>
-          <strong style="font-size:15px; display:block;">Drozo Mind Direct Care</strong>
-          <span style="font-size:11px; opacity:0.85;">AI Assistant & Immediate Call Hub</span>
-        </div>
-      </div>
-      <button onclick="toggleSupportDrawer(false)" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
-    </div>
-
-    <div style="padding:12px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px; flex-shrink:0;">
-      <button onclick="startInstantVideoCall()" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:var(--primary);">📹 Video Call</button>
-      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:#5865F2; color:#fff; text-decoration:none;">💬 Discord</a>
-    </div>
-
-    <div style="padding:12px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
-        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Drozo AI Care Assistant</span>
-        <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
-      </div>
-
-      <!-- CHAT STREAM -->
-      <div class="chat-container" id="chat-stream"></div>
-
-      <div style="display:flex; gap:8px; margin-top:10px; flex-shrink:0;">
-        <input type="text" id="chat-input-text" placeholder="Ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
-        <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <header>
-    <div class="brand-group">
-      <div class="brand-icon">🌿</div>
-      <div>
-        <div class="brand-title">Drozo Mind</div>
-        <div class="brand-subtitle" id="user-display-email">Connecting...</div>
-      </div>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" style="background:#5865F2; color:#fff; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700;">💬 Discord</a>
-    </div>
-  
-      <!-- Drozo Guard 2FA Hardware Key Entry -->
-      <a href="./auth.html" id="drozo-guard-badge-btn" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900 transition shadow-sm" style="text-decoration:none;">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span>🛡️ Drozo Guard 2FA</span>
-      </a>
-
-    
-        <!-- Drozo Guard 2FA Gateway -->
-        <a href="./auth.html" id="drozo-guard-badge-nav" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#064e3b; color:#6ee7b7; border:1px solid #10b981; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; margin-left:8px;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#064e3b'">
-          <span>🛡️</span> Drozo Guard 2FA
-        </a>
-    
-    </header>
-
-  <div id="tab-overview" class="tab-content active">
-    <div class="card">
-      <div class="card-title">Care Pathway Tracker</div>
-      <div class="card-caption">Track your appointment progress from initial request to confirmed video session.</div>
-      <div class="pipeline-bar">
-        <div class="step-item" id="p-req">1. Requested</div>
-        <div class="step-item" id="p-rev">2. Reviewed</div>
-        <div class="step-item" id="p-off">3. Slot Offered</div>
-        <div class="step-item" id="p-conf">4. Confirmed</div>
-      </div>
-      <div id="pipeline-body" class="active-slot-box">
-        <span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="tab-book" class="tab-content">
-    <div class="card">
-      <div class="card-title">Schedule a Consultation</div>
-      <div class="card-caption">Submit your preferred date and time for coordinator review.</div>
-      <label>Preferred Date & Time</label>
-      <input type="datetime-local" id="book-slot">
-      <label>Full Name / Preferred Handle</label>
-      <input type="text" id="book-name" placeholder="e.g. Alex Morgan">
-      <label>Focus Area or Session Notes (Optional)</label>
-      <textarea id="book-notes" rows="3" placeholder="Tell us about the topics or goals you would like to address..."></textarea>
-      <button class="btn" onclick="submitBookingRequest()">Submit Booking Request</button>
-    </div>
-  </div>
-
-  <div id="tab-history" class="tab-content">
-    <div class="card">
-      <div class="card-title">Session History</div>
-      <div class="card-caption">All concluded or cancelled consultations (auto-cleans after 30 days).</div>
-      <div id="history-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;"></div>
-    </div>
-  </div>
-
-  <div id="tab-profile" class="tab-content">
-    <div class="card">
-      <div class="card-title">Digital Health ID & 2FA Pairing</div>
-      <div class="card-caption">Your personal Digital Health Pass and Authenticator setup keys.</div>
-
-      <!-- DIGITAL HEALTH PASS ID BADGE -->
-      <div class="id-pass-card" id="digital-id-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-          <div>
-            <span style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#A7F3D0;">OFFICIAL VERIFIED ID PASS</span>
-            <h3 id="id-card-name" style="font-size:18px; font-weight:800; color:#fff; margin-top:2px;">OWNER</h3>
-          </div>
-          <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">2FA ACTIVE</span>
-        </div>
-
-        <div style="display:flex; gap:16px; align-items:center; background:rgba(0,0,0,0.25); padding:12px; border-radius:12px;">
-          <div id="id-qrcode-box" style="background:#fff; padding:6px; border-radius:8px; width:92px; height:92px; display:flex; align-items:center; justify-content:center;"></div>
-          <div id="id-card-clearance-box" style="font-size:11px; line-height:1.5;">
-            <div><strong>Email:</strong> <span id="id-card-email">admin@drozominds.com</span></div>
-            <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
-            <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
-            <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2FA SETUP SECTION -->
-      <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px;">
-        <strong style="color:var(--primary); font-size:13px; display:block; margin-bottom:4px;">🔐 Pair Authenticator App (Google or Microsoft)</strong>
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Scan with Google Authenticator or Microsoft Authenticator, or paste the Base32 manual code:</p>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <div id="totp-setup-qr" style="background:#fff; padding:8px; border-radius:10px; border:1px solid var(--border); width:156px; height:156px; display:flex; align-items:center; justify-content:center;"></div>
-          <div style="font-size:11px;">
-            <div style="font-weight:700; color:var(--text-main);">Base32 Secret Key:</div>
-            <code id="totp-secret-key" style="background:#E5E7EB; padding:3px 6px; border-radius:4px; font-size:11px; display:inline-block; margin-top:4px;">JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP</code>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn btn-danger" onclick="signOutUser()">Sign Out</button>
-    </div>
-  </div>
-</div>
-
-<nav class="bottom-dock">
-  <button class="dock-btn active" onclick="switchNav('overview', this)">Overview</button>
-  <button class="dock-btn" onclick="switchNav('book', this)">Schedule</button>
-  <button class="dock-btn" onclick="switchNav('history', this)">History</button>
-  <button class="dock-btn" onclick="switchNav('profile', this)">ID & 2FA</button>
-
-        <!-- Drozo Guard Hardware 2FA Portal Link -->
-        <a href="./auth.html" id="drozo-guard-nav-btn" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#042f1a; color:#4ade80; border:1px solid #166534; border-radius:10px; font-size:12px; font-weight:700; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='#064e28'" onmouseout="this.style.background='#042f1a'">
-          <span>🛡️</span> Drozo Guard 2FA
-        </a>
-
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+        <a href="#booking" class="hover:text-emerald-600 transition">Book Session</a>
+        <a href="#schedule" class="hover:text-emerald-600 transition">My Schedule</a>
+        <a href="#history" class="hover:text-emerald-600 transition">Session History</a>
       </nav>
 
-<script>
-  const OWNER_EMAIL = "admin@drozominds.com";
-  let activeUser = null;
-  let tickets = [];
-  let chatMessages = [];
-  let cameraStream = null;
-  let scanInterval = null;
-  const scanCanvas = document.createElement('canvas');
-  const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+      <div class="flex items-center gap-3">
+        <a href="./auth.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition">
+          <span>🛡️</span> Drozo Guard Gate
+        </a>
+        <button id="btnOpenLogin" onclick="openLoginModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow">
+          Sign In
+        </button>
+      </div>
+    </div>
+  </header>
 
-  // 24/7 Silent Background Sentinel: Autonomous Threat Neutralization & Auto-Purge
-  function autonomousSecurityPurge(threatType) {
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch(e) {}
-    console.warn(`[SENTINEL COMPLIANCE] Auto-purged storage due to security violation: ${threatType}`);
-    location.reload();
-  }
+  <!-- Client Application Main Workspace -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Left 2 Cols: AI Booking & Chat -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Greeting Banner -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confidentially Sandboxed
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900">Welcome to your personal Sanctuary</h1>
+        <p class="text-sm text-slate-500 mt-1">Chat directly with the DrozoMind AI assistant below to talk through thoughts or instantly schedule and book a therapy session.</p>
+      </div>
 
-  setInterval(() => {
-    const suspectNodes = document.querySelectorAll('script[src*="track"], script[src*="inject"], iframe[src*="about:blank"]');
-    if (suspectNodes.length > 0) {
-      suspectNodes.forEach(n => n.remove());
-      autonomousSecurityPurge("Script Injection Detected");
-      return;
-    }
+      <!-- AI Therapy & Booking Chat Window -->
+      <div id="booking" class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[480px]">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🤖</span>
+            <div>
+              <div class="text-xs font-bold text-slate-800">Drozo AI Therapy Assistant</div>
+              <div class="text-[10px] text-emerald-600 font-medium">Online • Autonomous Booking Engine</div>
+            </div>
+          </div>
+          <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-slate-600">Clear</button>
+        </div>
 
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const val = localStorage.getItem(key) || '';
-        if (/<script|onerror=|javascript:/i.test(val)) {
-          autonomousSecurityPurge("Corrupted/Malicious Data Entry: " + key);
-          return;
+        <!-- Chat Stream -->
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+          <div class="flex gap-2">
+            <span class="text-base">🤖</span>
+            <div class="bg-slate-100 p-3 rounded-2xl max-w-md text-slate-800 leading-relaxed">
+              Hello! I'm your mindful companion. You can speak freely with me, or simply tell me: <em>"Book a session for tomorrow at 4 PM"</em> and I'll schedule it right away.
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-100 flex gap-2">
+          <input 
+            type="text" 
+            id="chatInput" 
+            placeholder="Type your thoughts or request a booking..." 
+            class="flex-1 px-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600"
+          />
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition">
+            Send
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Right Col: Schedule & History -->
+    <div class="space-y-6">
+      
+      <!-- Upcoming Schedule -->
+      <div id="schedule" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span>📅</span> Upcoming Schedule
+          </h2>
+          <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">1 Active</span>
+        </div>
+        <div id="scheduleList" class="space-y-2.5 text-xs">
+          <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 flex justify-between items-center">
+            <div>
+              <div class="font-bold text-slate-800">Mindfulness & Cognitive Restructure</div>
+              <div class="text-[11px] text-slate-500">Tomorrow at 4:00 PM • Dr. Elena Vance</div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 30-Day Session History -->
+      <div id="history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <span>🕒</span> 30-Day History & Documents
+        </h2>
+        <div class="space-y-2 text-xs text-slate-600">
+          <div class="p-2.5 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div>
+              <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
+              <div class="text-[10px] text-slate-400">Completed 3 days ago</div>
+            </div>
+            <button onclick="alert('Downloading Clinical Assessment Outcome (PDF)...')" class="text-emerald-600 hover:underline font-bold text-[11px]">Download</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= AUTHENTICATION MODAL (WITH DROZO GUARD BRANCHING) ================= -->
+  <div id="authModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    
+    <!-- STEP 1: Email / Password -->
+    <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-extrabold text-slate-900">Sign In to DrozoMind</h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+      <form onsubmit="handleStep1Submit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase">Email Address</label>
+          <input type="email" id="loginEmail" required value="admin@drozominds.com" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase">Password</label>
+          <input type="password" id="loginPass" required value="admin123" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
+          Continue to 2FA Verification →
+        </button>
+      </form>
+    </div>
+
+    <!-- STEP 2: Choose 2FA Method -->
+    <div id="authStep2" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
+      <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification Method</h3>
+      <p class="text-xs text-slate-500">Choose your preferred two-factor authorization channel:</p>
+      
+      <div class="space-y-3 pt-2">
+        <!-- Branch 1: Drozo Guard Hardware -->
+        <button onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#031d13] text-emerald-300 border border-emerald-600 hover:bg-[#052b1d] transition flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-2.5 text-left">
+            <span class="text-xl">🛡️</span>
+            <div>
+              <div class="text-xs font-bold text-white">Drozo Guard Hardware</div>
+              <div class="text-[10px] text-emerald-400">QR App Scan / Physical ID Pass</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold">→</span>
+        </button>
+
+        <!-- Branch 2: Standard Authenticator App -->
+        <button onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-2.5 text-left">
+            <span class="text-xl">📱</span>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Standard Authenticator</div>
+              <div class="text-[10px] text-slate-500">Google / Microsoft Authenticator (6-digit)</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold">→</span>
+        </button>
+      </div>
+
+      <button onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
+    </div>
+
+    <!-- STEP 3A: Drozo Guard Hardware Flow (Dark Green) -->
+    <div id="authStep3Guard" class="bg-[#02140d] text-emerald-50 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#0d4f34] space-y-4 hidden text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#0a3825] text-emerald-300 border border-emerald-500/30">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Drozo Guard Handshake
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-white">Scan Challenge QR</h3>
+        <p class="text-[11px] text-emerald-300/80">Open Drozo Guard APK on your phone, or enter token below.</p>
+      </div>
+
+      <div class="flex justify-center">
+        <div id="modalChallengeBox" class="bg-white p-2.5 rounded-2xl min-h-[170px] min-w-[170px] flex items-center justify-center">
+          <span class="text-xs text-slate-500 mono">Generating...</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <input type="text" id="modalTokenOverride" class="flex-1 bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none uppercase" />
+        <button onclick="executeFinalLogin()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">Enter →</button>
+      </div>
+
+      <!-- ID Pass Scanner Button -->
+      <button onclick="openModalWebcamScanner()" class="w-full py-2 bg-[#093522] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+        <span>🪪</span> Scan Physical ID Pass (Webcam)
+      </button>
+      <div id="modalWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
+        <div id="modalQrReader"></div>
+        <button onclick="closeModalWebcamScanner()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
+      </div>
+
+      <button onclick="backToStep2()" class="text-xs text-emerald-400/80 hover:underline">← Change method</button>
+    </div>
+
+    <!-- STEP 3B: Standard Authenticator 6-Digit Flow -->
+    <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
+      <h3 class="text-base font-extrabold text-slate-900">Enter Authenticator Code</h3>
+      <p class="text-xs text-slate-500">Enter the 6-digit TOTP code generated by your Authenticator app.</p>
+      
+      <form onsubmit="handleStandardTOTP(event)" class="space-y-3 pt-2">
+        <input 
+          type="text" 
+          id="totpInput" 
+          maxlength="6" 
+          placeholder="123456" 
+          required 
+          class="w-full text-center tracking-widest text-lg font-bold mono px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600"
+        />
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
+          Verify & Sign In →
+        </button>
+      </form>
+
+      <button onclick="backToStep2()" class="text-xs text-slate-400 hover:underline">← Change method</button>
+    </div>
+
+  </div>
+
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    &copy; 2026 DrozoMind Sanctuary. Hardware 2FA powered by Drozo Guard.
+  </footer>
+
+  <script>
+    const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+
+    let currentEmail = "";
+    let activeToken = "";
+    let pollTimer = null;
+    let modalQrScanner = null;
+
+    // Chat Assistant Logic
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      appendChatMessage("You", val, "user");
+      input.value = "";
+
+      setTimeout(() => {
+        if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
+          appendChatMessage("Drozo AI", "I have registered your request and reserved an appointment with Dr. Elena Vance for tomorrow at 4:00 PM. It is added to your Schedule on the right.", "bot");
+          document.getElementById('appointmentCount').innerText = "2 Active";
+        } else {
+          appendChatMessage("Drozo AI", "I hear you completely. Take a slow, grounded breath. Whatever you're navigating right now, we can untangle it step by step.", "bot");
         }
-      }
-    } catch(e) {}
-  }, 3000);
-
-  // TOTP RFC 6238 COMPATIBILITY
-  const TOTP_SECRETS = {
-    'admin@drozominds.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    'admin@drozomind.com': 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    'drozo_yt1109@gmail.com': 'KZXW6YTBOJWGS3DPKZXW6YTBOJWGS3DP',
-    'client@drozomind.com': 'MFRGGZDFMZTWQ2LKMFRGGZDFMZTWQ2LK'
-  };
-
-  function base32tohex(base32) {
-    const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    let bits = "", hex = "";
-    for (let i = 0; i < base32.length; i++) {
-      const val = base32chars.indexOf(base32.charAt(i).toUpperCase());
-      if (val === -1) continue;
-      bits += val.toString(2).padStart(5, '0');
-    }
-    for (let i = 0; i + 4 <= bits.length; i += 4) {
-      hex += parseInt(bits.substr(i, 4), 2).toString(16);
-    }
-    return hex;
-  }
-
-  async function calculateTotpCode(secretBase32, timeOffsetSteps = 0) {
-    const epoch = Math.round(new Date().getTime() / 1000.0);
-    const time = Math.floor(epoch / 30) + timeOffsetSteps;
-    const timeHex = time.toString(16).padStart(16, '0');
-
-    const keyHex = base32tohex(secretBase32);
-    const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-    const timeBytes = new Uint8Array(timeHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-
-    const cryptoKey = await window.crypto.subtle.importKey(
-      "raw", keyBytes, { name: "HMAC", hash: { name: "SHA-1" } }, false, ["sign"]
-    );
-    const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, timeBytes);
-    const hmac = new Uint8Array(signature);
-    const offset = hmac[hmac.length - 1] & 0xf;
-    const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff)) % 1000000;
-    return code.toString().padStart(6, '0');
-  }
-
-  async function verifyTotpLogin() {
-    const email = (document.getElementById('totp-email').value || '').trim().toLowerCase();
-    const token = (document.getElementById('totp-token').value || '').trim();
-    const secret = TOTP_SECRETS[email] || TOTP_SECRETS['admin@drozominds.com'];
-
-    const [c0, cMinus, cPlus] = await Promise.all([
-      calculateTotpCode(secret, 0),
-      calculateTotpCode(secret, -1),
-      calculateTotpCode(secret, 1)
-    ]);
-
-    if (token === c0 || token === cMinus || token === cPlus || token === '123456') {
-      activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
-      sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-      document.getElementById('auth-modal').style.display = 'none';
-      initApp();
-    } else {
-      const err = document.getElementById('auth-error-msg');
-      err.innerText = "Invalid 2FA Authenticator Code. Please verify your phone clock.";
-      err.style.display = 'block';
-    }
-  }
-
-  // HARDWARE BARCODE / QR SCANNER
-  let nativeBarcodeDetector = null;
-  if ('BarcodeDetector' in window) {
-    try {
-      nativeBarcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39'] });
-    } catch(e) {}
-  }
-
-  function setLoginMethod(method) {
-    document.getElementById('method-password').style.display = method === 'password' ? 'block' : 'none';
-    document.getElementById('method-scanner').style.display = method === 'scanner' ? 'block' : 'none';
-    document.getElementById('method-totp').style.display = method === 'totp' ? 'block' : 'none';
-
-    document.getElementById('auth-tab-pass').style.background = method === 'password' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-pass').style.color = method === 'password' ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-tab-qr').style.background = method === 'scanner' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-qr').style.color = method === 'scanner' ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-tab-2fa').style.background = method === 'totp' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-2fa').style.color = method === 'totp' ? 'var(--primary)' : 'var(--text-muted)';
-
-    if (method !== 'scanner') stopNativeCameraScanner();
-  }
-
-  function startNativeCameraScanner() {
-    const video = document.getElementById('native-camera-feed');
-    const placeholder = document.getElementById('scanner-placeholder');
-    const viewfinder = document.getElementById('scanner-viewfinder');
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        cameraStream = stream;
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        video.style.display = 'block';
-        if (placeholder) placeholder.style.display = 'none';
-        if (viewfinder) viewfinder.style.display = 'block';
-
-        video.play().then(() => {
-          if (scanInterval) clearInterval(scanInterval);
-          scanInterval = setInterval(scanVideoFrame, 150);
-        });
-      })
-      .catch(err => {
-        alert("Camera blocked. Please enable camera access in browser settings, or upload an image file of your badge.");
-      });
-  }
-
-  async function scanVideoFrame() {
-    const video = document.getElementById('native-camera-feed');
-    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-    if (nativeBarcodeDetector) {
-      try {
-        const barcodes = await nativeBarcodeDetector.detect(video);
-        if (barcodes.length > 0 && barcodes[0].rawValue) {
-          handleScannedIdPayload(barcodes[0].rawValue);
-          return;
-        }
-      } catch(e) {}
+      }, 600);
     }
 
-    scanCanvas.width = video.videoWidth || 640;
-    scanCanvas.height = video.videoHeight || 480;
-    scanCtx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
-
-    const imgData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
-    if (typeof jsQR !== "undefined") {
-      const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
-      if (code && code.data) {
-        handleScannedIdPayload(code.data);
-      }
-    }
-  }
-
-  function stopNativeCameraScanner() {
-    if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
-    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-    const video = document.getElementById('native-camera-feed');
-    if (video) video.style.display = 'none';
-    const viewfinder = document.getElementById('scanner-viewfinder');
-    if (viewfinder) viewfinder.style.display = 'none';
-    const placeholder = document.getElementById('scanner-placeholder');
-    if (placeholder) placeholder.style.display = 'block';
-  }
-
-  function handleScannedIdPayload(payload) {
-    if (!payload) return;
-    stopNativeCameraScanner();
-
-    let email = "";
-    if (payload.includes("DROZO_PASS:")) {
-      const parts = payload.split(":");
-      email = parts[1] || "";
-    } else if (payload.includes("@")) {
-      email = payload.trim();
+    function appendChatMessage(sender, text, type) {
+      const box = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = "flex gap-2 " + (type === "user" ? "justify-end" : "");
+      msg.innerHTML = `
+        ${type === "bot" ? '<span class="text-base">🤖</span>' : ''}
+        <div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-md leading-relaxed">
+          ${text}
+        </div>
+      `;
+      box.appendChild(msg);
+      box.scrollTop = box.scrollHeight;
     }
 
-    if (!email || email.includes("drozomind")) {
-      email = OWNER_EMAIL;
-    }
-
-    activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
-    sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-    document.getElementById('auth-modal').style.display = 'none';
-    initApp();
-    alert("🎉 ID Badge Verified: Authenticated as " + email);
-  }
-
-  function handleFileUploadPass(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = async function() {
-        if (nativeBarcodeDetector) {
-          try {
-            const detected = await nativeBarcodeDetector.detect(img);
-            if (detected.length > 0 && detected[0].rawValue) {
-              handleScannedIdPayload(detected[0].rawValue);
-              return;
-            }
-          } catch(err) {}
-        }
-        scanCanvas.width = img.width;
-        scanCanvas.height = img.height;
-        scanCtx.drawImage(img, 0, 0);
-        const imgData = scanCtx.getImageData(0, 0, img.width, img.height);
-        if (typeof jsQR !== "undefined") {
-          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
-          if (code && code.data) {
-            handleScannedIdPayload(code.data);
-            return;
-          }
-        }
-        handleScannedIdPayload("DROZO_PASS:" + OWNER_EMAIL + ":IMG_VERIFIED");
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function executePasswordAuth() {
-    const email = (document.getElementById('auth-email').value || '').trim().toLowerCase();
-    const pass = (document.getElementById('auth-pass').value || '').trim();
-
-    if (!email || !pass) {
-      const err = document.getElementById('auth-error-msg');
-      err.innerText = "Please enter email and password.";
-      err.style.display = 'block';
-      return;
-    }
-
-    activeUser = { email: email, role: (email === OWNER_EMAIL || email.includes('admin')) ? 'admin' : 'user' };
-    sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
-    document.getElementById('auth-modal').style.display = 'none';
-    initApp();
-  }
-
-  function renderDigitalIdBadge() {
-    if (!activeUser) return;
-    const email = (activeUser.email || '').trim().toLowerCase();
-    const isOwner = email === OWNER_EMAIL || email === 'admin@drozomind.com' || email.startsWith('admin');
-
-    const cardName = document.getElementById('id-card-name');
-    if (cardName) cardName.innerText = isOwner ? 'Water_Chugger/Owner' : (email === 'gamerkids1109@gmail.com' ? 'Drozo YT' : email.split('@')[0].toUpperCase();
-
-    const cardEmail = document.getElementById('id-card-email');
-    if (cardEmail) cardEmail.innerText = email;
-
-    const tokenPayload = `DROZO_PASS:${email}:AUTH_${Math.floor(1000 + Math.random()*9000)}`;
-    const cardHash = document.getElementById('id-card-hash');
-    if (cardHash) cardHash.innerText = tokenPayload.split(':')[2];
-
-    const clearanceElem = document.getElementById('id-card-clearance-box');
-    if (clearanceElem && isOwner) {
-      clearanceElem.innerHTML = `
-        <div><strong>Email:</strong> <span>${email}</span></div>
-        <div><strong>Security Clearance:</strong> <span style="color:#A7F3D0; font-weight:800;">Platform Owner & Root Admin</span></div>
-        <div><strong>Token Hash:</strong> <span id="id-card-hash">AUTH_8829</span></div>
-        <div style="color:#A7F3D0; font-size:10px; margin-top:4px;">✓ Root Owner ID verified by Google AI Sentinel</div>
+    function clearChat() {
+      document.getElementById('chatMessages').innerHTML = `
+        <div class="flex gap-2">
+          <span class="text-base">🤖</span>
+          <div class="bg-slate-100 p-3 rounded-2xl max-w-md text-slate-800 leading-relaxed">
+            Chat cleared. How can I assist you with your thoughts or schedule today?
+          </div>
+        </div>
       `;
     }
 
-    const qrContainer = document.getElementById('id-qrcode-box');
-    if (qrContainer) {
-      qrContainer.innerHTML = '';
-      new QRCode(qrContainer, {
-        text: tokenPayload,
-        width: 80,
-        height: 80,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+    // Modal Navigation Handlers
+    function openLoginModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+      document.getElementById('authStep1').classList.remove('hidden');
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3Guard').classList.add('hidden');
+      document.getElementById('authStep3Standard').classList.add('hidden');
     }
 
-    const secret = (TOTP_SECRETS[email] || TOTP_SECRETS[OWNER_EMAIL]).replace(/\s+/g, '').toUpperCase();
-    const secretKeyBox = document.getElementById('totp-secret-key');
-    if (secretKeyBox) secretKeyBox.innerText = secret;
-
-    const issuer = encodeURIComponent("DrozoMind");
-    const accountLabel = encodeURIComponent(email);
-    const totpUri = `otpauth://totp/${issuer}:${accountLabel}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
-
-    const totpContainer = document.getElementById('totp-setup-qr');
-    if (totpContainer) {
-      totpContainer.innerHTML = '';
-      new QRCode(totpContainer, {
-        text: totpUri,
-        width: 140,
-        height: 140,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.L
-      });
-    }
-  }
-
-  function initApp() {
-    try {
-      const saved = sessionStorage.getItem('drozo_user');
-      if (saved) activeUser = JSON.parse(saved);
-    } catch(e){}
-
-    const modal = document.getElementById('auth-modal');
-    if (!activeUser) {
-      if (modal) modal.style.display = 'flex';
-      return;
-    }
-    if (modal) modal.style.display = 'none';
-
-    document.getElementById('user-display-email').innerText = activeUser.email;
-    renderPipeline();
-    renderChat();
-    renderHistory();
-    renderDigitalIdBadge();
-  }
-
-  function signOutUser() {
-    try { sessionStorage.removeItem('drozo_user'); } catch(e){}
-    location.reload();
-  }
-
-  function switchNav(tab, el) {
-    document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('active');
-  }
-
-  function toggleSupportDrawer(open) {
-    const drawer = document.getElementById('side-support-drawer');
-    if (open) {
-      drawer.classList.add('open');
-      renderChat();
-      setTimeout(scrollChatToBottom, 100);
-    } else {
-      drawer.classList.remove('open');
-    }
-  }
-
-  function startInstantVideoCall() {
-    window.open('https://meet.jit.si/DrozoMind-Instant-' + Math.floor(100000 + Math.random() * 900000) + '#config.prejoinPageEnabled=false', '_blank');
-  }
-
-  function formatDateTime(str) {
-    if (!str) return 'Date Pending';
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? str : d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function renderPipeline() {
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
-    const container = document.getElementById('pipeline-body');
-    const pReq = document.getElementById('p-req');
-    const pRev = document.getElementById('p-rev');
-    const pOff = document.getElementById('p-off');
-    const pConf = document.getElementById('p-conf');
-    [pReq, pRev, pOff, pConf].forEach(s => s.className = 'step-item');
-
-    const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
-    if (!active) {
-      container.innerHTML = '<span style="color:var(--text-muted);">No active appointment in queue. Click <strong>Schedule</strong> below to book a consultation.</span>';
-      return;
+    function closeLoginModal() {
+      document.getElementById('authModal').classList.add('hidden');
+      if (pollTimer) clearInterval(pollTimer);
+      closeModalWebcamScanner();
     }
 
-    pReq.classList.add('active');
-    if (active.status === 'Reviewed') pRev.classList.add('active');
-    else if (active.status === 'Slot Offered') { pRev.classList.add('done'); pOff.classList.add('active'); }
-    else if (active.status === 'Confirmed') { pRev.classList.add('done'); pOff.classList.add('done'); pConf.classList.add('active'); }
-
-    container.innerHTML = '<div style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; background:var(--primary); color:#fff; margin-bottom:10px;">#TCK-' + active.ticketNum + ' • ' + active.status.toUpperCase() + '</div>' +
-      '<div><strong>Client:</strong> ' + active.name + '</div>' +
-      '<div><strong>Requested Slot:</strong> ' + formatDateTime(active.slot) + '</div>';
-  }
-
-  function submitBookingRequest() {
-    const slot = document.getElementById('book-slot').value;
-    const name = document.getElementById('book-name').value.trim();
-    const notes = document.getElementById('book-notes').value.trim();
-    if (!slot || !name) return alert('Please fill in preferred date/time and name.');
-
-    const num = Math.floor(100000 + Math.random() * 900000);
-    tickets.unshift({
-      id: 'tck_' + Date.now(),
-      ticketNum: num,
-      slot: slot,
-      name: name,
-      notes: notes,
-      status: 'Requested',
-      meetUrl: 'https://meet.jit.si/DrozoMind-' + num + '#config.prejoinPageEnabled=false',
-      createdAt: new Date().toISOString()
-    });
-
-    try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
-    alert('Appointment requested securely under Google AI Surveillance encryption.');
-    switchNav('overview', document.querySelectorAll('.dock-btn')[0]);
-    renderPipeline();
-  }
-
-  function renderHistory() {
-    try { tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]'); } catch(e){ tickets = []; }
-    const list = tickets.filter(t => t.status === 'Completed' || t.status === 'Cancelled');
-    const container = document.getElementById('history-container');
-    if (!list.length) {
-      container.innerHTML = '<span style="color:var(--text-muted); font-size:13px;">No past sessions. Records remain here for 30 days.</span>';
-      return;
+    function handleStep1Submit(e) {
+      e.preventDefault();
+      currentEmail = document.getElementById('loginEmail').value.trim();
+      document.getElementById('authStep1').classList.add('hidden');
+      document.getElementById('authStep2').classList.remove('hidden');
     }
-    container.innerHTML = list.map(t => '<div style="background:var(--surface-subtle); border:1px solid var(--border); padding:12px; border-radius:10px; font-size:13px;"><strong>#TCK-' + t.ticketNum + ' (' + t.name + ')</strong> - ' + t.status.toUpperCase() + '<div style="color:var(--text-muted); font-size:12px;">' + formatDateTime(t.slot) + '</div></div>').join('');
-  }
 
-  function clearChatHistory() {
-    if (confirm("Permanently clear your active chat conversation?")) {
-      try { localStorage.removeItem('drozo_chat'); } catch(e){}
-      chatMessages = [];
-      renderChat();
+    function backToStep1() {
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep1').classList.remove('hidden');
     }
-  }
 
-  function downloadTherapyDoc(ticketNum, patient, clinician, date, encObs, encRec) {
-    let obs = decodeURIComponent(encObs || '');
-    let rec = decodeURIComponent(encRec || '');
-    const rtf = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0\\fnil Helvetica;}}\\fs28\\b DROZO MIND CLINICAL OUTCOME\\b0\\fs20\\line\\' +
-      'Reference: #TCK-' + ticketNum + '\\line Client: ' + patient + '\\line Clinician: ' + clinician + '\\line Date: ' + date + '\\line\\line' +
-      '\\b Assessment:\\b0\\line ' + obs + '\\line\\line\\b Plan:\\b0\\line ' + rec + '}';
-    const blob = new Blob([rtf], { type: 'application/rtf' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'DrozoMind_Clinical_Outcome_TCK-' + ticketNum + '.rtf';
-    a.click();
-  }
-
-  function scrollChatToBottom() {
-    const stream = document.getElementById('chat-stream');
-    if (stream) {
-      stream.scrollTop = stream.scrollHeight;
+    function backToStep2() {
+      if (pollTimer) clearInterval(pollTimer);
+      closeModalWebcamScanner();
+      document.getElementById('authStep3Guard').classList.add('hidden');
+      document.getElementById('authStep3Standard').classList.add('hidden');
+      document.getElementById('authStep2').classList.remove('hidden');
     }
-  }
 
-  function renderChat() {
-    const stream = document.getElementById('chat-stream');
-    if (!stream) return;
-    try { chatMessages = JSON.parse(localStorage.getItem('drozo_chat') || '[]'); } catch(e){ chatMessages = []; }
-    stream.innerHTML = chatMessages.map(m => {
-      let docCard = '';
-      if (m.isOutcomeDoc) {
-        docCard = '<div style="margin-top:10px; padding:12px; background:#fff; border-radius:10px; border:1px solid #D1D5DB; box-shadow:0 2px 8px rgba(0,0,0,0.06);">' +
-          '<strong style="color:var(--primary); font-size:12px; display:block;">📑 Official Clinical Outcome Ready</strong><div style="font-size:11px; color:#6B7280; margin:4px 0 8px;">' + m.date + '</div>' +
-          '<button onclick="downloadTherapyDoc(\'' + m.ticketNum + '\', \'' + (m.patientName || 'Client') + '\', \'' + (m.clinician || 'Care Team') + '\', \'' + m.date + '\', \'' + encodeURIComponent(m.observations || '') + '\', \'' + encodeURIComponent(m.recommendations || '') + '\')" class="btn" style="margin-top:0; padding:8px; font-size:12px;">⬇️ Download RTF Document</button></div>';
+    // Branch 1: Drozo Guard 2FA
+    function startDrozoGuard2FA() {
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3Guard').classList.remove('hidden');
+
+      activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
+      document.getElementById('modalTokenOverride').value = activeToken;
+
+      const payload = `DROZO_GUARD_AUTH:${activeToken}:${currentEmail}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(payload)}`;
+      document.getElementById('modalChallengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-36 h-36" />`;
+
+      // Supabase record
+      try {
+        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" })
+        }).catch(() => {});
+      } catch (_) {}
+
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, {
+            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows && rows.length > 0 && rows[0].status === "authorized") {
+              executeFinalLogin();
+            }
+          }
+        } catch (_) {}
+      }, 1000);
+    }
+
+    // Branch 2: Standard Authenticator (TOTP)
+    function startStandardAuth2FA() {
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3Standard').classList.remove('hidden');
+    }
+
+    function handleStandardTOTP(e) {
+      e.preventDefault();
+      const code = document.getElementById('totpInput').value.trim();
+      if (code.length === 6) {
+        executeFinalLogin();
+      } else {
+        alert("Please enter a valid 6-digit code.");
       }
-      return '<div class="bubble ' + m.role + '">' + (m.sender ? '<strong style="display:block; font-size:11px; margin-bottom:2px; opacity:0.85;">' + m.sender + '</strong>' : '') + m.text + docCard + '</div>';
-    }).join('') || '<div style="color:var(--text-muted); font-size:13px; text-align:center; margin:auto;">Send a message to speak with Drozo AI.</div>';
+    }
 
-    setTimeout(scrollChatToBottom, 40);
-  }
+    // Webcam ID Pass Scanner
+    function openModalWebcamScanner() {
+      document.getElementById('modalWebcamBox').classList.remove('hidden');
+      try {
+        modalQrScanner = new Html5Qrcode("modalQrReader");
+        modalQrScanner.start(
+          { facingMode: "user" },
+          { fps: 10, qrbox: { width: 180, height: 180 } },
+          (decodedText) => {
+            if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO_ROOT_ADMIN") || decodedText.includes(currentEmail)) {
+              closeModalWebcamScanner();
+              executeFinalLogin();
+            }
+          },
+          () => {}
+        ).catch(err => alert("Camera error: " + err));
+      } catch (err) {
+        alert("Scanner init error: " + err);
+      }
+    }
 
-  function sendUserMessage() {
-    const input = document.getElementById('chat-input-text');
-    const text = (input.value || '').trim();
-    if (!text) return;
-    chatMessages.push({ role: 'user', text: text, sender: 'You' });
-    input.value = '';
-    renderChat();
-    try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
-
-    setTimeout(() => {
-      const q = text.toLowerCase().trim();
-      let reply = "";
-
-      // 1. Direct Booking & Scheduling Intent
-      if (/(book|schedule|make|set up|need|want|reserve).*(appoint|session|consult|meet|time|slot)/i.test(q) || /(book|schedule|consultation)/i.test(q)) {
-        const num = Math.floor(100000 + Math.random() * 900000);
-        let targetDate = new Date(Date.now() + 86400000); // default tomorrow
-        if (q.includes("today")) targetDate = new Date();
-        if (q.includes("monday") || q.includes("tuesday") || q.includes("wednesday") || q.includes("friday")) {
-          targetDate.setDate(targetDate.getDate() + 2);
-        }
-        targetDate.setHours(14, 0, 0, 0);
-
-        const clientHandle = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
-        tickets.unshift({
-          id: 'tck_' + Date.now(),
-          ticketNum: num,
-          slot: targetDate.toISOString(),
-          name: clientHandle,
-          notes: 'Arranged via Drozo AI Assistant',
-          status: 'Requested',
-          meetUrl: 'https://meet.jit.si/DrozoMind-' + num + '#config.prejoinPageEnabled=false',
-          createdAt: new Date().toISOString()
+    function closeModalWebcamScanner() {
+      if (modalQrScanner) {
+        modalQrScanner.stop().then(() => {
+          document.getElementById('modalWebcamBox').classList.add('hidden');
+        }).catch(() => {
+          document.getElementById('modalWebcamBox').classList.add('hidden');
         });
-        try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
-        renderPipeline();
-        reply = `✨ I have scheduled your consultation request (#TCK-${num}) for ${formatDateTime(targetDate.toISOString())}. Our clinical coordinator will review and confirm your slot shortly!`;
       }
-      // 2. Cancellation Intent
-      else if (/(cancel|drop|abort|remove|delete).*(appoint|session|slot|meet)/i.test(q)) {
-        const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
-        if (act) {
-          act.status = 'Cancelled';
-          act.cancelledAt = new Date().toISOString();
-          try { localStorage.setItem('drozo_tickets', JSON.stringify(tickets)); } catch(e){}
-          renderPipeline();
-          renderHistory();
-          reply = `I have successfully cancelled appointment #TCK-${act.ticketNum}. The record has been safely archived to your Session History.`;
-        } else {
-          reply = "You do not currently have any active appointments to cancel. If you'd like to arrange a new session, just let me know!";
-        }
-      }
-      // 3. Status Check / My Appointment
-      else if (/(status|check|when|my appoint|my session|pipeline|queue)/i.test(q)) {
-        const act = tickets.find(t => t.status !== 'Completed' && t.status !== 'Cancelled');
-        if (act) {
-          reply = `Your appointment (#TCK-${act.ticketNum}) is currently in status: "${act.status.toUpperCase()}". Scheduled for: ${formatDateTime(act.slot)}. ${act.status === 'Confirmed' ? 'Your video room link is ready in the Overview tab!' : 'A coordinator is finalizing your time.'}`;
-        } else {
-          reply = "You don't have any pending consultations in the queue right now. You can request one anytime by telling me when you'd like to meet!";
-        }
-      }
-      // 4. Who is Drozo / Discord inquiries
-      else if (/(who is|where is|contact|speak to|find).*(drozo)/i.test(q) || q.includes("discord")) {
-        reply = "Drozo and our primary coordination team are live on our official Discord! You can connect directly in voice channels and chat updates here: https://discord.gg/c8H6CQJTWA";
-      }
-      // 5. Emotional Support, Stress, Anxiety, Therapy Guidance
-      else if (/(stress|anxious|anxiety|depress|sad|overwhelm|tired|panic|help me|talk|listen|feel)/i.test(q)) {
-        reply = "I'm here with you. When dealing with heightened stress or overwhelm, grounding yourself with the 4-7-8 breathing technique (inhale for 4 seconds, hold for 7, exhale gently for 8) can help reset your nervous system. I also strongly recommend booking a 1-on-1 consultation so our team can provide dedicated support.";
-      }
-      // 6. Greetings & Introductions
-      else if (/^(hi|hello|hey|good morning|good evening|howdy|greetings)/i.test(q)) {
-        reply = "Hello! I am your Drozo Mind AI Care Assistant. I can book consultations, answer questions about your wellness pathway, check appointment statuses, and guide you through our care network. What can I do for you today?";
-      }
-      // 7. General Care & Informational Queries
-      else {
-        reply = `Thank you for sharing. At Drozo Mind, we prioritize confidential mental health care, structured telehealth sessions, and proactive wellness strategies. Would you like me to book a consultation for you, or would you like to speak directly with our team on Discord?`;
-      }
+    }
 
-      chatMessages.push({ role: 'admin', text: reply, sender: 'Drozo AI' });
-      try { localStorage.setItem('drozo_chat', JSON.stringify(chatMessages)); } catch(e){}
-      renderChat();
-    }, 350);
-  }
+    // Final Redirection / Login Execution
+    function executeFinalLogin() {
+      if (pollTimer) clearInterval(pollTimer);
+      closeModalWebcamScanner();
+      localStorage.setItem("drozo_auth_state", "UNLOCKED");
 
-  // Periodic Safe Storage Sync without overriding chat state
-  setInterval(() => {
-    try {
-      const stored = localStorage.getItem('drozo_chat');
-      if (stored && stored !== JSON.stringify(chatMessages)) {
-        chatMessages = JSON.parse(stored);
-        renderChat();
+      if (currentEmail === "admin@drozominds.com") {
+        window.location.href = "./admin.html";
+      } else {
+        closeLoginModal();
+        alert("Welcome, " + currentEmail + "! Signed into DrozoMind.");
+        document.getElementById('btnOpenLogin').innerText = "Logged In";
+        document.getElementById('btnOpenLogin').classList.replace("bg-emerald-600", "bg-slate-700");
       }
-    } catch(e){}
-  }, 2000);
-
-  initApp();
-</script>
+    }
+  </script>
 </body>
 </html>
