@@ -122,6 +122,74 @@
     }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+  
+    /* Floating Side Call Button */
+    .floating-call-btn {
+      position: fixed;
+      right: 20px;
+      bottom: 95px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 10px 25px rgba(27, 77, 62, 0.35);
+      border: 2px solid #fff;
+      cursor: pointer;
+      z-index: 400;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .floating-call-btn:hover {
+      transform: scale(1.08);
+      background: var(--primary-hover);
+    }
+    .floating-call-btn::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #10B981;
+      border: 2px solid #fff;
+    }
+
+    /* Side Support Modal / Drawer */
+    .support-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 600;
+      display: none;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 16px;
+    }
+    .support-modal-overlay.open {
+      display: flex;
+    }
+    .support-modal-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
   </style>
 </head>
 <body>
@@ -165,6 +233,56 @@
       <span class="status-pill">Active Care</span>
     </div>
   </header>
+
+  
+<!-- Floating Side Call / Support Trigger -->
+<div class="floating-call-btn" onclick="toggleSupportDrawer(true)" title="Instant Care & AI Coordinator">
+  📞
+</div>
+
+<!-- Side Support & Call Console -->
+<div id="side-support-drawer" class="support-modal-overlay" onclick="if(event.target===this) toggleSupportDrawer(false)">
+  <div class="support-modal-panel">
+    <div style="background:var(--primary); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:22px;">🌿</span>
+        <div>
+          <strong style="font-size:15px; display:block;">Drozo Mind Direct Care</strong>
+          <span style="font-size:11px; opacity:0.85;">AI Assistant & Immediate Call Hub</span>
+        </div>
+      </div>
+      <button onclick="toggleSupportDrawer(false)" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <!-- Quick Call Options on Top -->
+    <div style="padding:14px; background:var(--surface-subtle); border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button onclick="startInstantVideoCall()" class="btn" style="margin-top:0; padding:10px; font-size:12px; background:var(--primary);">
+        📹 Start Video Call
+      </button>
+      <a href="https://discord.gg/c8H6CQJTWA" target="_blank" class="btn btn-discord" style="margin-top:0; padding:10px; font-size:12px; text-decoration:none;">
+        💬 Discord Voice
+      </a>
+    </div>
+
+    <!-- AI Conversational Action Engine -->
+    <div style="padding:14px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Drozo AI Care Assistant</span>
+        <div style="display:flex; gap:6px;">
+          <button onclick="promptApiKey()" style="background:var(--primary-light); color:var(--primary); border:1px solid var(--accent-subtle); padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">⚙️ API Key</button>
+          <button onclick="clearChatHistory()" style="background:var(--danger-bg); color:var(--danger); border:1px solid #FECACA; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">🗑️ Clear</button>
+        </div>
+      </div>
+
+      <div class="chat-container" id="chat-stream" style="flex:1; height:320px;"></div>
+
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <input type="text" id="chat-input-text" placeholder="Type or ask AI: 'Book 4pm tomorrow' or 'Cancel appointment'..." onkeydown="if(event.key==='Enter') sendUserMessage()" style="font-size:13px; padding:10px;">
+        <button class="btn" style="width:75px; margin-top:0; padding:10px;" onclick="sendUserMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- OVERVIEW TAB -->
   <div id="tab-overview" class="tab-content active">
@@ -258,12 +376,100 @@
 <nav class="bottom-dock">
   <button class="dock-btn active" onclick="switchNav('overview', this)">Overview</button>
   <button class="dock-btn" onclick="switchNav('book', this)">Schedule</button>
-  <button class="dock-btn" onclick="switchNav('chat', this)">Support</button>
   <button class="dock-btn" onclick="switchNav('history', this)">History</button>
   <button class="dock-btn" onclick="switchNav('profile', this)">Profile</button>
 </nav>
 
 <script>
+
+  // Drawer controls
+  function toggleSupportDrawer(open) {
+    const drawer = document.getElementById('side-support-drawer');
+    if (open) {
+      drawer.classList.add('open');
+      renderChat();
+    } else {
+      drawer.classList.remove('open');
+    }
+  }
+
+  function startInstantVideoCall() {
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+    const active = tickets.find(t => t.status === 'Confirmed');
+    if (active && active.meetUrl) {
+      window.open(active.meetUrl, '_blank');
+    } else {
+      const tempId = Math.floor(100000 + Math.random() * 900000);
+      window.open(`https://meet.jit.si/DrozoMind-Instant-${tempId}#config.prejoinPageEnabled=false`, '_blank');
+    }
+  }
+
+  // AI ACTION EXECUTOR: Can create, cancel, and inspect appointments directly from conversation
+  function executeAiIntent(query) {
+    const q = query.toLowerCase().trim();
+    tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
+
+    // ACTION 1: CANCEL CURRENT APPOINTMENT
+    if (/cancel|abort|delete|drop/.test(q) && /appoint|book|meet|session|slot/.test(q)) {
+      const activeIdx = tickets.findIndex(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
+      if (activeIdx !== -1) {
+        const cancelledTicket = tickets[activeIdx];
+        cancelledTicket.status = 'Cancelled';
+        cancelledTicket.cancelledAt = new Date().toISOString();
+        cancelledTicket.cancelReason = 'Cancelled via Drozo AI assistant';
+        localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+        renderPipeline();
+        renderHistory();
+        return `I have successfully cancelled your appointment (#TCK-${cancelledTicket.ticketNum}). It has been archived into your History tab for 30 days. Let me know if you would like to schedule a new one!`;
+      } else {
+        return "You do not have any active appointments to cancel right now. Click 'Schedule' or ask me to book a new one!";
+      }
+    }
+
+    // ACTION 2: BOOK / SCHEDULE APPOINTMENT VIA CHAT
+    if (/(book|schedule|make|set up|create)\s+(an\s+)?(appoint|meet|slot|consult|session)/.test(q)) {
+      // Determine slot date: default to tomorrow at 14:00 if not specified
+      let scheduledDate = new Date();
+      if (q.includes('tomorrow')) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      } else {
+        scheduledDate.setDate(scheduledDate.getDate() + 2);
+      }
+      scheduledDate.setHours(14, 0, 0, 0);
+
+      const ticketNum = Math.floor(100000 + Math.random() * 900000);
+      const userName = (activeUser && activeUser.email) ? activeUser.email.split('@')[0] : 'Valued Client';
+
+      const newTicket = {
+        id: 'tck_' + Date.now(),
+        ticketNum: ticketNum,
+        slot: scheduledDate.toISOString(),
+        name: userName,
+        notes: `Automated booking initiated via Drozo AI: "${query}"`,
+        status: 'Requested',
+        meetUrl: `https://meet.jit.si/DrozoMind-${ticketNum}#config.prejoinPageEnabled=false`,
+        createdAt: new Date().toISOString()
+      };
+
+      tickets.unshift(newTicket);
+      localStorage.setItem('drozo_tickets', JSON.stringify(tickets));
+      renderPipeline();
+      return `Done! I have created a new booking request for you (#TCK-${ticketNum}) for ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. Your coordinator has received it and it is now active in your Overview pipeline.`;
+    }
+
+    // ACTION 3: CHECK LIVE STATUS
+    if (/status|where is my|track|check my/.test(q)) {
+      const active = tickets.find(t => t.status !== 'Closed' && t.status !== 'Cancelled' && t.status !== 'Completed');
+      if (active) {
+        return `Your current appointment (#TCK-${active.ticketNum}) is in status: **${active.status.toUpperCase()}** for ${new Date(active.slot).toLocaleString()}.`;
+      } else {
+        return "You currently have no active appointments in the care pipeline. Would you like me to book one for you?";
+      }
+    }
+
+    return null; // No direct action; hand over to conversational engine
+  }
+
   let activeUser = JSON.parse(sessionStorage.getItem('drozo_active_session') || 'null');
   let authMode = 'login';
   let tickets = JSON.parse(localStorage.getItem('drozo_tickets') || '[]');
@@ -588,7 +794,7 @@ Client asks: "${userText}"` }]
 
   async function sendUserMessage() {
     const input = document.getElementById('chat-input-text');
-    const text = input.value.trim();
+    const text = (input.value || '').trim();
     if (!text) return;
 
     chatMessages.push({ role: 'user', text: text, sender: 'You' });
@@ -596,12 +802,24 @@ Client asks: "${userText}"` }]
     renderChat();
     localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
 
-    // Display temporary typing indicator
+    // 1. Check if the user command triggers an executable action (booking, cancelling, etc.)
+    const actionReply = executeAiIntent(text);
+    if (actionReply) {
+      setTimeout(() => {
+        chatMessages.push({ role: 'admin', text: actionReply, sender: 'Drozo AI' });
+        localStorage.setItem('drozo_chat', JSON.stringify(chatMessages));
+        if (typeof playAlertChime === 'function') playAlertChime('confirm');
+        renderChat();
+      }, 350);
+      return;
+    }
+
+    // 2. Otherwise query Gemini or standard Drozo knowledge base
     const stream = document.getElementById('chat-stream');
     const typingBubble = document.createElement('div');
     typingBubble.className = 'bubble admin';
     typingBubble.id = 'typing-indicator';
-    typingBubble.innerHTML = '<em style="font-size:11px; opacity:0.7;">Drozo AI is thinking...</em>';
+    typingBubble.innerHTML = '<em style="font-size:11px; opacity:0.7;">Drozo AI is assisting...</em>';
     stream.appendChild(typingBubble);
     stream.scrollTop = stream.scrollHeight;
 
