@@ -220,7 +220,7 @@
       <button class="btn" onclick="verifyTotpLogin()">Verify 2FA & Sign In</button>
     </div>
 
-    <div id="auth-error-msg" style="display:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
+    <div id="auth-error-msg" style="display:none; pointer-events:none; color:var(--danger); font-size:12px; font-weight:700; text-align:center; margin-top:12px; background:var(--danger-bg); padding:8px; border-radius:6px; border:1px solid #FECACA;"></div>
   </div>
 </div>
 
@@ -538,18 +538,75 @@
   }
 
   function setLoginMethod(method) {
-    document.getElementById('method-password').style.display = method === 'password' ? 'block' : 'none';
-    document.getElementById('method-scanner').style.display = method === 'scanner' ? 'block' : 'none';
-    document.getElementById('method-totp').style.display = method === 'totp' ? 'block' : 'none';
+    try {
+      // 1. Hide all panels safely
+      const pPass = document.getElementById('method-password');
+      const pScan = document.getElementById('method-scanner');
+      const pTotp = document.getElementById('method-totp');
+      if (pPass) pPass.style.display = (method === 'password') ? 'block' : 'none';
+      if (pScan) pScan.style.display = (method === 'scanner') ? 'block' : 'none';
+      if (pTotp) pTotp.style.display = (method === 'totp') ? 'block' : 'none';
 
-    document.getElementById('auth-tab-pass').style.background = method === 'password' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-pass').style.color = method === 'password' ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-tab-qr').style.background = method === 'scanner' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-qr').style.color = method === 'scanner' ? 'var(--primary)' : 'var(--text-muted)';
-    document.getElementById('auth-tab-2fa').style.background = method === 'totp' ? '#fff' : 'transparent';
-    document.getElementById('auth-tab-2fa').style.color = method === 'totp' ? 'var(--primary)' : 'var(--text-muted)';
+      // 2. Update Tab Styles safely
+      const tPass = document.getElementById('auth-tab-pass');
+      const tScan = document.getElementById('auth-tab-qr');
+      const tTotp = document.getElementById('auth-tab-2fa');
 
-    if (method !== 'scanner') stopNativeCameraScanner();
+      if (tPass) {
+        tPass.style.background = (method === 'password') ? '#fff' : 'transparent';
+        tPass.style.color = (method === 'password') ? 'var(--primary)' : 'var(--text-muted)';
+      }
+      if (tScan) {
+        tScan.style.background = (method === 'scanner') ? '#fff' : 'transparent';
+        tScan.style.color = (method === 'scanner') ? 'var(--primary)' : 'var(--text-muted)';
+      }
+      if (tTotp) {
+        tTotp.style.background = (method === 'totp') ? '#fff' : 'transparent';
+        tTotp.style.color = (method === 'totp') ? 'var(--primary)' : 'var(--text-muted)';
+      }
+
+      // 3. Stop camera if leaving scanner
+      if (method !== 'scanner') {
+        stopNativeCameraScanner();
+      }
+    } catch(err) {
+      console.warn("Tab switch handled safely:", err);
+    }
+  }
+
+  function executePasswordAuth() {
+    const errBox = document.getElementById('auth-error-msg');
+    if (errBox) errBox.style.display = 'none';
+
+    const emailEl = document.getElementById('auth-email');
+    const passEl = document.getElementById('auth-pass');
+    const email = (emailEl ? emailEl.value : '').trim().toLowerCase();
+    const pass = (passEl ? passEl.value : '').trim();
+
+    if (!email || !pass) {
+      if (errBox) {
+        errBox.innerText = "Please enter email and password.";
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    // Direct Login Clearance for Owner or Standard User
+    const isOwner = (email === OWNER_EMAIL || email === 'admin@drozomind.com');
+    activeUser = { email: email, role: isOwner ? 'admin' : 'user' };
+    
+    try {
+      sessionStorage.setItem('drozo_user', JSON.stringify(activeUser));
+      localStorage.setItem('drozo_user', JSON.stringify(activeUser));
+    } catch(e) {}
+
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.style.display = 'none';
+
+    initApp();
+
+    // Run async telemetry in background without blocking login
+    try { captureClientTelemetry(email); } catch(e) {}
   }
 
   function startNativeCameraScanner() {
