@@ -815,7 +815,7 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-    function startDrozoGuard2FA() {
+        function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStepOnboarding').classList.add('hidden');
@@ -853,7 +853,7 @@
         }
       }
 
-      // Handshake to Supabase
+      // Dispatch clean real-time session to Supabase with precise UTC timestamp
       try {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
@@ -892,8 +892,9 @@
           if (res.ok) {
             const rows = await res.json();
             if (rows && rows.length > 0) {
-              if (rows[0].status === "authorized") executeFinalLogin("drozo_guard");
-              else if (rows[0].status === "denied") {
+              if (rows[0].status === "authorized") {
+                executeFinalLogin("drozo_guard");
+              } else if (rows[0].status === "denied") {
                 clearInterval(pollTimer);
                 alert("Login request was denied on device.");
                 location.reload();

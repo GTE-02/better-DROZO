@@ -157,23 +157,26 @@
       }
     });
 
-    async function pollForPendingIncomingSessions() {
-      // Automatic polling only looks for requests created within the last 45 seconds
+        async function pollForPendingIncomingSessions() {
+      // Strictly poll for sessions created within the last 30 seconds
       setInterval(async () => {
-        if (activeSessionToken) return;
+        if (activeSessionToken) return; // Do not interrupt an active prompt
         try {
-          const freshTime = new Date(Date.now() - 45000).toISOString();
+          const freshTime = new Date(Date.now() - 30000).toISOString();
           const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&created_at=gte.${freshTime}&order=created_at.desc&limit=1`, {
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
           if (res.ok) {
             const rows = await res.json();
             if (rows && rows.length > 0) {
-              verifyAndShowChallenge(rows[0].session_token, rows[0].email);
+              const req = rows[0];
+              // Avoid re-triggering already handled sessions
+              if (sessionStorage.getItem("handled_" + req.session_token)) return;
+              verifyAndShowChallenge(req.session_token, req.email);
             }
           }
         } catch (_) {}
-      }, 3000);
+      }, 2000);
     }
 
     function verifyAndShowChallenge(token, email) {
