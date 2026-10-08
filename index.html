@@ -146,6 +146,13 @@
         <h3 class="text-lg font-extrabold text-slate-900 mt-2">Sign In to DrozoMind</h3>
         <p class="text-xs text-slate-500 mt-1">Please sign in to access your therapy sanctuary.</p>
       </div>
+      
+      <!-- Login vs Register Tab Switcher -->
+      <div class="flex border-b border-slate-200 mb-3">
+        <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600">Sign In</button>
+        <button type="button" id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600">New Client Register</button>
+      </div>
+
       <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-2">
         <div>
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Email Address</label>
@@ -155,7 +162,7 @@
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Password</label>
           <input type="password" id="loginPass" required value="admin123" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
+        <button type="submit" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
       </form>
     </div>
 
@@ -164,7 +171,7 @@
       <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification</h3>
       <p class="text-xs text-slate-500">Choose how you want to authorize:</p>
       <div class="space-y-3 pt-2">
-        <button onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm">
+        <button onclick="startDrozoGuard2FA()" id="btnGuardChoice" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">🛡️</span>
             <div><div class="text-xs font-bold text-white">Drozo Guard Mobile App</div><div class="text-[10px] text-sky-400">Scan QR via Phone & Approve/Deny</div></div>
@@ -235,7 +242,7 @@
 
       <div class="pt-1 flex items-center justify-between text-xs">
         <button onclick="backToStep2()" class="text-slate-400 hover:text-white transition">← Change method</button>
-        <button onclick="executeFinalLogin()" class="text-sky-400 hover:text-sky-300 font-bold mono">Bypass (Dev) →</button>
+        <button type="button" onclick="startWebcamIDPass()" class="text-sky-400 hover:text-sky-300 font-bold mono">Bypass (Dev) [Scan QR] →</button>
       </div>
     </div>
 
@@ -478,6 +485,30 @@
       document.getElementById('authStep3Standard').classList.add('hidden');
     }
 
+    
+    let authMode = "login";
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const lBtn = document.getElementById('tabLoginBtn');
+      const rBtn = document.getElementById('tabRegisterBtn');
+      const submitBtn = document.getElementById('btnSubmitStep1');
+      if (mode === 'register') {
+        lBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
+        rBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
+        submitBtn.innerText = "Register Account →";
+      } else {
+        rBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
+        lBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
+        submitBtn.innerText = "Continue to 2FA Verification →";
+      }
+    }
+
+    // Android Hardware Check
+    function isAndroidDevice() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
     function handleStep1Submit(e) {
       e.preventDefault();
       currentEmail = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -490,12 +521,39 @@
         "client@drozominds.com": "client123"
       };
 
-      const expectedPassword = storedPasswords[currentEmail] || defaultAccounts[currentEmail];
+      const defaultAccounts = {
+        "admin@drozominds.com": "admin123",
+        "gamerkids1109@gmail.com": "coordinator2026",
+        "client@drozominds.com": "client123"
+      };
 
-      if (!expectedPassword || enteredPass !== expectedPassword) {
-        alert("Access Denied: Incorrect password or email.");
-        document.getElementById('loginPass').value = "";
-        return;
+      if (authMode === "register") {
+        // New client registration: store password
+        storedPasswords[currentEmail] = enteredPass;
+        localStorage.setItem("drozo_custom_passwords", JSON.stringify(storedPasswords));
+        localStorage.setItem("drozo_new_user_" + currentEmail, "true");
+        alert("Account registered successfully! Redirecting to set up your 2FA authentication.");
+      } else {
+        const expectedPassword = storedPasswords[currentEmail] || defaultAccounts[currentEmail];
+        if (!expectedPassword || enteredPass !== expectedPassword) {
+          alert("Access Denied: Incorrect password or email.");
+          document.getElementById('loginPass').value = "";
+          return;
+        }
+      }
+
+      // Check if user is on Android for Drozo Guard availability
+      const guardChoiceBtn = document.getElementById('btnGuardChoice');
+      const isAndroid = isAndroidDevice();
+      if (guardChoiceBtn) {
+        if (!isAndroid && currentEmail !== "admin@drozominds.com" && currentEmail !== "gamerkids1109@gmail.com") {
+          // Hide or disable Drozo Guard on non-Android devices for general clients
+          guardChoiceBtn.classList.add('opacity-40', 'pointer-events-none');
+          guardChoiceBtn.querySelector('.drozo-guard-badge-note').innerText = "Drozo Guard APK is exclusively available on Android devices.";
+        } else {
+          guardChoiceBtn.classList.remove('opacity-40', 'pointer-events-none');
+          guardChoiceBtn.querySelector('.drozo-guard-badge-note').innerText = "QR App Scan & Approve / Deny";
+        }
       }
 
       document.getElementById('authStep1').classList.add('hidden');

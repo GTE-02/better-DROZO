@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Drozo Guard - Sign In Request</title>
+  <title>Drozo Guard - Mobile Security</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
@@ -12,6 +12,7 @@
       background-color: #0b1118;
       color: #e2e8f0;
       -webkit-font-smoothing: antialiased;
+      user-select: none;
     }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .map-grid {
@@ -23,18 +24,21 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-4">
 
-  <!-- Mobile Guard Screen Chassis (Exact Steam Guard Layout) -->
-  <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-between min-h-[620px]">
+  <!-- Mobile Guard Card Container -->
+  <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col justify-between min-h-[620px]">
     
+    <!-- Top Header Bar -->
     <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-[#182635]">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">🛡️</div>
-        <span class="text-xs font-black tracking-widest text-slate-300 uppercase">DROZO GUARD</span>
+        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">
+          🛡️
+        </div>
+        <span class="text-xs font-black tracking-widest text-slate-200 uppercase">DROZO GUARD</span>
       </div>
-      <span class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
-        LIVE LINK
+      <span class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
+        PROTECTED
       </span>
     </div>
 
@@ -53,8 +57,8 @@
             </div>
           </div>
           <div class="mt-2 bg-[#091118]/90 backdrop-blur-md px-3 py-1 rounded-full border border-[#1e3247] shadow-lg text-center">
-            <span class="text-xs font-bold text-white tracking-wide" id="guardCity">Dubai</span>
-            <span class="text-[10px] text-slate-400 block" id="guardCountry">United Arab Emirates</span>
+            <span class="text-xs font-bold text-white tracking-wide">Dubai</span>
+            <span class="text-[10px] text-slate-400 block">United Arab Emirates</span>
           </div>
         </div>
         
@@ -63,7 +67,7 @@
         </div>
       </div>
 
-      <!-- Requesting Account Details -->
+      <!-- Sign In Request Info -->
       <div class="bg-[#0b131c] border border-[#1b2a3a] rounded-2xl p-4 space-y-3 shadow-md">
         <div class="text-center">
           <div class="text-[11px] text-slate-400 font-medium">New sign in request for</div>
@@ -74,7 +78,7 @@
         <div class="border-t border-[#182635] pt-3 grid grid-cols-2 gap-2 text-center text-xs">
           <div class="bg-[#0f1924] p-2 rounded-xl border border-[#1d2d3e]">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Client</div>
-            <div class="font-bold text-slate-200 mt-0.5 truncate" id="guardClientInfo">Safari • macOS</div>
+            <div class="font-bold text-slate-200 mt-0.5 truncate" id="guardClientInfo">Web Portal</div>
           </div>
           <div class="bg-[#0f1924] p-2 rounded-xl border border-[#1d2d3e]">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Session ID</div>
@@ -90,7 +94,7 @@
 
     </div>
 
-    <!-- Steam Guard Approve / Deny Buttons -->
+    <!-- Action Buttons: Approve vs Deny -->
     <div class="p-5 pt-0 grid grid-cols-2 gap-3">
       <button 
         onclick="authorizeChallenge(true)" 
@@ -137,7 +141,6 @@
 
       const newStatus = approved ? "authorized" : "denied";
 
-      // 1. Supabase PATCH
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}`, {
           method: "PATCH",
@@ -151,7 +154,6 @@
         });
       } catch (_) {}
 
-      // 2. Local fallback sync
       localStorage.setItem("drozo_challenge_result_" + sessionToken, newStatus);
 
       if (approved) {
