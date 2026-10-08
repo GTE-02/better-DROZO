@@ -243,7 +243,7 @@
     function endSession(badgeId, groupCellId) {
       const badge = document.getElementById(badgeId);
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30";
-      badge.innerText = "COMPLETED";
+      badge.innerText = "COMPLETED"; localStorage.setItem("drozo_session_status", "COMPLETED");
 
       const groupCell = document.getElementById(groupCellId);
       groupCell.innerHTML = `<span class="text-xs text-emerald-400 font-bold">Session Closed ✓</span>`;
@@ -252,7 +252,7 @@
     function cancelSession(badgeId, groupCellId) {
       const badge = document.getElementById(badgeId);
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30";
-      badge.innerText = "CANCELLED";
+      badge.innerText = "CANCELLED"; localStorage.setItem("drozo_session_status", "CANCELLED");
 
       const groupCell = document.getElementById(groupCellId);
       groupCell.innerHTML = `<span class="text-xs text-rose-400 font-bold">Appointment Cancelled</span>`;

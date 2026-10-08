@@ -256,6 +256,57 @@
 
     const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
 
+    
+    // Real-Time Appointment State Synchronization
+    function syncAppointmentStatus() {
+      const status = localStorage.getItem("drozo_session_status") || "CONFIRMED";
+      const card = document.getElementById('scheduleList');
+      const count = document.getElementById('appointmentCount');
+
+      if (!card) return;
+
+      if (status === "CANCELLED") {
+        if (count) count.innerText = "0 Active";
+        card.innerHTML = `
+          <div class="p-3.5 rounded-xl border border-rose-200 bg-rose-50/50 flex flex-col gap-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
+                <div class="text-[11px] text-rose-600 font-semibold mt-0.5">Session Cancelled by Therapist</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">Cancelled</span>
+            </div>
+            <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500">
+              This appointment was cancelled. Use the AI assistant or contact your coordinator to rebook.
+            </div>
+          </div>
+        `;
+      } else if (status === "COMPLETED") {
+        if (count) count.innerText = "0 Active";
+        card.innerHTML = `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col gap-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Session Concluded • Water_Chugger/Owner</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-600 text-white">Completed</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
+              <span>Outcome report available in 30-Day History below</span>
+              <button onclick="focusSection('history-card')" class="underline hover:text-emerald-900">View History →</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Run on load and listen for tab storage events
+    window.addEventListener('DOMContentLoaded', syncAppointmentStatus);
+    window.addEventListener('storage', (e) => {
+      if (e.key === "drozo_session_status") syncAppointmentStatus();
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('aiWelcomeMsg').innerHTML = `Hello! I am your AI therapy assistant. Today is <strong>${liveDate}</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.`;
       const activeUser = localStorage.getItem("drozo_active_session");
