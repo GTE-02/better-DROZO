@@ -194,8 +194,15 @@
 
     const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 
-    if (localStorage.getItem("drozo_auth_state") !== "UNLOCKED") {
-      window.location.replace("./auth.html");
+    // Intelligent Admin Session Gate
+    const currentActive = localStorage.getItem("drozo_active_session");
+    const isVerifiedAdmin = (currentActive === "admin@drozominds.com" || currentActive === "gamerkids1109@gmail.com");
+
+    if (isVerifiedAdmin) {
+      localStorage.setItem("drozo_auth_state", "UNLOCKED");
+    } else if (localStorage.getItem("drozo_auth_state") !== "UNLOCKED") {
+      // Redirect to the main sign-in portal on index.html instead of auth.html
+      window.location.replace("./index.html");
     }
 
     window.addEventListener('DOMContentLoaded', () => {
