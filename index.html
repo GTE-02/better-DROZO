@@ -225,9 +225,18 @@
         <button onclick="executeFinalLogin()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">Enter →</button>
       </div>
 
-      <button onclick="openModalWebcamScanner()" class="w-full py-2 bg-[#093522] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
-        <span>🪪</span> Scan Physical ID Pass (Webcam)
-      </button>
+      
+      <!-- File Upload & Webcam Verification Actions -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <label class="cursor-pointer py-2 px-2 bg-[#093522] hover:bg-[#0c472d] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+          <span>📁</span> Open ID File
+          <input type="file" id="modalIdFileInput" accept="image/*,.pdf" class="hidden" onchange="handleModalIdFileUpload(event)" />
+        </label>
+        <button type="button" onclick="openModalWebcamScanner()" class="py-2 px-2 bg-[#093522] hover:bg-[#0c472d] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+          <span>📷</span> Scan Webcam
+        </button>
+      </div>
+
       <div id="modalWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
         <div id="modalQrReader"></div>
         <button onclick="closeModalWebcamScanner()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
