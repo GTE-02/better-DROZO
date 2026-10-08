@@ -301,8 +301,20 @@
         alert("Action Denied: Only admins can remove entries.");
         return;
       }
-      const row = document.getElementById(rowId);
-      if (row) row.remove();
+      if (confirm("Permanently wipe this appointment from both Admin and Client Portal?")) {
+        const row = document.getElementById(rowId);
+        if (row) row.remove();
+        
+        // Persistently mark appointment as deleted
+        localStorage.setItem("drozo_appointment_deleted", "true");
+        localStorage.setItem("drozo_session_status", "DELETED");
+        
+        // Broadcast instant wipe to index.html
+        if (typeof syncChannel !== "undefined") {
+          syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
+        }
+        alert("Appointment purged from all client views.");
+      }
     }
 
     function dispatchClinicalDocument() {

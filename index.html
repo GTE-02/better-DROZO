@@ -419,12 +419,37 @@
       }
     }
 
+        function ownerDirectDeleteAppointment() {
+      if (confirm("Owner Override: Remove this appointment from client sanctuary now?")) {
+        localStorage.setItem("drozo_appointment_deleted", "true");
+        localStorage.setItem("drozo_session_status", "DELETED");
+        syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
+        syncAppointmentStatus();
+      }
+    }
+
     function syncAppointmentStatus() {
-      const status = localStorage.getItem("drozo_session_status") || "CONFIRMED";
+      const status = localStorage.getItem("drozo_session_status") || "NONE";
+      const isDeleted = (localStorage.getItem("drozo_appointment_deleted") === "true");
       const card = document.getElementById('scheduleList');
       const count = document.getElementById('appointmentCount');
+      const activeUser = localStorage.getItem("drozo_active_session");
+      const isOwner = (activeUser === "admin@drozominds.com" || activeUser === "gamerkids1109@gmail.com");
 
       if (!card) return;
+
+      // If permanently deleted or marked none, leave empty
+      if (isDeleted || status === "DELETED" || status === "NONE") {
+        if (count) count.innerText = "0 Active";
+        card.innerHTML = `
+          <div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-2">
+            <span class="text-2xl block">🗓️</span>
+            <div class="text-xs font-bold text-slate-700">No Active Appointments</div>
+            <p class="text-[11px] text-slate-400">All previous schedules have been cleared. Talk to the AI assistant or therapist to book a new slot.</p>
+          </div>
+        `;
+        return;
+      }
 
       if (status === "CANCELLED") {
         if (count) count.innerText = "0 Active";
@@ -437,8 +462,9 @@
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">Cancelled</span>
             </div>
-            <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500">
-              This session was cancelled. No active links available. Use the AI bot on the bottom-right to book a new appointment.
+            <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500 flex justify-between items-center">
+              <span>This session was cancelled. No active links available.</span>
+              ${isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-rose-600 font-bold underline hover:text-rose-800">Clear</button>' : ''}
             </div>
           </div>
         `;
@@ -455,18 +481,18 @@
             </div>
             <div class="pt-2 border-t border-slate-200 text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
               <span>Clinical report generated in 30-Day History below</span>
-              <button onclick="focusSection('history-card')" class="underline hover:text-emerald-900 font-bold">View History →</button>
+              ${isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-slate-400 font-bold hover:text-rose-600">Dismiss</button>' : ''}
             </div>
           </div>
         `;
-      } else {
+      } else if (status === "CONFIRMED") {
         if (count) count.innerText = "1 Active";
         card.innerHTML = `
           <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3">
             <div class="flex justify-between items-start">
               <div>
                 <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger/Owner</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Scheduled Slot • Water_Chugger/Owner</div>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
             </div>
@@ -483,10 +509,11 @@
               </div>
             </div>
 
-            <div class="pt-1">
-              <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
+            <div class="pt-1 flex gap-2">
+              <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
                 <span>🎮</span> Join Discord VC Room
               </button>
+              ${isOwner ? '<button type="button" onclick="ownerDirectDeleteAppointment()" class="px-3 py-2 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition" title="Owner Quick Remove">🗑️</button>' : ''}
             </div>
           </div>
         `;
@@ -524,6 +551,7 @@
       input.value = "";
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
+          localStorage.removeItem("drozo_appointment_deleted");
           localStorage.setItem("drozo_session_status", "CONFIRMED");
           syncAppointmentStatus();
           appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.", "bot");
