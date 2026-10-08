@@ -15,6 +15,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
+  <!-- Header -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
@@ -39,6 +40,7 @@
     </div>
   </header>
 
+  <!-- Protected Sanctuary Content -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
@@ -65,13 +67,14 @@
         </div>
       </div>
 
+      <!-- Schedule & History -->
       <div class="space-y-6">
         <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>📅</span> Upcoming Schedule
             </h2>
-            <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">1 Active</span>
+            <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">0 Active</span>
           </div>
 
           <div id="scheduleList" class="space-y-3 text-xs"></div>
@@ -101,6 +104,7 @@
     </main>
   </div>
 
+  <!-- FLOATING SIDE AI BOT -->
   <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
     <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
       <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -130,7 +134,10 @@
     <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
+  <!-- ================= AUTHENTICATION MODAL ================= -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    
+    <!-- STEP 1: Email / Password + Register Tab -->
     <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="text-center">
         <span class="text-3xl">🧠</span>
@@ -138,6 +145,7 @@
         <p class="text-xs text-slate-500 mt-1" id="authHeaderSubtitle">Please sign in to access your confidential sanctuary.</p>
       </div>
 
+      <!-- Tab Switcher -->
       <div class="flex border-b border-slate-200 mb-2">
         <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600">
           Sign In
@@ -162,9 +170,10 @@
       </form>
     </div>
 
+    <!-- STEP 2: Standard 2FA Method Selector -->
     <div id="authStep2" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification</h3>
-      <p class="text-xs text-slate-500">Choose how you want to complete authentication:</p>
+      <p class="text-xs text-slate-500">Choose your security method to authenticate:</p>
       
       <div class="space-y-3 pt-2">
         <button type="button" id="btnGuardChoice" onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm cursor-pointer">
@@ -193,6 +202,108 @@
       <button type="button" onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
     </div>
 
+    <!-- STEP 2-ONBOARDING: NEW USER / GRANDFATHERED SETUP WIZARD -->
+    <div id="authStepOnboarding" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span>✨</span> Security Enrollment
+      </div>
+      <h3 class="text-base font-extrabold text-slate-900">Choose Your 2FA Method</h3>
+      <p class="text-xs text-slate-500">Select which 2FA method you want to link to your account for future sign-ins:</p>
+      
+      <div class="space-y-3 pt-2">
+        <button type="button" onclick="startDrozoGuardEnrollment()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm cursor-pointer text-left">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🛡️</span>
+            <div>
+              <div class="text-xs font-bold text-white">Drozo Guard Hardware App</div>
+              <div class="text-[10px] text-sky-400">Android APK • Steam Guard Protocol</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-sky-400">Setup →</span>
+        </button>
+
+        <button type="button" onclick="startAuthenticatorEnrollment()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm cursor-pointer text-left">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">📱</span>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Standard Authenticator</div>
+              <div class="text-[10px] text-slate-500">Google Auth, Apple Passwords, Authy</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-slate-700">Setup →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING WIZARD A: DROZO GUARD LINKING TUTORIAL -->
+    <div id="wizardDrozoGuard" class="bg-[#0e1722] text-slate-100 w-full max-w-sm rounded-[32px] p-6 shadow-2xl border border-[#1e2f42] space-y-4 hidden text-left">
+      <div class="flex items-center justify-between border-b border-[#1b2b3d] pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🛡️</span>
+          <span class="text-xs font-black tracking-widest text-slate-200 uppercase">DROZO GUARD SETUP</span>
+        </div>
+        <span class="text-[10px] mono text-sky-400 bg-sky-950 px-2 py-0.5 rounded-full border border-sky-500/30 font-bold">ANDROID</span>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <div class="font-bold text-white text-sm">How to link your phone:</div>
+        
+        <div class="flex gap-2.5 items-start bg-[#131f2d] p-2.5 rounded-xl border border-[#1e3044]">
+          <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[11px] shrink-0">1</span>
+          <div>Open Chrome on Android and install <strong>Drozo Guard</strong>: <code class="text-sky-300 mono text-[10px] block mt-0.5">https://gte-02.github.io/better-DROZO/auth.html</code></div>
+        </div>
+
+        <div class="flex gap-2.5 items-start bg-[#131f2d] p-2.5 rounded-xl border border-[#1e3044]">
+          <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[11px] shrink-0">2</span>
+          <div>Tap <strong>"📷 Scan Website Challenge QR"</strong> inside your app.</div>
+        </div>
+
+        <div class="flex gap-2.5 items-start bg-[#131f2d] p-2.5 rounded-xl border border-[#1e3044]">
+          <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[11px] shrink-0">3</span>
+          <div>Review device telemetry (Dubai, UAE) and tap <strong>Approve ✓</strong> to lock in this device.</div>
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-between items-center">
+        <button type="button" onclick="backToOnboardingChoice()" class="text-xs text-slate-400 hover:underline">← Change Method</button>
+        <button type="button" onclick="confirmDrozoGuardLinked()" class="py-2 px-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition shadow">
+          I Have Drozo Guard →
+        </button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING WIZARD B: AUTHENTICATOR ENROLLMENT + QR CODE + VERIFICATION TEST -->
+    <div id="wizardAuthenticator" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
+      <div class="text-center">
+        <h3 class="text-base font-extrabold text-slate-900">Link Authenticator App</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Scan this QR code with Google Authenticator, Authy, or Apple Passwords:</p>
+      </div>
+
+      <div class="flex justify-center py-1">
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
+          <div id="enrollTotpQrContainer" class="w-[160px] h-[160px] flex items-center justify-center"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-100 p-2 rounded-xl text-[11px] text-slate-600 mono select-all">
+        Secret Seed: <strong id="enrollTotpSecretText" class="text-slate-900">JBSWY3DPEHPK3PXP</strong>
+      </div>
+
+      <!-- Test Link Step -->
+      <form onsubmit="handleTestTotpLink(event)" class="space-y-3 pt-1">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase text-left">Verify Linking (Enter 6-digit Code)</label>
+          <input type="text" id="testTotpInput" maxlength="6" required placeholder="e.g. 849201" class="w-full mt-1 text-center font-bold tracking-widest mono px-3 py-2 text-base border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow">
+          Test & Confirm Link →
+        </button>
+      </form>
+
+      <button type="button" onclick="backToOnboardingChoice()" class="text-xs text-slate-400 hover:underline">← Change Method</button>
+    </div>
+
+    <!-- STEP 3A: STEAM-GUARD STYLED APP QR CODE -->
     <div id="authStep3Guard" class="bg-[#0e1722] text-slate-100 w-full max-w-sm rounded-[32px] p-6 shadow-2xl border border-[#1e2f42] space-y-4 hidden text-center">
       <div class="flex items-center justify-between border-b border-[#1b2b3d] pb-3">
         <div class="flex items-center gap-2">
@@ -204,6 +315,7 @@
         </span>
       </div>
 
+      <!-- Account Card -->
       <div class="bg-[#131f2d] p-3 rounded-2xl border border-[#21354a] flex items-center gap-3 text-left">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-md">
           DG
@@ -214,6 +326,7 @@
         </div>
       </div>
 
+      <!-- Instant QR Box -->
       <div class="relative flex justify-center py-2">
         <div class="relative p-3 bg-white rounded-3xl border border-[#1e2f42] shadow-2xl">
           <div id="qrCanvasContainer" class="w-[160px] h-[160px] flex items-center justify-center"></div>
@@ -225,6 +338,7 @@
         <span class="mono text-sky-400 font-bold" id="steamTokenLabel">SES_AUTH</span>
       </div>
 
+      <!-- Actions -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button type="button" onclick="openApprovalSimulator()" class="py-2.5 px-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5">
           <span>📲</span> Open on Phone
@@ -234,6 +348,7 @@
         </button>
       </div>
 
+      <!-- Webcam Scanner Overlay -->
       <div id="idWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
         <div id="idQrReader"></div>
         <button type="button" onclick="stopWebcamIDPass()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
@@ -245,6 +360,7 @@
       </div>
     </div>
 
+    <!-- STEP 3B: Standard Authenticator 6-Digit -->
     <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Enter Authenticator Code</h3>
       <p class="text-xs text-slate-500">Enter the 6-digit TOTP code generated by your Authenticator app.</p>
@@ -271,6 +387,14 @@
     let html5QrScanner = null;
     let selectedChannel = "discord";
     let authMode = "login";
+    let enrolledSecret = "JBSWY3DPEHPK3PXP";
+
+    const syncChannel = new BroadcastChannel('drozo_sync');
+    syncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'STATUS_UPDATE') {
+        syncAppointmentStatus();
+      }
+    };
 
     const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
 
@@ -285,18 +409,10 @@
       else openLoginModal();
     });
 
-    
-    const syncChannel = new BroadcastChannel('drozo_sync');
-    syncChannel.onmessage = (event) => {
-      if (event.data && event.data.type === 'STATUS_UPDATE') {
-        syncAppointmentStatus();
-      }
-    };
-
     window.addEventListener('storage', (e) => {
       if (e.key === "drozo_session_status") syncAppointmentStatus();
       if (e.key === "drozo_challenge_result_" + activeToken) {
-        if (e.newValue === "authorized") executeFinalLogin();
+        if (e.newValue === "authorized") executeFinalLogin("drozo_guard");
       }
     });
 
@@ -331,12 +447,114 @@
       }
     }
 
+    function showOnboardingChoice() {
+      document.getElementById('authStep1').classList.add('hidden');
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStepOnboarding').classList.remove('hidden');
+    }
+
+    function backToOnboardingChoice() {
+      document.getElementById('wizardDrozoGuard').classList.add('hidden');
+      document.getElementById('wizardAuthenticator').classList.add('hidden');
+      document.getElementById('authStepOnboarding').classList.remove('hidden');
+    }
+
+    function startDrozoGuardEnrollment() {
+      document.getElementById('authStepOnboarding').classList.add('hidden');
+      document.getElementById('wizardDrozoGuard').classList.remove('hidden');
+    }
+
+    function confirmDrozoGuardLinked() {
+      localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
+      localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
+      document.getElementById('wizardDrozoGuard').classList.add('hidden');
+      startDrozoGuard2FA();
+    }
+
+    function startAuthenticatorEnrollment() {
+      document.getElementById('authStepOnboarding').classList.add('hidden');
+      const wizardAuth = document.getElementById('wizardAuthenticator');
+      if (wizardAuth) wizardAuth.classList.remove('hidden');
+
+      const issuer = "DrozoMind";
+      const userMail = currentEmail || "user@drozominds.com";
+      const otpauthUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userMail)}?secret=${enrolledSecret}&issuer=${encodeURIComponent(issuer)}`;
+
+      const qrBox = document.getElementById('enrollTotpQrContainer');
+      if (qrBox) {
+        qrBox.innerHTML = "";
+        try {
+          if (typeof QRCode !== "undefined") {
+            new QRCode(qrBox, {
+              text: otpauthUri,
+              width: 160,
+              height: 160,
+              colorDark: "#02140d",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } else {
+            qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
+          }
+        } catch (_) {
+          qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
+        }
+      }
+    }
+
+    function handleTestTotpLink(e) {
+      e.preventDefault();
+      const inputEl = document.getElementById('testTotpInput');
+      const code = inputEl ? inputEl.value.trim() : "";
+      const validPins = ["849201", "739102", "582194"];
+      const timeStep = Math.floor(Date.now() / 30000);
+      const dynamicCode = String((timeStep * 31337) % 1000000).padStart(6, '0');
+
+      if (validPins.includes(code) || code === dynamicCode) {
+        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "totp");
+        localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
+        alert("Verification Successful! Your Authenticator app is now linked.");
+        document.getElementById('wizardAuthenticator').classList.add('hidden');
+        executeFinalLogin("totp");
+      } else {
+        alert("Linking Failed: Invalid test code. Please check your Authenticator app and try again.");
+        if (inputEl) {
+          inputEl.value = "";
+          inputEl.focus();
+        }
+      }
+    }
+
+    function ownerDirectDeleteAppointment() {
+      if (confirm("Owner Override: Remove this appointment from client sanctuary now?")) {
+        localStorage.setItem("drozo_appointment_deleted", "true");
+        localStorage.setItem("drozo_session_status", "DELETED");
+        syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
+        syncAppointmentStatus();
+      }
+    }
+
     function syncAppointmentStatus() {
-      const status = localStorage.getItem("drozo_session_status") || "CONFIRMED";
+      const status = localStorage.getItem("drozo_session_status") || "NONE";
+      const isDeleted = (localStorage.getItem("drozo_appointment_deleted") === "true");
       const card = document.getElementById('scheduleList');
       const count = document.getElementById('appointmentCount');
+      const activeUser = localStorage.getItem("drozo_active_session");
+      const isOwner = (activeUser === "admin@drozominds.com" || activeUser === "gamerkids1109@gmail.com");
 
       if (!card) return;
+
+      if (isDeleted || status === "DELETED" || status === "NONE") {
+        if (count) count.innerText = "0 Active";
+        card.innerHTML = `
+          <div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-2">
+            <span class="text-2xl block">🗓️</span>
+            <div class="text-xs font-bold text-slate-700">No Active Appointments</div>
+            <p class="text-[11px] text-slate-400">All previous schedules have been cleared. Talk to the AI assistant or therapist to book a new slot.</p>
+          </div>
+        `;
+        return;
+      }
 
       if (status === "CANCELLED") {
         if (count) count.innerText = "0 Active";
@@ -349,8 +567,9 @@
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">Cancelled</span>
             </div>
-            <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500">
-              This session was cancelled. No active links available. Use the AI bot on the bottom-right to book a new appointment.
+            <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500 flex justify-between items-center">
+              <span>This session was cancelled. No active links available.</span>
+              ${isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-rose-600 font-bold underline hover:text-rose-800">Clear</button>' : ''}
             </div>
           </div>
         `;
@@ -367,18 +586,18 @@
             </div>
             <div class="pt-2 border-t border-slate-200 text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
               <span>Clinical report generated in 30-Day History below</span>
-              <button onclick="focusSection('history-card')" class="underline hover:text-emerald-900 font-bold">View History →</button>
+              ${isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-slate-400 font-bold hover:text-rose-600">Dismiss</button>' : ''}
             </div>
           </div>
         `;
-      } else {
+      } else if (status === "CONFIRMED") {
         if (count) count.innerText = "1 Active";
         card.innerHTML = `
           <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3">
             <div class="flex justify-between items-start">
               <div>
                 <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger/Owner</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Scheduled Slot • Water_Chugger/Owner</div>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
             </div>
@@ -395,10 +614,11 @@
               </div>
             </div>
 
-            <div class="pt-1">
-              <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
+            <div class="pt-1 flex gap-2">
+              <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
                 <span>🎮</span> Join Discord VC Room
               </button>
+              ${isOwner ? '<button type="button" onclick="ownerDirectDeleteAppointment()" class="px-3 py-2 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition" title="Owner Quick Remove">🗑️</button>' : ''}
             </div>
           </div>
         `;
@@ -436,6 +656,7 @@
       input.value = "";
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
+          localStorage.removeItem("drozo_appointment_deleted");
           localStorage.setItem("drozo_session_status", "CONFIRMED");
           syncAppointmentStatus();
           appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.", "bot");
@@ -517,87 +738,11 @@
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authStep1').classList.remove('hidden');
       document.getElementById('authStep2').classList.add('hidden');
-      document.getElementById('authStep3Guard').classList.add('hidden');
-      document.getElementById('authStep3Standard').classList.add('hidden');
-    }
-
-    
-    let enrolledSecret = "JBSWY3DPEHPK3PXP";
-
-    function showOnboardingChoice() {
-      document.getElementById('authStep1').classList.add('hidden');
-      document.getElementById('authStep2').classList.add('hidden');
-      document.getElementById('authStepOnboarding').classList.remove('hidden');
-    }
-
-    function backToOnboardingChoice() {
+      document.getElementById('authStepOnboarding').classList.add('hidden');
       document.getElementById('wizardDrozoGuard').classList.add('hidden');
       document.getElementById('wizardAuthenticator').classList.add('hidden');
-      document.getElementById('authStepOnboarding').classList.remove('hidden');
-    }
-
-    function startDrozoGuardEnrollment() {
-      document.getElementById('authStepOnboarding').classList.add('hidden');
-      document.getElementById('wizardDrozoGuard').classList.remove('hidden');
-    }
-
-    function confirmDrozoGuardLinked() {
-      localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
-      localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
-      document.getElementById('wizardDrozoGuard').classList.add('hidden');
-      alert("Drozo Guard linked to " + currentEmail + "! Proceeding to live challenge.");
-      startDrozoGuard2FA();
-    }
-
-    function startAuthenticatorEnrollment() {
-      document.getElementById('authStepOnboarding').classList.add('hidden');
-      const wizardAuth = document.getElementById('wizardAuthenticator');
-      if (wizardAuth) wizardAuth.classList.remove('hidden');
-
-      const issuer = "DrozoMind";
-      const userMail = currentEmail || "user@drozominds.com";
-      const otpauthUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userMail)}?secret=${enrolledSecret}&issuer=${encodeURIComponent(issuer)}`;
-
-      const qrBox = document.getElementById('enrollTotpQrContainer');
-      if (qrBox) {
-        qrBox.innerHTML = "";
-        try {
-          if (typeof QRCode !== "undefined") {
-            new QRCode(qrBox, {
-              text: otpauthUri,
-              width: 160,
-              height: 160,
-              colorDark: "#02140d",
-              colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.M
-            });
-          } else {
-            qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
-          }
-        } catch (err) {
-          qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
-        }
-      }
-    }
-
-    function handleTestTotpLink(e) {
-      e.preventDefault();
-      const code = document.getElementById('testTotpInput').value.trim();
-      const validPins = ["849201", "739102", "582194"];
-      const timeStep = Math.floor(Date.now() / 30000);
-      const dynamicCode = String((timeStep * 31337) % 1000000).padStart(6, '0');
-
-      if (validPins.includes(code) || code === dynamicCode) {
-        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "totp");
-        localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
-        alert("Verification Successful! Authenticator linked.");
-        document.getElementById('wizardAuthenticator').classList.add('hidden');
-        executeFinalLogin();
-      } else {
-        alert("Linking Failed: Invalid test code. Please check your Authenticator app and try again.");
-        document.getElementById('testTotpInput').value = "";
-        document.getElementById('testTotpInput').focus();
-      }
+      document.getElementById('authStep3Guard').classList.add('hidden');
+      document.getElementById('authStep3Standard').classList.add('hidden');
     }
 
     function handleStep1Submit(e) {
@@ -612,17 +757,29 @@
         "client@drozominds.com": "client123"
       };
 
-      
+      if (authMode === "register") {
+        storedPasswords[currentEmail] = enteredPass;
+        localStorage.setItem("drozo_custom_passwords", JSON.stringify(storedPasswords));
+        localStorage.setItem("drozo_registered_account", currentEmail);
+      } else {
+        const expectedPassword = storedPasswords[currentEmail] || defaultAccounts[currentEmail];
+        if (!expectedPassword || enteredPass !== expectedPassword) {
+          alert("Access Denied: Incorrect password or email.");
+          document.getElementById('loginPass').value = "";
+          return;
+        }
+      }
+
       const isGamerKid = (currentEmail === "gamerkids1109@gmail.com");
       const hasCompleted2FASetup = localStorage.getItem("drozo_user_2fa_verified_" + currentEmail);
 
-      // Early accounts / New accounts go to setup wizard
+      // Onboarding Route for New Registrations & Grandfathered Gamer Kid
       if (authMode === "register" || (isGamerKid && !hasCompleted2FASetup)) {
         showOnboardingChoice();
         return;
       }
 
-      // Check if user has an already established 2FA preference
+      // Check for Locked 2FA Method
       const lockedMethod = localStorage.getItem("drozo_user_2fa_pref_" + currentEmail);
       if (lockedMethod === "drozo_guard") {
         document.getElementById('authStep1').classList.add('hidden');
@@ -634,9 +791,10 @@
         return;
       }
 
+      // Fallback Method Selector
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.remove('hidden');
-
+    }
 
     function backToStep1() {
       document.getElementById('authStep2').classList.add('hidden');
@@ -658,14 +816,10 @@
     }
 
     function startDrozoGuard2FA() {
-      const isAndroid = isAndroidDevice();
-      const isAdminAccount = (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com");
-      
-      if (!isAndroid && !isAdminAccount) {
-        alert("Drozo Guard mobile APK is designed for Android. You can also use the Standard Authenticator.");
-      }
-
+      document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStepOnboarding').classList.add('hidden');
+      document.getElementById('wizardDrozoGuard').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
 
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -682,19 +836,24 @@
       if (qrContainer) {
         qrContainer.innerHTML = "";
         try {
-          new QRCode(qrContainer, {
-            text: guardAuthUrl,
-            width: 160,
-            height: 160,
-            colorDark: "#02140d",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
+          if (typeof QRCode !== "undefined") {
+            new QRCode(qrContainer, {
+              text: guardAuthUrl,
+              width: 160,
+              height: 160,
+              colorDark: "#02140d",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } else {
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(guardAuthUrl)}" class="w-36 h-36 rounded-lg" />`;
+          }
         } catch (_) {
           qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(guardAuthUrl)}" class="w-36 h-36 rounded-lg" />`;
         }
       }
 
+      // Handshake to Supabase
       try {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
@@ -704,7 +863,12 @@
             "Content-Type": "application/json",
             "Prefer": "return=minimal"
           },
-          body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" })
+          body: JSON.stringify({
+            session_token: activeToken,
+            email: currentEmail,
+            status: "pending",
+            created_at: new Date().toISOString()
+          })
         }).catch(() => {});
       } catch (_) {}
 
@@ -712,7 +876,7 @@
       pollTimer = setInterval(async () => {
         const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);
         if (localRes === "authorized") {
-          executeFinalLogin();
+          executeFinalLogin("drozo_guard");
           return;
         } else if (localRes === "denied") {
           clearInterval(pollTimer);
@@ -728,7 +892,7 @@
           if (res.ok) {
             const rows = await res.json();
             if (rows && rows.length > 0) {
-              if (rows[0].status === "authorized") executeFinalLogin();
+              if (rows[0].status === "authorized") executeFinalLogin("drozo_guard");
               else if (rows[0].status === "denied") {
                 clearInterval(pollTimer);
                 alert("Login request was denied on device.");
@@ -763,7 +927,7 @@
               decodedText.length > 5
             ) {
               await stopWebcamIDPass();
-              executeFinalLogin();
+              executeFinalLogin("drozo_guard");
             }
           },
           () => {}
@@ -782,40 +946,42 @@
     }
 
     function startStandardAuth2FA() {
+      document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStepOnboarding').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.remove('hidden');
+      const inputEl = document.getElementById('totpInput');
+      if (inputEl) {
+        inputEl.value = "";
+        inputEl.focus();
+      }
     }
 
     function handleStandardTOTP(e) {
       e.preventDefault();
-      const code = document.getElementById('totpInput').value.trim();
+      const inputEl = document.getElementById('totpInput');
+      const code = inputEl ? inputEl.value.trim() : "";
       const validPins = ["849201", "739102", "582194"];
       const timeStep = Math.floor(Date.now() / 30000);
       const dynamicCode = String((timeStep * 31337) % 1000000).padStart(6, '0');
 
       if (validPins.includes(code) || code === dynamicCode) {
-        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "totp");
-        localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
-        executeFinalLogin();
+        executeFinalLogin("totp");
       } else {
         alert("Authentication Failed: Invalid 6-digit code.");
-        const inp = document.getElementById('totpInput');
-        if (inp) {
-          inp.value = "";
-          inp.focus();
+        if (inputEl) {
+          inputEl.value = "";
+          inputEl.focus();
         }
       }
     }
 
-        function executeFinalLogin() {
+    function executeFinalLogin(methodUsed = "totp") {
       if (pollTimer) clearInterval(pollTimer);
       stopWebcamIDPass();
-      
-      // Preserve existing TOTP preference if user verified via TOTP
-      const existingPref = localStorage.getItem("drozo_user_2fa_pref_" + currentEmail);
-      if (!existingPref) {
-        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
-      }
+
+      // Permanently lock in the 2FA method
+      localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, methodUsed);
       localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
       localStorage.setItem("drozo_active_session", currentEmail);
 
@@ -834,8 +1000,20 @@
       document.getElementById('navAuthArea').innerHTML = `
         ${isAdmin ? `<a href="./admin.html" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#042d1b] text-emerald-300 border border-emerald-600 hover:bg-[#064228] transition flex items-center gap-1.5"><span>🛡️</span> Admin Console</a>` : ''}
         <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">👤 ${displayName}</span>
+        <button onclick="resetMy2FAMethod()" class="text-xs text-sky-600 hover:underline font-bold px-1">Reset 2FA</button>
         <button onclick="logoutClient()" class="text-xs text-rose-500 hover:underline font-bold px-2 py-1">Sign Out</button>
       `;
+    }
+
+    function resetMy2FAMethod() {
+      const activeUser = localStorage.getItem("drozo_active_session");
+      if (!activeUser) return;
+      if (confirm("Reset your linked 2FA method? You will be prompted to re-enroll on next sign in.")) {
+        localStorage.removeItem("drozo_user_2fa_pref_" + activeUser);
+        localStorage.removeItem("drozo_user_2fa_verified_" + activeUser);
+        alert("2FA method reset. Please sign in again.");
+        logoutClient();
+      }
     }
 
     function logoutClient() {
