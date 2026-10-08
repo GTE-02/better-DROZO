@@ -286,24 +286,36 @@
       }
     }
 
-        async function pollForPendingIncomingSessions() {
-      setInterval(async () => {
-        if (activeSessionToken) return;
-        try {
-          const freshTime = new Date(Date.now() - 120000).toISOString();
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&created_at=gte.${freshTime}&order=created_at.desc&limit=1`, {
-            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
-          });
-          if (res.ok) {
-            const rows = await res.json();
-            if (rows && rows.length > 0) {
-              const req = rows[0];
-              if (sessionStorage.getItem("handled_" + req.session_token)) return;
-              verifyAndShowChallenge(req.session_token, req.email, req.client_location);
-            }
+            // Instant cross-window broadcast listener
+    const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
+    guardSyncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'NEW_CHALLENGE') {
+        verifyAndShowChallenge(event.data.token, event.data.email, event.data.location);
+      }
+    };
+
+    async function pollForPendingIncomingSessions() {
+      // Instant check immediately on launch
+      checkPendingNow();
+      setInterval(checkPendingNow, 1000);
+    }
+
+    async function checkPendingNow() {
+      if (activeSessionToken) return;
+      try {
+        // Query most recent pending request without strict server-timestamp math
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=id.desc&limit=1`, {
+          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
+        });
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows && rows.length > 0) {
+            const req = rows[0];
+            if (sessionStorage.getItem("handled_" + req.session_token)) return;
+            verifyAndShowChallenge(req.session_token, req.email, req.client_location);
           }
-        } catch (_) {}
-      }, 1000);
+        }
+      } catch (_) {}
     }
 
     function verifyAndShowChallenge(token, email) {

@@ -888,6 +888,17 @@
         }).catch(() => {});
       };
 
+            // Broadcast immediately across open browser tabs/windows
+      try {
+        const guardBroadcast = new BroadcastChannel('drozo_guard_sync');
+        guardBroadcast.postMessage({
+          type: 'NEW_CHALLENGE',
+          token: activeToken,
+          email: currentEmail,
+          location: resolvedLoc
+        });
+      } catch (_) {}
+
       postHandshake(resolvedLoc);
 
       // 3. Background IP lookup to refine city/country if available without blocking UI
