@@ -815,20 +815,57 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-                async function getRealClientLocation() {
+                    async function getRealClientLocation() {
+      // 1. Try Browser Native Geolocation for street/city precision
+      if (navigator.geolocation) {
+        try {
+          const coords = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 });
+          });
+          const lat = coords.coords.latitude;
+          const lon = coords.coords.longitude;
+          const revRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+          if (revRes.ok) {
+            const revData = await revRes.json();
+            const locality = revData.locality || revData.city || "";
+            const country = revData.countryName || "";
+            if (locality && country) return `${locality}, ${country}`;
+          }
+        } catch (_) {}
+      }
+
+      // 2. Fallback to Primary Free Dynamic IP Lookup (ipwho.is - no API key required, CORS open)
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
-        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.city && data.country_name) {
-            return `${data.city}, ${data.country_name}`;
+        const res1 = await fetch("https://ipwho.is/");
+        if (res1.ok) {
+          const d1 = await res1.json();
+          if (d1.success !== false && d1.city && d1.country) {
+            return `${d1.city}, ${d1.country}`;
           }
         }
       } catch (_) {}
-      return "Dubai, United Arab Emirates";
+
+      // 3. Fallback to Secondary IP Service (ipapi.co)
+      try {
+        const res2 = await fetch("https://ipapi.co/json/");
+        if (res2.ok) {
+          const d2 = await res2.json();
+          if (d2.city && d2.country_name) {
+            return `${d2.city}, ${d2.country_name}`;
+          }
+        }
+      } catch (_) {}
+
+      // 4. Fallback to Third IP Service (geoplugin)
+      try {
+        const res3 = await fetch("https://api.country.is/");
+        if (res3.ok) {
+          const d3 = await res3.json();
+          if (d3.country) return `Regional Network (${d3.country})`;
+        }
+      } catch (_) {}
+
+      return "Sign-In Device Location";
     }
 
     async function startDrozoGuard2FA() {
