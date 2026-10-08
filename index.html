@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DrozoMind - Sanctuary & AI Therapy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -14,7 +15,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Top Navigation Bar -->
+  <!-- Header -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
@@ -43,7 +44,6 @@
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Sanctuary Overview -->
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
@@ -67,7 +67,7 @@
         </div>
       </div>
 
-      <!-- Schedule & History Panel -->
+      <!-- Schedule & History -->
       <div class="space-y-6">
         <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
           <div class="flex justify-between items-center">
@@ -78,33 +78,7 @@
           </div>
 
           <div id="scheduleList" class="space-y-3 text-xs">
-            <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3">
-              <div class="flex justify-between items-start">
-                <div>
-                  <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger/Owner</div>
-                </div>
-                <span id="clientStatusBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
-              </div>
-
-              <div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2">
-                <span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span>
-                <div class="grid grid-cols-2 gap-2">
-                  <button type="button" id="btnModeDiscord" onclick="setSessionChannel('discord')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm">
-                    <span>🎮</span> Discord VC
-                  </button>
-                  <button type="button" id="btnModeVideo" onclick="setSessionChannel('video')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600">
-                    <span>🎥</span> Video Call
-                  </button>
-                </div>
-              </div>
-
-              <div class="pt-1">
-                <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
-                  <span>🎮</span> Join Discord VC Room
-                </button>
-              </div>
-            </div>
+            <!-- Dynamic Reactively Synced by JS -->
           </div>
         </div>
 
@@ -121,7 +95,7 @@
                 <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
                 <div class="text-[10px] text-slate-400">Completed • Water_Chugger/Owner</div>
               </div>
-              <button onclick="renderCustomPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner', 'Initial baseline evaluation.', 'Daily guided reflections.')" class="text-emerald-600 hover:underline font-bold text-[11px] flex items-center gap-1">
+              <button onclick="renderCustomPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner', 'Initial baseline wellness assessment established.', 'Daily reflections.')" class="text-emerald-600 hover:underline font-bold text-[11px] flex items-center gap-1">
                 <span>📄</span> Download PDF
               </button>
             </div>
@@ -162,7 +136,7 @@
     <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
-  <!-- ================= AUTHENTICATION MODAL ================= -->
+  <!-- AUTHENTICATION MODAL -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     
     <!-- STEP 1: Email / Password -->
@@ -193,7 +167,7 @@
         <button onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">🛡️</span>
-            <div><div class="text-xs font-bold text-white">Drozo Guard Mobile</div><div class="text-[10px] text-sky-400">QR App Scan & Approve / Deny</div></div>
+            <div><div class="text-xs font-bold text-white">Drozo Guard Mobile App</div><div class="text-[10px] text-sky-400">Scan QR via Phone & Approve/Deny</div></div>
           </div>
           <span class="text-xs font-bold text-sky-400">→</span>
         </button>
@@ -208,22 +182,19 @@
       <button onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
     </div>
 
-    <!-- STEP 3A: STEAM-GUARD STYLED RENEWED TEMPLATE -->
+    <!-- STEP 3A: STEAM-GUARD STYLED APP QR CODE -->
     <div id="authStep3Guard" class="bg-[#0e1722] text-slate-100 w-full max-w-sm rounded-[32px] p-6 shadow-2xl border border-[#1e2f42] space-y-4 hidden text-center">
-      
       <div class="flex items-center justify-between border-b border-[#1b2b3d] pb-3">
         <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-xs">
-            🛡️
-          </div>
+          <div class="w-6 h-6 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-xs">🛡️</div>
           <span class="text-xs font-black tracking-widest text-slate-200 uppercase">DROZO GUARD</span>
         </div>
         <span class="text-[10px] mono text-sky-400 bg-sky-950/80 px-2.5 py-0.5 rounded-full border border-sky-500/30 animate-pulse font-bold">
-          QR AUTH
+          QR SYNC
         </span>
       </div>
 
-      <!-- Account Identifier Card -->
+      <!-- Account Card -->
       <div class="bg-[#131f2d] p-3 rounded-2xl border border-[#21354a] flex items-center gap-3 text-left">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-md">
           DG
@@ -234,35 +205,32 @@
         </div>
       </div>
 
-      <!-- Cyber QR Frame with Corner Brackets -->
+      <!-- Instant QR Box (Renders immediately via QRCode.js) -->
       <div class="relative flex justify-center py-2">
-        <div class="relative p-3 bg-[#0a1017] rounded-3xl border border-[#1e2f42] shadow-2xl">
-          <span class="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 border-sky-400 rounded-tl-lg"></span>
-          <span class="absolute top-1 right-1 w-4 h-4 border-t-2 border-r-2 border-sky-400 rounded-tr-lg"></span>
-          <span class="absolute bottom-1 left-1 w-4 h-4 border-b-2 border-l-2 border-sky-400 rounded-bl-lg"></span>
-          <span class="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 border-sky-400 rounded-br-lg"></span>
-
-          <div id="modalChallengeBox" class="bg-white p-2 rounded-2xl min-h-[160px] min-w-[160px] flex items-center justify-center">
-            <!-- Dynamic QR Code will render immediately here -->
-          </div>
+        <div class="relative p-3 bg-white rounded-3xl border border-[#1e2f42] shadow-2xl">
+          <div id="qrCanvasContainer" class="w-[160px] h-[160px] flex items-center justify-center"></div>
         </div>
       </div>
 
-      <!-- Device Telemetry -->
       <div class="bg-[#0b1219] p-2.5 rounded-xl border border-[#1a2938] text-[11px] text-slate-400 flex items-center justify-between">
         <span>📍 Dubai, UAE</span>
         <span class="mono text-sky-400 font-bold" id="steamTokenLabel">SES_AUTH</span>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Actions -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button type="button" onclick="openApprovalSimulator()" class="py-2.5 px-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5">
-          <span>📲</span> Open Mobile Guard
+          <span>📲</span> Open on Phone
         </button>
-        <label class="cursor-pointer py-2.5 px-2 bg-[#172535] hover:bg-[#203348] border border-[#23384e] text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-          <span>📁</span> Open ID File
-          <input type="file" id="modalIdFileInput" accept="*/*" class="hidden" onchange="handleModalIdFileUpload(event)" />
-        </label>
+        <button type="button" onclick="startWebcamIDPass()" class="py-2.5 px-2 bg-[#172535] hover:bg-[#203348] border border-[#23384e] text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+          <span>📷</span> Scan ID Pass
+        </button>
+      </div>
+
+      <!-- Webcam Scanner Overlay -->
+      <div id="idWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
+        <div id="idQrReader"></div>
+        <button type="button" onclick="stopWebcamIDPass()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
       </div>
 
       <div class="pt-1 flex items-center justify-between text-xs">
@@ -295,6 +263,7 @@
     let currentEmail = "";
     let activeToken = "";
     let pollTimer = null;
+    let html5QrScanner = null;
     let selectedChannel = "discord";
 
     const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
@@ -302,16 +271,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('aiWelcomeMsg').innerHTML = `Hello! I am your AI therapy assistant. Today is <strong>${liveDate}</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.`;
       
-      loadDispatchedDocuments();
       syncAppointmentStatus();
+      loadDispatchedDocuments();
 
       const activeUser = localStorage.getItem("drozo_active_session");
       if (activeUser) unlockSanctuaryUI(activeUser);
       else openLoginModal();
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.shiftKey && (e.key === 'A' || e.key === 'a')) window.location.href = "./auth.html";
     });
 
     window.addEventListener('storage', (e) => {
@@ -321,6 +286,7 @@
       }
     });
 
+    // Reactive Status Sync: Displays Cancelled / Completed without ghost Join buttons
     function syncAppointmentStatus() {
       const status = localStorage.getItem("drozo_session_status") || "CONFIRMED";
       const card = document.getElementById('scheduleList');
@@ -335,12 +301,12 @@
             <div class="flex justify-between items-start">
               <div>
                 <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
-                <div class="text-[11px] text-rose-600 font-semibold mt-0.5">Session Cancelled by Therapist</div>
+                <div class="text-[11px] text-rose-600 font-bold mt-0.5">Status: Cancelled by Therapist</div>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">Cancelled</span>
             </div>
             <div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500">
-              This appointment was cancelled. Use the AI assistant to rebook.
+              This session was cancelled. No active links available. Use the AI bot on the bottom-right to book a new appointment.
             </div>
           </div>
         `;
@@ -356,12 +322,92 @@
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-600 text-white">Completed</span>
             </div>
             <div class="pt-2 border-t border-slate-200 text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
-              <span>Outcome report available in 30-Day History below</span>
-              <button onclick="focusSection('history-card')" class="underline hover:text-emerald-900">View History →</button>
+              <span>Clinical report generated in 30-Day History below</span>
+              <button onclick="focusSection('history-card')" class="underline hover:text-emerald-900 font-bold">View History →</button>
+            </div>
+          </div>
+        `;
+      } else {
+        if (count) count.innerText = "1 Active";
+        card.innerHTML = `
+          <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger/Owner</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
+            </div>
+
+            <div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2">
+              <span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="btnModeDiscord" onclick="setSessionChannel('discord')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ${selectedChannel === 'discord' ? 'bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+                  <span>🎮</span> Discord VC
+                </button>
+                <button type="button" id="btnModeVideo" onclick="setSessionChannel('video')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ${selectedChannel === 'video' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+                  <span>🎥</span> Video Call
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
+                <span>🎮</span> Join Discord VC Room
+              </button>
             </div>
           </div>
         `;
       }
+    }
+
+    function setSessionChannel(mode) {
+      selectedChannel = mode;
+      localStorage.setItem("drozo_patient_channel", mode);
+      syncAppointmentStatus();
+    }
+
+    function launchSessionMeeting() {
+      if (selectedChannel === 'discord') window.open(DISCORD_INVITE_URL, "_blank");
+      else window.open("https://meet.jit.si/drozo-sanctuary-" + Math.random().toString(36).substring(7), "_blank");
+    }
+
+    function focusSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-4', 'ring-emerald-500', 'ring-offset-2');
+        setTimeout(() => el.classList.remove('ring-4', 'ring-emerald-500', 'ring-offset-2'), 1500);
+      }
+    }
+
+    function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const val = input.value.trim();
+      if (!val) return;
+      appendChatMessage("You", val, "user");
+      input.value = "";
+      setTimeout(() => {
+        if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
+          localStorage.setItem("drozo_session_status", "CONFIRMED");
+          syncAppointmentStatus();
+          appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.", "bot");
+        } else {
+          appendChatMessage("Drozo AI", "I hear you. Let us take a deep, steady breath and explore this together.", "bot");
+        }
+      }, 500);
+    }
+
+    function appendChatMessage(sender, text, type) {
+      const box = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = "flex gap-2 " + (type === "user" ? "justify-end" : "");
+      msg.innerHTML = `${type === "bot" ? '<span class="text-base">🤖</span>' : ''}<div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">${text}</div>`;
+      box.appendChild(msg);
+      box.scrollTop = box.scrollHeight;
     }
 
     function loadDispatchedDocuments() {
@@ -383,70 +429,6 @@
           list.prepend(item);
         });
       }
-    }
-
-    function focusSection(elementId) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-4', 'ring-emerald-500', 'ring-offset-2');
-      setTimeout(() => el.classList.remove('ring-4', 'ring-emerald-500', 'ring-offset-2'), 1500);
-    }
-
-    function setSessionChannel(mode) {
-      selectedChannel = mode;
-      localStorage.setItem("drozo_patient_channel", mode);
-      const btnDiscord = document.getElementById('btnModeDiscord');
-      const btnVideo = document.getElementById('btnModeVideo');
-      const joinBtn = document.getElementById('btnJoinChannel');
-
-      if (mode === 'discord') {
-        btnDiscord.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm";
-        btnVideo.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600";
-        joinBtn.className = "w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow";
-        joinBtn.innerHTML = `<span>🎮</span> Join Discord VC Room`;
-      } else {
-        btnVideo.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm";
-        btnDiscord.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600";
-        joinBtn.className = "w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow";
-        joinBtn.innerHTML = `<span>🎥</span> Connect to Video Room`;
-      }
-    }
-
-    function launchSessionMeeting() {
-      if (selectedChannel === 'discord') {
-        window.open(DISCORD_INVITE_URL, "_blank");
-      } else {
-        window.open("https://meet.jit.si/drozo-sanctuary-" + Math.random().toString(36).substring(7), "_blank");
-      }
-    }
-
-    function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
-
-    function handleChatSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('chatInput');
-      const val = input.value.trim();
-      if (!val) return;
-      appendChatMessage("You", val, "user");
-      input.value = "";
-      setTimeout(() => {
-        if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
-          appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Added to schedule.", "bot");
-          document.getElementById('appointmentCount').innerText = "2 Active";
-        } else {
-          appendChatMessage("Drozo AI", "I hear you. Let us take a deep breath and work through it together.", "bot");
-        }
-      }, 500);
-    }
-
-    function appendChatMessage(sender, text, type) {
-      const box = document.getElementById('chatMessages');
-      const msg = document.createElement('div');
-      msg.className = "flex gap-2 " + (type === "user" ? "justify-end" : "");
-      msg.innerHTML = `${type === "bot" ? '<span class="text-base">🤖</span>' : ''}<div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">${text}</div>`;
-      box.appendChild(msg);
-      box.scrollTop = box.scrollHeight;
     }
 
     function renderCustomPDF(patient, type, therapist, notes, actions) {
@@ -487,7 +469,7 @@
       win.document.close();
     }
 
-    // Modal & Login handlers
+    // Modal Handlers
     function openLoginModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authStep1').classList.remove('hidden');
@@ -527,6 +509,7 @@
 
     function backToStep2() {
       if (pollTimer) clearInterval(pollTimer);
+      stopWebcamIDPass();
       document.getElementById('authStep3Guard').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.add('hidden');
       document.getElementById('authStep2').classList.remove('hidden');
@@ -538,6 +521,7 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
+    // Instant Steam Guard QR Generator (Offline Client-Side QRCode.js)
     function startDrozoGuard2FA() {
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
@@ -549,14 +533,22 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      // Reliable Image QR Generator (Direct REST - Instant render)
-      const guardAuthUrl = `https://gte-02.github.io/better-DROZO/auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(guardAuthUrl)}`;
-      
-      const qrBox = document.getElementById('modalChallengeBox');
-      qrBox.innerHTML = `<img src="${qrUrl}" alt="Drozo Guard Challenge QR" class="w-36 h-36 rounded-lg" onload="this.style.opacity=1" style="opacity:0; transition:opacity 0.2s;" />`;
+      // URL formatted for phone scan
+      const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
+      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
 
-      // Supabase session record
+      const qrContainer = document.getElementById('qrCanvasContainer');
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, {
+        text: guardAuthUrl,
+        width: 160,
+        height: 160,
+        colorDark: "#02140d",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // Post pending to Supabase
       try {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
@@ -603,6 +595,36 @@
       }, 1000);
     }
 
+    // Working ID Pass Camera Scanner
+    function startWebcamIDPass() {
+      const box = document.getElementById('idWebcamBox');
+      box.classList.remove('hidden');
+      try {
+        html5QrScanner = new Html5Qrcode("idQrReader");
+        html5QrScanner.start(
+          { facingMode: "user" },
+          { fps: 10, qrbox: { width: 170, height: 170 } },
+          async (decodedText) => {
+            if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO") || decodedText.includes(currentEmail) || decodedText.includes("gamerkids1109@gmail.com")) {
+              await stopWebcamIDPass();
+              executeFinalLogin();
+            }
+          },
+          () => {}
+        ).catch(err => alert("Webcam error: " + err));
+      } catch (err) {
+        alert("Camera error: " + err);
+      }
+    }
+
+    async function stopWebcamIDPass() {
+      const box = document.getElementById('idWebcamBox');
+      if (html5QrScanner) {
+        try { await html5QrScanner.stop(); } catch(_) {}
+      }
+      box.classList.add('hidden');
+    }
+
     function startStandardAuth2FA() {
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.remove('hidden');
@@ -623,14 +645,9 @@
       }
     }
 
-    function handleModalIdFileUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      executeFinalLogin();
-    }
-
     function executeFinalLogin() {
       if (pollTimer) clearInterval(pollTimer);
+      stopWebcamIDPass();
       localStorage.setItem("drozo_active_session", currentEmail);
       if (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com") {
         localStorage.setItem("drozo_auth_state", "UNLOCKED");

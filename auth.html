@@ -25,23 +25,20 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-  <!-- Mobile Guard Frame -->
+  <!-- Mobile Guard Screen Chassis (Exact Steam Guard Layout) -->
   <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-between min-h-[620px]">
     
-    <!-- Top Bar -->
     <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-[#182635]">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">
-          🛡️
-        </div>
+        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">🛡️</div>
         <span class="text-xs font-black tracking-widest text-slate-300 uppercase">DROZO GUARD</span>
       </div>
-      <span class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 animate-pulse">
+      <span class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
         LIVE LINK
       </span>
     </div>
 
-    <!-- Map & Geolocation Details (Steam Guard Style) -->
+    <!-- Map Geolocation Visual -->
     <div class="p-5 space-y-4 flex-1 flex flex-col justify-center">
 
       <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-[#223547] map-grid flex items-center justify-center shadow-inner">
@@ -66,7 +63,7 @@
         </div>
       </div>
 
-      <!-- Sign In Request Details -->
+      <!-- Requesting Account Details -->
       <div class="bg-[#0b131c] border border-[#1b2a3a] rounded-2xl p-4 space-y-3 shadow-md">
         <div class="text-center">
           <div class="text-[11px] text-slate-400 font-medium">New sign in request for</div>
@@ -93,7 +90,7 @@
 
     </div>
 
-    <!-- Action Buttons: Approve vs Deny -->
+    <!-- Steam Guard Approve / Deny Buttons -->
     <div class="p-5 pt-0 grid grid-cols-2 gap-3">
       <button 
         onclick="authorizeChallenge(true)" 
@@ -140,6 +137,7 @@
 
       const newStatus = approved ? "authorized" : "denied";
 
+      // 1. Supabase PATCH
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}`, {
           method: "PATCH",
@@ -153,23 +151,17 @@
         });
       } catch (_) {}
 
+      // 2. Local fallback sync
       localStorage.setItem("drozo_challenge_result_" + sessionToken, newStatus);
 
       if (approved) {
-        localStorage.setItem("drozo_auth_state", "UNLOCKED");
-        localStorage.setItem("drozo_active_session", userEmail);
         btnA.innerText = "Approved ✓";
         setTimeout(() => {
-          if (userEmail === "admin@drozominds.com" || userEmail === "gamerkids1109@gmail.com") {
-            window.location.href = "./admin.html";
-          } else {
-            window.location.href = "./index.html";
-          }
-        }, 600);
+          alert("Session Approved! The desktop application is now unlocked.");
+        }, 300);
       } else {
         btnD.innerText = "Denied ✕";
-        alert("Sign in request denied and token invalidated.");
-        window.location.href = "./index.html";
+        alert("Session Denied. The sign in request has been rejected.");
       }
     }
   </script>
