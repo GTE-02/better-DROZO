@@ -15,7 +15,6 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Header -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
@@ -40,7 +39,6 @@
     </div>
   </header>
 
-  <!-- Protected Sanctuary Content -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
@@ -67,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Schedule & History -->
       <div class="space-y-6">
         <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
           <div class="flex justify-between items-center">
@@ -77,9 +74,7 @@
             <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">1 Active</span>
           </div>
 
-          <div id="scheduleList" class="space-y-3 text-xs">
-            <!-- Dynamic Reactively Synced by JS -->
-          </div>
+          <div id="scheduleList" class="space-y-3 text-xs"></div>
         </div>
 
         <div id="history-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 transition duration-300">
@@ -106,7 +101,6 @@
     </main>
   </div>
 
-  <!-- FLOATING SIDE AI BOT -->
   <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
     <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
       <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -136,24 +130,24 @@
     <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
-  <!-- AUTHENTICATION MODAL -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    
-    <!-- STEP 1: Email / Password -->
     <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="text-center">
         <span class="text-3xl">🧠</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mt-2">Sign In to DrozoMind</h3>
-        <p class="text-xs text-slate-500 mt-1">Please sign in to access your therapy sanctuary.</p>
-      </div>
-      
-      <!-- Login vs Register Tab Switcher -->
-      <div class="flex border-b border-slate-200 mb-3">
-        <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600">Sign In</button>
-        <button type="button" id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600">New Client Register</button>
+        <h3 class="text-lg font-extrabold text-slate-900 mt-2" id="authHeaderTitle">Sign In to DrozoMind</h3>
+        <p class="text-xs text-slate-500 mt-1" id="authHeaderSubtitle">Please sign in to access your confidential sanctuary.</p>
       </div>
 
-      <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-2">
+      <div class="flex border-b border-slate-200 mb-2">
+        <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600">
+          Sign In
+        </button>
+        <button type="button" id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600">
+          New Register
+        </button>
+      </div>
+
+      <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-1">
         <div>
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Email Address</label>
           <input type="email" id="loginEmail" required value="admin@drozominds.com" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
@@ -162,34 +156,43 @@
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Password</label>
           <input type="password" id="loginPass" required value="admin123" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
-        <button type="submit" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
+        <button type="submit" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
+          Continue to 2FA Verification →
+        </button>
       </form>
     </div>
 
-    <!-- STEP 2: 2FA Choice -->
     <div id="authStep2" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification</h3>
-      <p class="text-xs text-slate-500">Choose how you want to authorize:</p>
+      <p class="text-xs text-slate-500">Choose how you want to complete authentication:</p>
+      
       <div class="space-y-3 pt-2">
-        <button onclick="startDrozoGuard2FA()" id="btnGuardChoice" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm">
+        <button type="button" id="btnGuardChoice" onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm cursor-pointer">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">🛡️</span>
-            <div><div class="text-xs font-bold text-white">Drozo Guard Mobile App</div><div class="text-[10px] text-sky-400">Scan QR via Phone & Approve/Deny</div></div>
+            <div>
+              <div class="text-xs font-bold text-white">Drozo Guard Mobile App</div>
+              <div class="text-[10px] text-sky-400" id="guardBadgeNote">QR App Scan & Approve / Deny</div>
+            </div>
           </div>
           <span class="text-xs font-bold text-sky-400">→</span>
         </button>
-        <button onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm">
+
+        <button type="button" onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm cursor-pointer">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">📱</span>
-            <div><div class="text-xs font-bold text-slate-900">Standard Authenticator</div><div class="text-[10px] text-slate-500">6-Digit TOTP Code</div></div>
+            <div>
+              <div class="text-xs font-bold text-slate-900">Standard Authenticator</div>
+              <div class="text-[10px] text-slate-500">6-Digit TOTP Code</div>
+            </div>
           </div>
           <span class="text-xs font-bold">→</span>
         </button>
       </div>
-      <button onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
+
+      <button type="button" onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
     </div>
 
-    <!-- STEP 3A: STEAM-GUARD STYLED APP QR CODE -->
     <div id="authStep3Guard" class="bg-[#0e1722] text-slate-100 w-full max-w-sm rounded-[32px] p-6 shadow-2xl border border-[#1e2f42] space-y-4 hidden text-center">
       <div class="flex items-center justify-between border-b border-[#1b2b3d] pb-3">
         <div class="flex items-center gap-2">
@@ -201,7 +204,6 @@
         </span>
       </div>
 
-      <!-- Account Card -->
       <div class="bg-[#131f2d] p-3 rounded-2xl border border-[#21354a] flex items-center gap-3 text-left">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-md">
           DG
@@ -212,7 +214,6 @@
         </div>
       </div>
 
-      <!-- Instant QR Box (Renders immediately via QRCode.js) -->
       <div class="relative flex justify-center py-2">
         <div class="relative p-3 bg-white rounded-3xl border border-[#1e2f42] shadow-2xl">
           <div id="qrCanvasContainer" class="w-[160px] h-[160px] flex items-center justify-center"></div>
@@ -224,7 +225,6 @@
         <span class="mono text-sky-400 font-bold" id="steamTokenLabel">SES_AUTH</span>
       </div>
 
-      <!-- Actions -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button type="button" onclick="openApprovalSimulator()" class="py-2.5 px-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5">
           <span>📲</span> Open on Phone
@@ -234,19 +234,17 @@
         </button>
       </div>
 
-      <!-- Webcam Scanner Overlay -->
       <div id="idWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
         <div id="idQrReader"></div>
         <button type="button" onclick="stopWebcamIDPass()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
       </div>
 
       <div class="pt-1 flex items-center justify-between text-xs">
-        <button onclick="backToStep2()" class="text-slate-400 hover:text-white transition">← Change method</button>
+        <button type="button" onclick="backToStep2()" class="text-slate-400 hover:text-white transition">← Change method</button>
         <button type="button" onclick="startWebcamIDPass()" class="text-sky-400 hover:text-sky-300 font-bold mono">Bypass (Dev) [Scan QR] →</button>
       </div>
     </div>
 
-    <!-- STEP 3B: Standard Authenticator 6-Digit -->
     <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Enter Authenticator Code</h3>
       <p class="text-xs text-slate-500">Enter the 6-digit TOTP code generated by your Authenticator app.</p>
@@ -254,7 +252,7 @@
         <input type="text" id="totpInput" maxlength="6" placeholder="849201" required class="w-full text-center tracking-widest text-lg font-bold mono px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Verify & Sign In →</button>
       </form>
-      <button onclick="backToStep2()" class="text-xs text-slate-400 hover:underline">← Change method</button>
+      <button type="button" onclick="backToStep2()" class="text-xs text-slate-400 hover:underline">← Change method</button>
     </div>
   </div>
 
@@ -272,6 +270,7 @@
     let pollTimer = null;
     let html5QrScanner = null;
     let selectedChannel = "discord";
+    let authMode = "login";
 
     const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
 
@@ -293,7 +292,37 @@
       }
     });
 
-    // Reactive Status Sync: Displays Cancelled / Completed without ghost Join buttons
+    function isAndroidDevice() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const lBtn = document.getElementById('tabLoginBtn');
+      const rBtn = document.getElementById('tabRegisterBtn');
+      const title = document.getElementById('authHeaderTitle');
+      const subtitle = document.getElementById('authHeaderSubtitle');
+      const submitBtn = document.getElementById('btnSubmitStep1');
+
+      if (mode === 'register') {
+        lBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
+        rBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
+        title.innerText = "Register New Account";
+        subtitle.innerText = "Create credentials to access your sandboxed therapy sanctuary.";
+        submitBtn.innerText = "Create Account & Setup 2FA →";
+        document.getElementById('loginEmail').value = "";
+        document.getElementById('loginPass').value = "";
+      } else {
+        rBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
+        lBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
+        title.innerText = "Sign In to DrozoMind";
+        subtitle.innerText = "Please sign in to access your confidential sanctuary.";
+        submitBtn.innerText = "Continue to 2FA Verification →";
+        document.getElementById('loginEmail').value = "admin@drozominds.com";
+        document.getElementById('loginPass').value = "admin123";
+      }
+    }
+
     function syncAppointmentStatus() {
       const status = localStorage.getItem("drozo_session_status") || "CONFIRMED";
       const card = document.getElementById('scheduleList');
@@ -476,37 +505,12 @@
       win.document.close();
     }
 
-    // Modal Handlers
     function openLoginModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authStep1').classList.remove('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.add('hidden');
-    }
-
-    
-    let authMode = "login";
-
-    function switchAuthTab(mode) {
-      authMode = mode;
-      const lBtn = document.getElementById('tabLoginBtn');
-      const rBtn = document.getElementById('tabRegisterBtn');
-      const submitBtn = document.getElementById('btnSubmitStep1');
-      if (mode === 'register') {
-        lBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
-        rBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
-        submitBtn.innerText = "Register Account →";
-      } else {
-        rBtn.className = "flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600";
-        lBtn.className = "flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600";
-        submitBtn.innerText = "Continue to 2FA Verification →";
-      }
-    }
-
-    // Android Hardware Check
-    function isAndroidDevice() {
-      return /Android/i.test(navigator.userAgent);
     }
 
     function handleStep1Submit(e) {
@@ -521,18 +525,10 @@
         "client@drozominds.com": "client123"
       };
 
-      const defaultAccounts = {
-        "admin@drozominds.com": "admin123",
-        "gamerkids1109@gmail.com": "coordinator2026",
-        "client@drozominds.com": "client123"
-      };
-
       if (authMode === "register") {
-        // New client registration: store password
         storedPasswords[currentEmail] = enteredPass;
         localStorage.setItem("drozo_custom_passwords", JSON.stringify(storedPasswords));
-        localStorage.setItem("drozo_new_user_" + currentEmail, "true");
-        alert("Account registered successfully! Redirecting to set up your 2FA authentication.");
+        localStorage.setItem("drozo_registered_account", currentEmail);
       } else {
         const expectedPassword = storedPasswords[currentEmail] || defaultAccounts[currentEmail];
         if (!expectedPassword || enteredPass !== expectedPassword) {
@@ -542,17 +538,18 @@
         }
       }
 
-      // Check if user is on Android for Drozo Guard availability
       const guardChoiceBtn = document.getElementById('btnGuardChoice');
+      const guardNote = document.getElementById('guardBadgeNote');
       const isAndroid = isAndroidDevice();
-      if (guardChoiceBtn) {
-        if (!isAndroid && currentEmail !== "admin@drozominds.com" && currentEmail !== "gamerkids1109@gmail.com") {
-          // Hide or disable Drozo Guard on non-Android devices for general clients
-          guardChoiceBtn.classList.add('opacity-40', 'pointer-events-none');
-          guardChoiceBtn.querySelector('.drozo-guard-badge-note').innerText = "Drozo Guard APK is exclusively available on Android devices.";
+      const isAdminAccount = (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com");
+
+      if (guardChoiceBtn && guardNote) {
+        if (!isAndroid && !isAdminAccount) {
+          guardChoiceBtn.classList.add('opacity-50');
+          guardNote.innerText = "Available for Android APK (Use Authenticator below)";
         } else {
-          guardChoiceBtn.classList.remove('opacity-40', 'pointer-events-none');
-          guardChoiceBtn.querySelector('.drozo-guard-badge-note').innerText = "QR App Scan & Approve / Deny";
+          guardChoiceBtn.classList.remove('opacity-50');
+          guardNote.innerText = "QR App Scan & Approve / Deny";
         }
       }
 
@@ -579,8 +576,14 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-    // Instant Steam Guard QR Generator (Offline Client-Side QRCode.js)
     function startDrozoGuard2FA() {
+      const isAndroid = isAndroidDevice();
+      const isAdminAccount = (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com");
+      
+      if (!isAndroid && !isAdminAccount) {
+        alert("Drozo Guard mobile APK is designed for Android. You can also use the Standard Authenticator.");
+      }
+
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
 
@@ -591,22 +594,26 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      // URL formatted for phone scan
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
       const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
 
       const qrContainer = document.getElementById('qrCanvasContainer');
-      qrContainer.innerHTML = "";
-      new QRCode(qrContainer, {
-        text: guardAuthUrl,
-        width: 160,
-        height: 160,
-        colorDark: "#02140d",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      if (qrContainer) {
+        qrContainer.innerHTML = "";
+        try {
+          new QRCode(qrContainer, {
+            text: guardAuthUrl,
+            width: 160,
+            height: 160,
+            colorDark: "#02140d",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } catch (_) {
+          qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(guardAuthUrl)}" class="w-36 h-36 rounded-lg" />`;
+        }
+      }
 
-      // Post pending to Supabase
       try {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
@@ -620,7 +627,6 @@
         }).catch(() => {});
       } catch (_) {}
 
-      // Dual-poll for mobile approval
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
         const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);
@@ -653,8 +659,6 @@
       }, 1000);
     }
 
-    // Working ID Pass Camera Scanner
-        // Working ID Pass Camera Scanner for Bypass & Physical Pass
     async function startWebcamIDPass() {
       const box = document.getElementById('idWebcamBox');
       if (!box) return;
@@ -669,8 +673,6 @@
           { facingMode: "user" },
           { fps: 15, qrbox: { width: 180, height: 180 } },
           async (decodedText) => {
-            console.log("Scanned QR Text:", decodedText);
-            // Verify any legitimate pass token
             if (
               decodedText.includes("AUTH_8829") ||
               decodedText.includes("DROZO") ||
@@ -686,17 +688,14 @@
           () => {}
         );
       } catch (err) {
-        console.error("Camera access error:", err);
-        alert("Camera initialization error: Please ensure camera permissions are allowed in Safari.");
+        alert("Camera initialization error: Please check camera permissions.");
       }
     }
 
     async function stopWebcamIDPass() {
       const box = document.getElementById('idWebcamBox');
       if (html5QrScanner) {
-        try {
-          await html5QrScanner.stop();
-        } catch (_) {}
+        try { await html5QrScanner.stop(); } catch (_) {}
       }
       if (box) box.classList.add('hidden');
     }
