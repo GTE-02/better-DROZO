@@ -157,12 +157,84 @@
       }
     });
 
+        
+    let html5QrScannerMobile = null;
+
+    async function startScanner() {
+      const scannerBox = document.getElementById('cameraScannerBox') || createScannerBox();
+      scannerBox.classList.remove('hidden');
+
+      try {
+        if (html5QrScannerMobile) {
+          try { await html5QrScannerMobile.stop(); } catch(_) {}
+        }
+        html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
+        await html5QrScannerMobile.start(
+          { facingMode: "environment" },
+          { fps: 15, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            console.log("Scanned QR Text:", decodedText);
+            try {
+              // Parse URL query parameters if a full URL was scanned
+              if (decodedText.includes("?") && (decodedText.includes("token=") || decodedText.includes("SES_"))) {
+                const url = new URL(decodedText);
+                const token = url.searchParams.get("token");
+                const email = url.searchParams.get("email") || "admin@drozominds.com";
+                const loc = url.searchParams.get("loc") || "Detected Device";
+                if (token) {
+                  await stopMobileScanner();
+                  verifyAndShowChallenge(token, email, loc);
+                  return;
+                }
+              }
+              // Direct Token scan fallback
+              if (decodedText.startsWith("SES_")) {
+                await stopMobileScanner();
+                verifyAndShowChallenge(decodedText, "admin@drozominds.com", "Detected Device");
+                return;
+              }
+            } catch (_) {}
+          },
+          () => {}
+        );
+      } catch (err) {
+        alert("Camera error: Ensure browser permissions allow camera access.");
+      }
+    }
+
+    async function stopMobileScanner() {
+      if (html5QrScannerMobile) {
+        try { await html5QrScannerMobile.stop(); } catch (_) {}
+      }
+      const scannerBox = document.getElementById('cameraScannerBox');
+      if (scannerBox) scannerBox.classList.add('hidden');
+    }
+
+    function createScannerBox() {
+      let box = document.getElementById('cameraScannerBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'cameraScannerBox';
+        box.className = 'fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4';
+        box.innerHTML = `
+          <div class="w-full max-w-xs bg-slate-900 rounded-3xl p-4 border border-slate-700 text-center space-y-3">
+            <div class="text-xs font-bold text-white uppercase tracking-wider">Point Camera at Computer QR</div>
+            <div id="mobileQrReaderArea" class="w-full h-64 rounded-2xl overflow-hidden bg-black"></div>
+            <button type="button" onclick="stopMobileScanner()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition">
+              Cancel Scan
+            </button>
+          </div>
+        `;
+        document.body.appendChild(box);
+      }
+      return box;
+    }
+
         async function pollForPendingIncomingSessions() {
-      // Strictly poll for sessions created within the last 30 seconds
       setInterval(async () => {
-        if (activeSessionToken) return; // Do not interrupt an active prompt
+        if (activeSessionToken) return;
         try {
-          const freshTime = new Date(Date.now() - 30000).toISOString();
+          const freshTime = new Date(Date.now() - 60000).toISOString();
           const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&created_at=gte.${freshTime}&order=created_at.desc&limit=1`, {
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
@@ -170,13 +242,12 @@
             const rows = await res.json();
             if (rows && rows.length > 0) {
               const req = rows[0];
-              // Avoid re-triggering already handled sessions
               if (sessionStorage.getItem("handled_" + req.session_token)) return;
               verifyAndShowChallenge(req.session_token, req.email, req.client_location);
             }
           }
         } catch (_) {}
-      }, 2000);
+      }, 1500);
     }
 
     function verifyAndShowChallenge(token, email) {

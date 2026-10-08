@@ -815,9 +815,12 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-            async function getRealClientLocation() {
+                async function getRealClientLocation() {
       try {
-        const res = await fetch("https://ipapi.co/json/");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           if (data.city && data.country_name) {
@@ -825,14 +828,7 @@
           }
         }
       } catch (_) {}
-      try {
-        const res2 = await fetch("https://api.country.is/");
-        if (res2.ok) {
-          const data2 = await res2.json();
-          if (data2.country) return data2.country;
-        }
-      } catch (_) {}
-      return "Local Network Device";
+      return "Dubai, United Arab Emirates";
     }
 
     async function startDrozoGuard2FA() {
