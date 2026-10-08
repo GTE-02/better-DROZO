@@ -158,10 +158,12 @@
     });
 
     async function pollForPendingIncomingSessions() {
+      // Automatic polling only looks for requests created within the last 45 seconds
       setInterval(async () => {
-        if (activeSessionToken) return; // Already dealing with an active prompt
+        if (activeSessionToken) return;
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=created_at.desc&limit=1`, {
+          const freshTime = new Date(Date.now() - 45000).toISOString();
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&created_at=gte.${freshTime}&order=created_at.desc&limit=1`, {
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
           if (res.ok) {
@@ -171,7 +173,7 @@
             }
           }
         } catch (_) {}
-      }, 2000);
+      }, 3000);
     }
 
     function verifyAndShowChallenge(token, email) {
