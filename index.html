@@ -635,12 +635,35 @@
         }
       }
 
-      if (authMode === "register") {
+
+      // Grandfathered check for early accounts like gamerkids1109@gmail.com
+      const isGamerKid = (currentEmail === "gamerkids1109@gmail.com");
+      const hasCompleted2FASetup = localStorage.getItem("drozo_user_2fa_verified_" + currentEmail);
+
+      // Force onboarding wizard if:
+      // a) It's a brand new registration
+      // b) It's gamerkids1109@gmail.com and they haven't linked their chosen 2FA yet
+      if (authMode === "register" || (isGamerKid && !hasCompleted2FASetup)) {
         showOnboardingChoice();
-      } else {
-        document.getElementById('authStep1').classList.add('hidden');
-        document.getElementById('authStep2').classList.remove('hidden');
+        return;
       }
+
+      // Check if user has already linked and locked a 2FA method for the future
+      const lockedMethod = localStorage.getItem("drozo_user_2fa_pref_" + currentEmail);
+      if (lockedMethod === "drozo_guard") {
+        document.getElementById('authStep1').classList.add('hidden');
+        startDrozoGuard2FA();
+        return;
+      } else if (lockedMethod === "totp") {
+        document.getElementById('authStep1').classList.add('hidden');
+        startStandardAuth2FA();
+        return;
+      }
+
+      // Fallback: Show standard 2FA selection screen if no locked preference exists
+      document.getElementById('authStep1').classList.add('hidden');
+      document.getElementById('authStep2').classList.remove('hidden');
+
     }
 
     function backToStep1() {
@@ -834,6 +857,18 @@
         <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">👤 ${displayName}</span>
         <button onclick="logoutClient()" class="text-xs text-rose-500 hover:underline font-bold px-2 py-1">Sign Out</button>
       `;
+    }
+
+    
+    function resetMy2FAMethod() {
+      const activeUser = localStorage.getItem("drozo_active_session");
+      if (!activeUser) return;
+      if (confirm("Reset and re-configure your linked 2FA security method?")) {
+        localStorage.removeItem("drozo_user_2fa_pref_" + activeUser);
+        localStorage.removeItem("drozo_user_2fa_verified_" + activeUser);
+        alert("2FA method reset. Please sign in again to set up your new method.");
+        logoutClient();
+      }
     }
 
     function logoutClient() {
