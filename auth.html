@@ -302,7 +302,8 @@
     async function checkPendingNow() {
       if (activeSessionToken) return;
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=id.desc&limit=1`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=id.desc&limit=1&_t=${Date.now()}`, {
+          cache: "no-store",
           headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
         });
         if (res.ok) {

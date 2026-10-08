@@ -549,7 +549,8 @@
           return;
         }
         try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status&_t=${Date.now()}`, {
+            cache: "no-store",
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
           if (res.ok) {
