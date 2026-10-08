@@ -815,7 +815,27 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-        function startDrozoGuard2FA() {
+            async function getRealClientLocation() {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.city && data.country_name) {
+            return `${data.city}, ${data.country_name}`;
+          }
+        }
+      } catch (_) {}
+      try {
+        const res2 = await fetch("https://api.country.is/");
+        if (res2.ok) {
+          const data2 = await res2.json();
+          if (data2.country) return data2.country;
+        }
+      } catch (_) {}
+      return "Local Network Device";
+    }
+
+    async function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStepOnboarding').classList.add('hidden');
@@ -829,8 +849,11 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
+      // Determine actual live location of this computer
+      const realLocation = await getRealClientLocation();
+
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
-      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
+      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}&loc=${encodeURIComponent(realLocation)}`;
 
       const qrContainer = document.getElementById('qrCanvasContainer');
       if (qrContainer) {
@@ -853,7 +876,7 @@
         }
       }
 
-      // Dispatch clean real-time session to Supabase with precise UTC timestamp
+      // Dispatch clean real-time session with actual computer location
       try {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
@@ -867,6 +890,7 @@
             session_token: activeToken,
             email: currentEmail,
             status: "pending",
+            client_location: realLocation,
             created_at: new Date().toISOString()
           })
         }).catch(() => {});

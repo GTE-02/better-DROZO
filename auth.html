@@ -172,7 +172,7 @@
               const req = rows[0];
               // Avoid re-triggering already handled sessions
               if (sessionStorage.getItem("handled_" + req.session_token)) return;
-              verifyAndShowChallenge(req.session_token, req.email);
+              verifyAndShowChallenge(req.session_token, req.email, req.client_location);
             }
           }
         } catch (_) {}
