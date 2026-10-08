@@ -25,7 +25,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-  <!-- Mobile Guard Chassis -->
+  <!-- Mobile Guard Frame -->
   <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-between min-h-[620px]">
     
     <!-- Top Bar -->
@@ -41,16 +41,13 @@
       </span>
     </div>
 
-    <!-- Middle: Interactive Map & Telemetry Box -->
+    <!-- Map & Geolocation Details (Steam Guard Style) -->
     <div class="p-5 space-y-4 flex-1 flex flex-col justify-center">
 
-      <!-- Map View with Pin (Styled after Steam Guard Map) -->
       <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-[#223547] map-grid flex items-center justify-center shadow-inner">
-        <!-- Map Water & Roads Visual Accents -->
         <div class="absolute inset-0 bg-gradient-to-tr from-[#0d1620] via-transparent to-[#132230] opacity-80"></div>
         <div class="absolute w-32 h-16 bg-[#1a2f44]/40 rounded-full blur-xl"></div>
         
-        <!-- Location Pin Target -->
         <div class="relative z-10 flex flex-col items-center">
           <div class="relative flex items-center justify-center">
             <span class="w-8 h-8 rounded-full bg-emerald-500/20 animate-ping absolute"></span>
@@ -88,7 +85,6 @@
           </div>
         </div>
 
-        <!-- Trust Checkbox -->
         <label class="flex items-center gap-2 pt-1 text-left cursor-pointer select-none">
           <input type="checkbox" checked class="w-4 h-4 rounded text-emerald-500 bg-[#162330] border-slate-700 focus:ring-0 focus:outline-none" />
           <span class="text-[11px] text-slate-300">Remember this trusted device</span>
@@ -97,7 +93,7 @@
 
     </div>
 
-    <!-- Action Buttons: Approve vs Deny (Steam Guard Style) -->
+    <!-- Action Buttons: Approve vs Deny -->
     <div class="p-5 pt-0 grid grid-cols-2 gap-3">
       <button 
         onclick="authorizeChallenge(true)" 
@@ -122,7 +118,6 @@
     const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
-    // Read session from query params or current pending session
     const urlParams = new URLSearchParams(window.location.search);
     const sessionToken = urlParams.get('token') || localStorage.getItem("drozo_current_challenge_token") || "SES_8829";
     const userEmail = urlParams.get('email') || localStorage.getItem("drozo_current_challenge_email") || "admin@drozominds.com";
@@ -145,7 +140,6 @@
 
       const newStatus = approved ? "authorized" : "denied";
 
-      // 1. Update Supabase
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}`, {
           method: "PATCH",
@@ -159,7 +153,6 @@
         });
       } catch (_) {}
 
-      // 2. Local fallback sync
       localStorage.setItem("drozo_challenge_result_" + sessionToken, newStatus);
 
       if (approved) {
