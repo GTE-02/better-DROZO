@@ -825,7 +825,7 @@
       return "Current Device Location";
     }
 
-    function startDrozoGuard2FA() {
+        function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStepOnboarding').classList.add('hidden');
@@ -840,13 +840,12 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      // Fast, non-blocking time-zone based location first
       let resolvedLoc = getQuickLocationString();
 
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
       const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}&loc=${encodeURIComponent(resolvedLoc)}`;
 
-      // 1. Immediately render the QR code
+      // Render QR code
       const qrContainer = document.getElementById('qrCanvasContainer');
       if (qrContainer) {
         qrContainer.innerHTML = "";
@@ -868,26 +867,7 @@
         }
       }
 
-      // 2. Immediately send handshake to Supabase so phone picks it up without waiting
-            // Strictly compliant payload: session_token, email, status
-      const postHandshake = () => {
-        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
-          method: "POST",
-          headers: {
-            "apikey": SUPABASE_ANON,
-            "Authorization": `Bearer ${SUPABASE_ANON}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal"
-          },
-          body: JSON.stringify({
-            session_token: activeToken,
-            email: currentEmail,
-            status: "pending"
-          })
-        }).catch(() => {});
-      };
-
-            // Broadcast immediately across open browser tabs/windows
+      // Cross-tab broadcast for instant zero-delay sync if both tabs are in same browser
       try {
         const guardBroadcast = new BroadcastChannel('drozo_guard_sync');
         guardBroadcast.postMessage({
@@ -898,13 +878,23 @@
         });
       } catch (_) {}
 
-      postHandshake(resolvedLoc);
+      // Supabase POST (exact schema that passed Test 2)
+      fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON,
+          "Authorization": `Bearer ${SUPABASE_ANON}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          session_token: activeToken,
+          email: currentEmail,
+          status: "pending"
+        })
+      }).catch(err => console.error("Supabase post error:", err));
 
-      // Background IP lookup handled client-side without schema mismatch
-        }
-      }).catch(() => {});
-
-      // 4. Start polling for Approval / Denial from phone
+      // Polling for phone approval
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
         const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);
