@@ -290,7 +290,7 @@
         const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
     guardSyncChannel.onmessage = (event) => {
       if (event.data && event.data.type === 'NEW_CHALLENGE') {
-        verifyAndShowChallenge(event.data.token, event.data.email, event.data.location);
+        verifyAndShowChallenge(event.data.token, event.data.email);
       }
     };
 
@@ -310,7 +310,7 @@
           if (rows && rows.length > 0) {
             const req = rows[0];
             if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email, "Dubai, United Arab Emirates");
+            verifyAndShowChallenge(req.session_token, req.email);
           }
         }
       } catch (_) {}
@@ -320,37 +320,35 @@
           if (rows && rows.length > 0) {
             const req = rows[0];
             if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email, req.client_location || 'Detected Device (Live)');
+            verifyAndShowChallenge(req.session_token, req.email);
           }
         }
       } catch (_) {}
     }
 
-    function verifyAndShowChallenge(token, email) {
+        function verifyAndShowChallenge(token, email) {
       activeSessionToken = token;
-      activeUserEmail = email;
-
       document.getElementById('standbyView').classList.add('hidden');
-      document.getElementById('approvalView').classList.remove('hidden');
-      document.getElementById('actionButtons').classList.remove('hidden');
+      document.getElementById('challengeView').classList.remove('hidden');
+
+      const tokEl = document.getElementById('sessionTokenDisplay');
+      if (tokEl) tokEl.innerText = token;
       
-      const badge = document.getElementById('guardStatusBadge');
-      badge.className = "text-[10px] mono text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/30 animate-pulse font-bold";
-      badge.innerText = "CHALLENGE ACTIVE";
+      const emEl = document.getElementById('userEmailDisplay');
+      if (emEl) emEl.innerText = email || "admin@drozominds.com";
+      
+      const displayName = (email === "admin@drozominds.com") ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : (email ? email.split('@')[0] : "Client"));
+      const nameEl = document.getElementById('userNameDisplay');
+      if (nameEl) nameEl.innerText = displayName;
 
-      document.getElementById('guardSessionToken').innerText = token;
-      document.getElementById('targetAccountEmail').innerText = email;
-
-      if (email === "admin@drozominds.com") {
-        document.getElementById('targetAccountName').innerText = "Water_Chugger/Owner";
-      } else if (email === "gamerkids1109@gmail.com") {
-        document.getElementById('targetAccountName').innerText = "Drozo YT (Coordinator)";
-      } else {
-        document.getElementById('targetAccountName').innerText = email.split('@')[0];
+      // Force hide the location UI block completely
+      const mapTitle = document.getElementById('mapCityDisplay');
+      if (mapTitle && mapTitle.parentNode && mapTitle.parentNode.parentNode) {
+         mapTitle.parentNode.parentNode.style.display = 'none';
       }
     }
 
-    async function authorizeChallenge(approved) {
+function authorizeChallenge(approved) {
       const btnA = document.getElementById('btnApprove');
       const btnD = document.getElementById('btnDeny');
       btnA.disabled = true;

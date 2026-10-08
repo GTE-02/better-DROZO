@@ -287,7 +287,7 @@
         </div>
       </div>
       <div class="bg-[#0b1219] p-2.5 rounded-xl border border-[#1a2938] text-[11px] text-slate-400 flex items-center justify-between">
-        <span>📍 Security Sync</span>
+        <span>🔑 Session ID</span>
         <span class="mono text-sky-400 font-bold" id="steamTokenLabel">SES_AUTH</span>
       </div>
       <div class="grid grid-cols-2 gap-2 pt-1">
@@ -493,14 +493,6 @@
       }
     }
 
-    function getQuickLocationString() {
-      try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-        if (tz.includes("/")) return tz.replace("_", " ").split("/").reverse().join(", ");
-      } catch (_) {}
-      return "Current Device Location";
-    }
-
     function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
@@ -515,9 +507,9 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      let resolvedLoc = getQuickLocationString();
+      
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
-      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}&loc=${encodeURIComponent(resolvedLoc)}`;
+      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
 
       const qrContainer = document.getElementById('qrCanvasContainer');
       if (qrContainer) {
@@ -535,7 +527,7 @@
 
       try {
         const guardBroadcast = new BroadcastChannel('drozo_guard_sync');
-        guardBroadcast.postMessage({ type: 'NEW_CHALLENGE', token: activeToken, email: currentEmail, location: resolvedLoc });
+        guardBroadcast.postMessage({ type: 'NEW_CHALLENGE', token: activeToken, email: currentEmail });
       } catch (_) {}
 
       fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
