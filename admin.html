@@ -25,10 +25,9 @@
         <p class="text-xs text-emerald-300/80 mt-1">Platform management, hardware key telemetry, and operational controls.</p>
       </div>
       <div class="flex items-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#0a3825] text-emerald-300 border border-emerald-500/40">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          2FA ACTIVE
-        </span>
+        <a href="./index.html" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0a3825] border border-emerald-500/40 text-emerald-300 hover:bg-[#0d4f34] transition">
+          ← Back to Sanctuary
+        </a>
         <button onclick="logoutAdmin()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-950/70 border border-rose-800 text-rose-200 hover:bg-rose-900 transition">
           Lock Session
         </button>
@@ -56,27 +55,76 @@
       </div>
     </div>
 
-    <!-- Status Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-emerald-300">2FA Binding Method</div>
-        <div class="text-lg font-bold text-emerald-400">Drozo Guard APK</div>
-        <div class="text-[11px] text-emerald-500">Hardware token binding permanent</div>
+    <!-- FEATURE: THERAPIST CLAIM APPOINTMENTS CONSOLE -->
+    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🩺</span> Patient Appointment Queue & Claim Console
+        </h3>
+        <span class="text-[11px] text-emerald-400 mono">● Live Intake</span>
       </div>
-      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-emerald-300">Supabase Link</div>
-        <div class="text-lg font-bold text-teal-400">Online</div>
-        <div class="text-[11px] text-emerald-500">Database synchronization active</div>
-      </div>
-      <div class="bg-[#052317] border border-[#0d4f34] p-5 rounded-2xl space-y-1">
-        <div class="text-xs text-emerald-300">Sentinel Security Status</div>
-        <div class="text-lg font-bold text-white">Protected</div>
-        <div class="text-[11px] text-emerald-400 font-medium">Zero breaches detected</div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left text-emerald-100">
+          <thead class="text-[10px] text-emerald-400 uppercase bg-[#021810] border-b border-[#0d4f34]">
+            <tr>
+              <th class="py-2.5 px-3">Patient / ID</th>
+              <th class="py-2.5 px-3">Session Type</th>
+              <th class="py-2.5 px-3">Date & Time</th>
+              <th class="py-2.5 px-3">Therapist Status</th>
+              <th class="py-2.5 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#0d4f34]/60" id="appointmentsTableBody">
+            <tr id="aptRow1">
+              <td class="py-3 px-3 mono text-white">PAT_9182 (Client Self-Book)</td>
+              <td class="py-3 px-3">Cognitive Behavioral Reframing</td>
+              <td class="py-3 px-3 text-emerald-300">Tomorrow, 4:00 PM</td>
+              <td class="py-3 px-3"><span id="aptStatus1" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">UNCLAIMED</span></td>
+              <td class="py-3 px-3 text-right">
+                <button onclick="claimAppointment('aptStatus1', this)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
+                  Claim Session
+                </button>
+              </td>
+            </tr>
+            <tr id="aptRow2">
+              <td class="py-3 px-3 mono text-white">PAT_4031 (Referral)</td>
+              <td class="py-3 px-3">Acute Stress & Decompression</td>
+              <td class="py-3 px-3 text-emerald-300">Friday, 11:30 AM</td>
+              <td class="py-3 px-3"><span id="aptStatus2" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">CLAIMED: Drozo YT</span></td>
+              <td class="py-3 px-3 text-right">
+                <button onclick="alert('Session document sent to client.')" class="px-3 py-1 bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 border border-[#145d3e] font-semibold rounded-lg text-xs transition">
+                  Dispatch Doc
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Operational Controls -->
-    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-5">
+    <!-- FEATURE: CLINICAL OUTCOME DISPATCH & AI ASSESSMENT GENERATOR -->
+    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
+      <h3 class="text-base font-bold text-white flex items-center gap-2">
+        <span>📄</span> Clinical Outcome Generator & AI Document Dispatch
+      </h3>
+      <p class="text-xs text-emerald-300/80">Issue official verified progress documents directly to patient client portals.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <input type="text" id="docPatientId" placeholder="Patient ID (e.g. PAT_9182)" class="bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none" />
+        <select id="docDiagnosis" class="bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs text-emerald-200 focus:outline-none">
+          <option>General Anxiety - Significant Improvement</option>
+          <option>Stress Reduction - Goals Achieved</option>
+          <option>Mindfulness Conditioning - Ongoing</option>
+        </select>
+        <button onclick="generateClinicalDoc()" class="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">
+          Generate & Dispatch PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- FEATURE: OPERATIONAL SYSTEM CONTROLS -->
+    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <h3 class="text-base font-bold text-white flex items-center gap-2">
         <span>⚙️</span> Operational Controls
       </h3>
@@ -85,7 +133,7 @@
         <div class="p-4 rounded-xl bg-[#021810] border border-[#0d4f34] space-y-2">
           <div class="text-xs font-bold text-white">Flush Expired Auth Challenges</div>
           <p class="text-[11px] text-emerald-400/70">Purge stale pending sessions from the database.</p>
-          <button onclick="alert('Stale sessions flushed from database.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
+          <button onclick="alert('All stale auth challenges purged.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
             Execute Purge
           </button>
         </div>
@@ -100,7 +148,7 @@
       </div>
     </div>
 
-    <!-- Audit Event Log Table -->
+    <!-- FEATURE: LIVE AUDIT LOG -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -123,7 +171,7 @@
             <tr>
               <td class="py-2.5 px-3 mono text-white">AUTH_2FA_SESSION</td>
               <td class="py-2.5 px-3">admin@drozominds.com</td>
-              <td class="py-2.5 px-3 text-emerald-300">Drozo Guard APK / Override</td>
+              <td class="py-2.5 px-3 text-emerald-300">File / Drozo Guard APK</td>
               <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">SUCCESS</span></td>
             </tr>
             <tr>
@@ -135,14 +183,8 @@
             <tr>
               <td class="py-2.5 px-3 mono text-white">COORDINATOR_DISPATCH</td>
               <td class="py-2.5 px-3">Drozo YT</td>
-              <td class="py-2.5 px-3 text-emerald-300">Session Scheduling Channel</td>
+              <td class="py-2.5 px-3 text-emerald-300">Intake Synchronization</td>
               <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">ACTIVE</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 mono text-white">DATABASE_HEARTBEAT</td>
-              <td class="py-2.5 px-3">ahlwsktpiymgdvdmjdqq</td>
-              <td class="py-2.5 px-3 text-emerald-300">PostgREST REST</td>
-              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300">ONLINE</span></td>
             </tr>
           </tbody>
         </table>
@@ -156,9 +198,25 @@
       window.location.replace("./auth.html");
     }
 
+    function claimAppointment(statusId, btn) {
+      const badge = document.getElementById(statusId);
+      badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+      badge.innerText = "CLAIMED: Water_Chugger/Owner";
+      btn.innerText = "Claimed ✓";
+      btn.disabled = true;
+      btn.className = "px-3 py-1 bg-slate-800 text-slate-400 font-semibold rounded-lg text-xs cursor-default";
+      alert("Appointment successfully claimed by Water_Chugger/Owner.");
+    }
+
+    function generateClinicalDoc() {
+      const patId = document.getElementById('docPatientId').value.trim() || "PAT_9182";
+      const diag = document.getElementById('docDiagnosis').value;
+      alert(`[Clinical Document Created]\nPatient: ${patId}\nAssessment: ${diag}\nIssued By: Water_Chugger/Owner\nStatus: Dispatched to Client History.`);
+    }
+
     function logoutAdmin() {
       localStorage.removeItem("drozo_auth_state");
-      window.location.replace("./auth.html");
+      window.location.replace("./index.html");
     }
   </script>
 </body>

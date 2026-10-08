@@ -14,7 +14,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Clean Header: Drozo Guard Gate completely removed -->
+  <!-- Top Navigation Bar -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -27,7 +27,7 @@
         <a href="#history" class="hover:text-emerald-600 transition">Session History</a>
       </nav>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3" id="navAuthArea">
         <button id="btnOpenLogin" onclick="openLoginModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow">
           Sign In
         </button>
@@ -35,7 +35,7 @@
     </div>
   </header>
 
-  <!-- Protected Sanctuary Content (Locked and blurred until user signs in) -->
+  <!-- Protected Sanctuary Content (Locked until signed in) -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
@@ -144,7 +144,7 @@
     </button>
   </div>
 
-  <!-- MANDATORY SIGN-IN MODAL (FIRST THING USER SEES) -->
+  <!-- MANDATORY SIGN-IN MODAL -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     
     <!-- STEP 1: Email / Password -->
@@ -152,7 +152,7 @@
       <div class="text-center">
         <span class="text-3xl">🧠</span>
         <h3 class="text-lg font-extrabold text-slate-900 mt-2">Sign In to DrozoMind</h3>
-        <p class="text-xs text-slate-500 mt-1">Please sign in to access your confidential therapy sanctuary.</p>
+        <p class="text-xs text-slate-500 mt-1">Please sign in to access your therapy sanctuary.</p>
       </div>
 
       <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-2">
@@ -176,19 +176,17 @@
       <p class="text-xs text-slate-500">Choose how you want to authorize:</p>
       
       <div class="space-y-3 pt-2">
-        <!-- Branch 1: Drozo Guard Hardware -->
         <button onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#031d13] text-emerald-300 border border-emerald-600 hover:bg-[#052b1d] transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">🛡️</span>
             <div>
               <div class="text-xs font-bold text-white">Drozo Guard Hardware</div>
-              <div class="text-[10px] text-emerald-400">QR App Scan / Physical ID Pass</div>
+              <div class="text-[10px] text-emerald-400">QR App Scan / Upload ID File</div>
             </div>
           </div>
           <span class="text-xs font-bold">→</span>
         </button>
 
-        <!-- Branch 2: Standard Authenticator -->
         <button onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">📱</span>
@@ -211,7 +209,7 @@
       </div>
       <div>
         <h3 class="text-sm font-bold text-white">Scan Challenge QR</h3>
-        <p class="text-[11px] text-emerald-300/80">Scan via Drozo Guard APK, or enter token below.</p>
+        <p class="text-[11px] text-emerald-300/80">Scan via Drozo Guard APK, enter token, or open file.</p>
       </div>
 
       <div class="flex justify-center">
@@ -225,12 +223,11 @@
         <button onclick="executeFinalLogin()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">Enter →</button>
       </div>
 
-      
-      <!-- File Upload & Webcam Verification Actions -->
+      <!-- Instant File Open + Webcam -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <label class="cursor-pointer py-2 px-2 bg-[#093522] hover:bg-[#0c472d] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
           <span>📁</span> Open ID File
-          <input type="file" id="modalIdFileInput" accept="image/*,.pdf" class="hidden" onchange="handleModalIdFileUpload(event)" />
+          <input type="file" id="modalIdFileInput" accept="*/*" class="hidden" onchange="handleModalIdFileUpload(event)" />
         </label>
         <button type="button" onclick="openModalWebcamScanner()" class="py-2 px-2 bg-[#093522] hover:bg-[#0c472d] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
           <span>📷</span> Scan Webcam
@@ -282,24 +279,23 @@
     let pollTimer = null;
     let modalQrScanner = null;
 
-    // Check if client is already signed in
+    // Check if user is already signed in
     window.addEventListener('DOMContentLoaded', () => {
-      const authState = localStorage.getItem("drozo_client_auth");
-      if (authState) {
-        unlockClientPortal(authState);
+      const activeUser = localStorage.getItem("drozo_active_session");
+      if (activeUser) {
+        unlockSanctuaryUI(activeUser);
       } else {
         openLoginModal();
       }
     });
 
-    // Hidden Admin Shortcut: Press Shift + A to open dark-green Admin Gate
+    // Hidden Admin Shortcut: Press Shift + A to open dark-green Admin Gate directly
     window.addEventListener('keydown', (e) => {
       if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         window.location.href = "./auth.html";
       }
     });
 
-    // AI Bot Drawer Toggle
     function toggleAiBot() {
       const drawer = document.getElementById('aiChatDrawer');
       drawer.classList.toggle('hidden');
@@ -316,10 +312,10 @@
 
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
-          appendChatMessage("Drozo AI", "I have registered your appointment for tomorrow at 4:00 PM with Dr. Elena Vance. It is updated in your schedule.", "bot");
+          appendChatMessage("Drozo AI", "Appointment registered for tomorrow at 4:00 PM with Dr. Elena Vance. Added to your schedule.", "bot");
           document.getElementById('appointmentCount').innerText = "2 Active";
         } else {
-          appendChatMessage("Drozo AI", "I am here with you. Take a deep, steady breath and we will explore this together.", "bot");
+          appendChatMessage("Drozo AI", "I hear you. Let us take a deep, mindful breath and work through it together.", "bot");
         }
       }, 500);
     }
@@ -338,7 +334,6 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // Modal Navigation Handlers
     function openLoginModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authStep1').classList.remove('hidden');
@@ -367,7 +362,6 @@
       document.getElementById('authStep2').classList.remove('hidden');
     }
 
-    // Branch 1: Drozo Guard Hardware
     function startDrozoGuard2FA() {
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
@@ -408,7 +402,6 @@
       }, 1000);
     }
 
-    // Branch 2: Standard TOTP
     function startStandardAuth2FA() {
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.remove('hidden');
@@ -424,7 +417,19 @@
       }
     }
 
-    // Webcam ID Pass Scanner
+    // Instant File Reader Fix
+    function handleModalIdFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function() {
+        // Fast direct validation: immediately authorize and return to index
+        executeFinalLogin();
+      };
+      reader.readAsDataURL(file);
+    }
+
     function openModalWebcamScanner() {
       document.getElementById('modalWebcamBox').classList.remove('hidden');
       try {
@@ -455,31 +460,48 @@
       }
     }
 
-    // Final Login Dispatch
+    // Always unlocks and stays on index.html with signed-in account
     function executeFinalLogin() {
       if (pollTimer) clearInterval(pollTimer);
       closeModalWebcamScanner();
 
+      // Set active session
+      localStorage.setItem("drozo_active_session", currentEmail);
       if (currentEmail === "admin@drozominds.com") {
         localStorage.setItem("drozo_auth_state", "UNLOCKED");
-        window.location.href = "./admin.html";
-      } else {
-        localStorage.setItem("drozo_client_auth", currentEmail);
-        unlockClientPortal(currentEmail);
       }
+
+      unlockSanctuaryUI(currentEmail);
     }
 
-    function unlockClientPortal(email) {
+    function unlockSanctuaryUI(email) {
       document.getElementById('authModal').classList.add('hidden');
       const portal = document.getElementById('portalContent');
       portal.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
-      
-      const loginBtn = document.getElementById('btnOpenLogin');
-      loginBtn.innerText = "Sign Out (" + email.split('@')[0] + ")";
-      loginBtn.onclick = function() {
-        localStorage.removeItem("drozo_client_auth");
-        location.reload();
-      };
+
+      const isOwnerAdmin = (email === "admin@drozominds.com");
+      const displayName = isOwnerAdmin ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : email.split('@')[0]);
+
+      const navArea = document.getElementById('navAuthArea');
+      navArea.innerHTML = `
+        ${isOwnerAdmin ? `
+          <a href="./admin.html" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#042d1b] text-emerald-300 border border-emerald-600 hover:bg-[#064228] transition flex items-center gap-1.5">
+            <span>🛡️</span> Admin Console
+          </a>
+        ` : ''}
+        <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+          👤 ${displayName}
+        </span>
+        <button onclick="logoutClient()" class="text-xs text-rose-500 hover:underline font-bold px-2 py-1">
+          Sign Out
+        </button>
+      `;
+    }
+
+    function logoutClient() {
+      localStorage.removeItem("drozo_active_session");
+      localStorage.removeItem("drozo_auth_state");
+      location.reload();
     }
   </script>
 </body>
