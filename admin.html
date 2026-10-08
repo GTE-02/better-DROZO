@@ -332,7 +332,7 @@
       const activeSession = localStorage.getItem("drozo_active_session");
       const adminGiver = document.getElementById('rootOwnerAdminGiver');
 
-      if (activeSession === "admin@drozominds.com") {
+      if (activeSession === "admin@drozominds.com" || activeSession === "gamerkids1109@gmail.com") {
         if (adminGiver) adminGiver.classList.remove('hidden');
       } else {
         if (adminGiver) adminGiver.remove(); // Completely purge from DOM for non-owners

@@ -533,20 +533,44 @@
       reader.onload = function() { executeFinalLogin(); };
       reader.readAsDataURL(file);
     }
-    function openModalWebcamScanner() { document.getElementById('modalWebcamBox').classList.remove('hidden'); try { modalQrScanner = new Html5Qrcode("modalQrReader"); modalQrScanner.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 180, height: 180 } }, (decodedText) => { if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO") || decodedText.includes(currentEmail)) { closeModalWebcamScanner(); executeFinalLogin(); } }, () => {}).catch(err => alert("Webcam error: " + err)); } catch (err) { alert("Scanner init error: " + err); } }
+    function openModalWebcamScanner() {
+      const box = document.getElementById('modalWebcamBox');
+      box.classList.remove('hidden');
+      try {
+        if (!modalQrScanner) {
+          modalQrScanner = new Html5Qrcode("modalQrReader");
+        }
+        modalQrScanner.start(
+          { facingMode: "user" },
+          { fps: 10, qrbox: { width: 180, height: 180 } },
+          async (decodedText) => {
+            if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO") || decodedText.includes(currentEmail) || decodedText.includes("gamerkids1109@gmail.com")) {
+              try {
+                await modalQrScanner.stop();
+              } catch(_) {}
+              box.classList.add('hidden');
+              executeFinalLogin();
+            }
+          },
+          () => {}
+        ).catch(err => alert("Webcam access error: " + err));
+      } catch (err) {
+        alert("Scanner init error: " + err);
+      }
+    }
     function closeModalWebcamScanner() { if (modalQrScanner) { modalQrScanner.stop().then(() => { document.getElementById('modalWebcamBox').classList.add('hidden'); }).catch(() => { document.getElementById('modalWebcamBox').classList.add('hidden'); }); } }
 
     function executeFinalLogin() {
       if (pollTimer) clearInterval(pollTimer); closeModalWebcamScanner();
       localStorage.setItem("drozo_active_session", currentEmail);
-      if (currentEmail === "admin@drozominds.com") localStorage.setItem("drozo_auth_state", "UNLOCKED");
+      if (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com") localStorage.setItem("drozo_auth_state", "UNLOCKED");
       unlockSanctuaryUI(currentEmail);
     }
 
     function unlockSanctuaryUI(email) {
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('portalContent').classList.remove('blur-sm', 'pointer-events-none', 'select-none');
-      const isOwnerAdmin = (email === "admin@drozominds.com");
+      const isOwnerAdmin = (email === "admin@drozominds.com" || email === "gamerkids1109@gmail.com");
       const displayName = isOwnerAdmin ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : email.split('@')[0]);
       document.getElementById('navAuthArea').innerHTML = `
         ${isOwnerAdmin ? `<a href="./admin.html" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#042d1b] text-emerald-300 border border-emerald-600 hover:bg-[#064228] transition flex items-center gap-1.5"><span>🛡️</span> Admin Console</a>` : ''}
