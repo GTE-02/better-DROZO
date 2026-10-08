@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Drozo Guard - Mobile Security</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     body {
@@ -26,19 +27,44 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-3 sm:p-4">
 
+  <!-- Mobile Guard Card Container -->
   <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col justify-between min-h-[620px]">
     
+    <!-- Top Header Bar -->
     <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-[#182635]">
       <div class="flex items-center gap-2">
         <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">🛡️</div>
         <span class="text-xs font-black tracking-widest text-slate-200 uppercase">DROZO GUARD</span>
       </div>
-      <span class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
-        PROTECTED
+      <span id="guardStatusBadge" class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
+        STANDBY
       </span>
     </div>
 
-    <div class="p-5 space-y-4 flex-1 flex flex-col justify-center">
+    <!-- VIEW 1: STANDBY / IDLE (When no sign-in is requested) -->
+    <div id="standbyView" class="p-6 flex-1 flex flex-col items-center justify-center text-center space-y-5">
+      <div class="w-20 h-20 rounded-3xl bg-[#0f1924] border border-[#1e2f42] flex items-center justify-center text-3xl shadow-lg">
+        🛡️
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">Drozo Guard Active</h3>
+        <p class="text-xs text-slate-400 mt-1 max-w-[240px]">Listening for incoming sanctuary sign-in requests from DrozoMind...</p>
+      </div>
+
+      <div class="w-full pt-4 space-y-3">
+        <button onclick="startAppQrScanner()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs transition shadow flex items-center justify-center gap-2">
+          <span>📷</span> Scan Website Challenge QR
+        </button>
+
+        <div id="appScannerBox" class="hidden p-2 bg-black rounded-2xl border border-slate-700">
+          <div id="appQrReader"></div>
+          <button onclick="stopAppQrScanner()" class="text-[11px] text-rose-400 font-bold hover:underline mt-2">Close Camera</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: APPROVE / DENY (Triggered ONLY when an active login request is received) -->
+    <div id="approvalView" class="hidden p-5 space-y-4 flex-1 flex flex-col justify-center">
 
       <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-[#223547] map-grid flex items-center justify-center shadow-inner">
         <div class="absolute inset-0 bg-gradient-to-tr from-[#0d1620] via-transparent to-[#132230] opacity-80"></div>
@@ -65,8 +91,8 @@
       <div class="bg-[#0b131c] border border-[#1b2a3a] rounded-2xl p-4 space-y-3 shadow-md">
         <div class="text-center">
           <div class="text-[11px] text-slate-400 font-medium">New sign in request for</div>
-          <div class="text-sm font-extrabold text-white mt-0.5" id="targetAccountName">Water_Chugger/Owner</div>
-          <div class="text-[10px] text-emerald-400 mono mt-0.5" id="targetAccountEmail">admin@drozominds.com</div>
+          <div class="text-sm font-extrabold text-white mt-0.5" id="targetAccountName">Loading...</div>
+          <div class="text-[10px] text-emerald-400 mono mt-0.5" id="targetAccountEmail">Loading...</div>
         </div>
 
         <div class="border-t border-[#182635] pt-3 grid grid-cols-2 gap-2 text-center text-xs">
@@ -88,7 +114,8 @@
 
     </div>
 
-    <div class="p-5 pt-0 grid grid-cols-2 gap-3">
+    <!-- Action Buttons for View 2 -->
+    <div id="actionButtons" class="hidden p-5 pt-0 grid grid-cols-2 gap-3">
       <button 
         onclick="authorizeChallenge(true)" 
         id="btnApprove" 
@@ -112,18 +139,63 @@
     const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionToken = urlParams.get('token') || localStorage.getItem("drozo_current_challenge_token") || "SES_8829";
-    const userEmail = urlParams.get('email') || localStorage.getItem("drozo_current_challenge_email") || "admin@drozominds.com";
+    let activeSessionToken = null;
+    let activeUserEmail = null;
+    let qrAppScanner = null;
 
-    document.getElementById('guardSessionToken').innerText = sessionToken;
-    document.getElementById('targetAccountEmail').innerText = userEmail;
-    if (userEmail === "gamerkids1109@gmail.com") {
-      document.getElementById('targetAccountName').innerText = "Drozo YT (Coordinator)";
-    } else if (userEmail === "admin@drozominds.com") {
-      document.getElementById('targetAccountName').innerText = "Water_Chugger/Owner";
-    } else {
-      document.getElementById('targetAccountName').innerText = userEmail.split('@')[0];
+    // Check on startup if URL contains incoming challenge parameters
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const email = urlParams.get('email');
+
+      if (token && email) {
+        verifyAndShowChallenge(token, email);
+      } else {
+        // Poll for pending sessions
+        pollForPendingIncomingSessions();
+      }
+    });
+
+    async function pollForPendingIncomingSessions() {
+      setInterval(async () => {
+        if (activeSessionToken) return; // Already dealing with an active prompt
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=created_at.desc&limit=1`, {
+            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows && rows.length > 0) {
+              verifyAndShowChallenge(rows[0].session_token, rows[0].email);
+            }
+          }
+        } catch (_) {}
+      }, 2000);
+    }
+
+    function verifyAndShowChallenge(token, email) {
+      activeSessionToken = token;
+      activeUserEmail = email;
+
+      document.getElementById('standbyView').classList.add('hidden');
+      document.getElementById('approvalView').classList.remove('hidden');
+      document.getElementById('actionButtons').classList.remove('hidden');
+      
+      const badge = document.getElementById('guardStatusBadge');
+      badge.className = "text-[10px] mono text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/30 animate-pulse font-bold";
+      badge.innerText = "CHALLENGE ACTIVE";
+
+      document.getElementById('guardSessionToken').innerText = token;
+      document.getElementById('targetAccountEmail').innerText = email;
+
+      if (email === "admin@drozominds.com") {
+        document.getElementById('targetAccountName').innerText = "Water_Chugger/Owner";
+      } else if (email === "gamerkids1109@gmail.com") {
+        document.getElementById('targetAccountName').innerText = "Drozo YT (Coordinator)";
+      } else {
+        document.getElementById('targetAccountName').innerText = email.split('@')[0];
+      }
     }
 
     async function authorizeChallenge(approved) {
@@ -135,7 +207,7 @@
       const newStatus = approved ? "authorized" : "denied";
 
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${sessionToken}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeSessionToken}`, {
           method: "PATCH",
           headers: {
             "apikey": SUPABASE_ANON,
@@ -147,17 +219,54 @@
         });
       } catch (_) {}
 
-      localStorage.setItem("drozo_challenge_result_" + sessionToken, newStatus);
+      localStorage.setItem("drozo_challenge_result_" + activeSessionToken, newStatus);
 
       if (approved) {
         btnA.innerText = "Approved ✓";
         setTimeout(() => {
-          alert("Session Approved! The desktop application is now unlocked.");
-        }, 300);
+          alert("Login approved. Website session is now unlocked.");
+          location.href = "./auth.html"; // Return to standby
+        }, 500);
       } else {
         btnD.innerText = "Denied ✕";
-        alert("Session Denied. The sign in request has been rejected.");
+        setTimeout(() => {
+          alert("Login denied. Session invalidated.");
+          location.href = "./auth.html"; // Return to standby
+        }, 500);
       }
+    }
+
+    function startAppQrScanner() {
+      const box = document.getElementById('appScannerBox');
+      box.classList.remove('hidden');
+      qrAppScanner = new Html5Qrcode("appQrReader");
+      qrAppScanner.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: { width: 190, height: 190 } },
+        (decodedText) => {
+          stopAppQrScanner();
+          try {
+            const url = new URL(decodedText);
+            const token = url.searchParams.get("token");
+            const email = url.searchParams.get("email");
+            if (token && email) {
+              verifyAndShowChallenge(token, email);
+            }
+          } catch (_) {
+            if (decodedText.startsWith("SES_")) {
+              verifyAndShowChallenge(decodedText, "admin@drozominds.com");
+            }
+          }
+        },
+        () => {}
+      ).catch(err => alert("Camera error: " + err));
+    }
+
+    async function stopAppQrScanner() {
+      if (qrAppScanner) {
+        try { await qrAppScanner.stop(); } catch (_) {}
+      }
+      document.getElementById('appScannerBox').classList.add('hidden');
     }
   </script>
 </body>
