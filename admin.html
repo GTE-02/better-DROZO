@@ -33,6 +33,7 @@
       </div>
     </div>
 
+    <!-- Official Verified ID Pass -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#063321] via-[#042618] to-[#021810] border border-emerald-600/50 p-6 shadow-2xl backdrop-blur-xl">
       <div class="flex justify-between items-start mb-4">
         <div>
@@ -53,6 +54,7 @@
       </div>
     </div>
 
+    <!-- FEATURE: THERAPIST CLAIM APPOINTMENTS CONSOLE (WITH CHANNEL INDICATOR) -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -67,6 +69,7 @@
             <tr>
               <th class="py-2.5 px-3">Patient / ID</th>
               <th class="py-2.5 px-3">Session Type</th>
+              <th class="py-2.5 px-3">Chosen Channel</th>
               <th class="py-2.5 px-3">Date & Time</th>
               <th class="py-2.5 px-3">Therapist Status</th>
               <th class="py-2.5 px-3 text-right">Actions</th>
@@ -76,6 +79,7 @@
             <tr id="aptRow1">
               <td class="py-3 px-3 mono text-white">PAT_9182 (Client)</td>
               <td class="py-3 px-3">Cognitive Behavioral Reframing</td>
+              <td class="py-3 px-3"><span id="channelIndicator" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🎮 Discord VC</span></td>
               <td class="py-3 px-3 text-emerald-300">Tomorrow, 4:00 PM</td>
               <td class="py-3 px-3"><span id="aptStatus1" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">UNCLAIMED</span></td>
               <td class="py-3 px-3 text-right" id="aptActionCell1">
@@ -89,6 +93,7 @@
       </div>
     </div>
 
+    <!-- FEATURE: CLINICAL OUTCOME DISPATCH & AI ASSESSMENT GENERATOR -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <h3 class="text-base font-bold text-white flex items-center gap-2">
         <span>📄</span> Clinical Outcome Generator & PDF Dispatch
@@ -115,17 +120,35 @@
       window.location.replace("./auth.html");
     }
 
+    // Dynamic Channel Sync from Client Choice
+    window.addEventListener('DOMContentLoaded', () => {
+      const chosen = localStorage.getItem("drozo_patient_channel");
+      const indicator = document.getElementById('channelIndicator');
+      if (indicator) {
+        if (chosen === 'video') {
+          indicator.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          indicator.innerHTML = "🎥 Video Call";
+        } else {
+          indicator.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+          indicator.innerHTML = "🎮 Discord VC";
+        }
+      }
+    });
+
     function claimAppointment(statusId, actionCellId) {
       const badge = document.getElementById(statusId);
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
       badge.innerText = "CLAIMED: Water_Chugger/Owner";
       
+      const chosen = localStorage.getItem("drozo_patient_channel") || "discord";
+      const targetChannelText = (chosen === 'video') ? 'Video Call Room' : 'Discord VC Invite';
+
       const actionCell = document.getElementById(actionCellId);
       actionCell.innerHTML = `
         <div class="flex flex-col gap-1.5 items-end">
           <span class="text-[10px] text-emerald-400 font-bold">Claimed ✓</span>
-          <button onclick="alert('Meeting link dispatched securely to client portal.')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">
-            Send Meeting Link
+          <button onclick="alert('Sent ${targetChannelText} securely to client portal.')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">
+            Send ${targetChannelText}
           </button>
         </div>
       `;

@@ -14,16 +14,21 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
+  <!-- Top Navigation Bar with Working Jump/Highlight Tabs -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
         <span class="text-2xl">🧠</span>
         <span class="text-xl font-extrabold text-slate-900 tracking-tight">Drozo<span class="text-emerald-600">Mind</span></span>
       </div>
 
       <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-        <a href="#schedule" class="hover:text-emerald-600 transition">My Schedule</a>
-        <a href="#history" class="hover:text-emerald-600 transition">Session History</a>
+        <button type="button" onclick="focusSection('schedule-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">
+          My Schedule
+        </button>
+        <button type="button" onclick="focusSection('history-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">
+          Session History
+        </button>
       </nav>
 
       <div class="flex items-center gap-3" id="navAuthArea">
@@ -34,9 +39,11 @@
     </div>
   </header>
 
+  <!-- Protected Sanctuary Content -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
+      <!-- Sanctuary Overview -->
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
@@ -60,33 +67,53 @@
         </div>
       </div>
 
+      <!-- Schedule & History Panel -->
       <div class="space-y-6">
-        <div id="schedule" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        
+        <!-- UPCOMING SCHEDULE (With Channel Choice: Discord VC vs Video Call) -->
+        <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>📅</span> Upcoming Schedule
             </h2>
             <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">1 Active</span>
           </div>
-          <div id="scheduleList" class="space-y-2.5 text-xs">
-            <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-2">
+
+          <div id="scheduleList" class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3">
               <div class="flex justify-between items-start">
                 <div>
-                  <div class="font-bold text-slate-800">Mindfulness & Cognitive Restructure</div>
-                  <div class="text-[11px] text-slate-500">Tomorrow at 4:00 PM • Water_Chugger</div>
+                  <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger</div>
                 </div>
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
               </div>
-              <div class="pt-2 border-t border-emerald-200/50">
-                <button onclick="alert('Connecting to secure video node...')" class="w-full py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold rounded-lg transition flex justify-center items-center gap-2">
-                  <span>🎥</span> Join Video Session
+
+              <!-- Channel Selector Toggle -->
+              <div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2">
+                <span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" id="btnModeDiscord" onclick="setSessionChannel('discord')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm">
+                    <span>🎮</span> Discord VC
+                  </button>
+                  <button type="button" id="btnModeVideo" onclick="setSessionChannel('video')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600">
+                    <span>🎥</span> Video Call
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamic Connect / Join Button -->
+              <div class="pt-1">
+                <button type="button" id="btnJoinChannel" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow">
+                  <span>🎮</span> Join Discord VC Room
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <!-- 30-DAY SESSION HISTORY & WORKING PDF DOWNLOAD -->
+        <div id="history-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 transition duration-300">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span>🕒</span> 30-Day History & Documents
           </h2>
@@ -102,11 +129,13 @@
             </div>
           </div>
         </div>
+
       </div>
 
     </main>
   </div>
 
+  <!-- FLOATING SIDE AI BOT (Bottom Right) -->
   <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
     <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
       <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -123,8 +152,7 @@
       <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
         <div class="flex gap-2">
           <span class="text-base">🤖</span>
-          <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed" id="aiWelcomeMsg">
-          </div>
+          <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed" id="aiWelcomeMsg"></div>
         </div>
       </div>
 
@@ -137,6 +165,7 @@
     <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
+  <!-- Mandatory Sign-In Modal -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="text-center">
@@ -228,6 +257,7 @@
     let activeToken = "";
     let pollTimer = null;
     let modalQrScanner = null;
+    let selectedChannel = "discord";
 
     const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
 
@@ -241,6 +271,49 @@
     window.addEventListener('keydown', (e) => {
       if (e.shiftKey && (e.key === 'A' || e.key === 'a')) window.location.href = "./auth.html";
     });
+
+    // Navigation Focus & Smooth Scroll
+    function focusSection(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-4', 'ring-emerald-500', 'ring-offset-2');
+      setTimeout(() => {
+        el.classList.remove('ring-4', 'ring-emerald-500', 'ring-offset-2');
+      }, 1500);
+    }
+
+    // Channel Switching Logic (Discord VC vs Video Call)
+    function setSessionChannel(mode) {
+      selectedChannel = mode;
+      localStorage.setItem("drozo_patient_channel", mode);
+
+      const btnDiscord = document.getElementById('btnModeDiscord');
+      const btnVideo = document.getElementById('btnModeVideo');
+      const joinBtn = document.getElementById('btnJoinChannel');
+
+      if (mode === 'discord') {
+        btnDiscord.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm";
+        btnVideo.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600";
+        joinBtn.className = "w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow";
+        joinBtn.innerHTML = `<span>🎮</span> Join Discord VC Room`;
+      } else {
+        btnVideo.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm";
+        btnDiscord.className = "py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600";
+        joinBtn.className = "w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow";
+        joinBtn.innerHTML = `<span>🎥</span> Connect to Video Room`;
+      }
+    }
+
+    function launchSessionMeeting() {
+      if (selectedChannel === 'discord') {
+        const discordLink = "https://discord.gg/drozo-sanctuary";
+        window.open(discordLink, "_blank") || alert(`[Discord Channel Connected]\nRouting to voice lounge: ${discordLink}`);
+      } else {
+        const videoRoom = "https://meet.jit.si/drozo-sanctuary-" + Math.random().toString(36).substring(7);
+        window.open(videoRoom, "_blank") || alert(`[Encrypted Video Call Connected]\nRoom: ${videoRoom}`);
+      }
+    }
 
     function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
 
