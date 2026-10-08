@@ -869,7 +869,8 @@
       }
 
       // 2. Immediately send handshake to Supabase so phone picks it up without waiting
-      const postHandshake = (locStr) => {
+            // Strictly compliant payload: session_token, email, status
+      const postHandshake = () => {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
           headers: {
@@ -881,9 +882,7 @@
           body: JSON.stringify({
             session_token: activeToken,
             email: currentEmail,
-            status: "pending",
-            client_location: locStr,
-            created_at: new Date().toISOString()
+            status: "pending"
           })
         }).catch(() => {});
       };
@@ -901,20 +900,7 @@
 
       postHandshake(resolvedLoc);
 
-      // 3. Background IP lookup to refine city/country if available without blocking UI
-      fetch("https://ipwho.is/").then(r => r.json()).then(d => {
-        if (d && d.city && d.country) {
-          const fineLoc = `${d.city}, ${d.country}`;
-          // Update the existing Supabase session record in background
-          fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}`, {
-            method: "PATCH",
-            headers: {
-              "apikey": SUPABASE_ANON,
-              "Authorization": `Bearer ${SUPABASE_ANON}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ client_location: fineLoc })
-          }).catch(() => {});
+      // Background IP lookup handled client-side without schema mismatch
         }
       }).catch(() => {});
 

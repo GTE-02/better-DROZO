@@ -312,7 +312,7 @@
           if (rows && rows.length > 0) {
             const req = rows[0];
             if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email, req.client_location);
+            verifyAndShowChallenge(req.session_token, req.email, req.client_location || 'Detected Device (Live)');
           }
         }
       } catch (_) {}
