@@ -285,6 +285,14 @@
       else openLoginModal();
     });
 
+    
+    const syncChannel = new BroadcastChannel('drozo_sync');
+    syncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'STATUS_UPDATE') {
+        syncAppointmentStatus();
+      }
+    };
+
     window.addEventListener('storage', (e) => {
       if (e.key === "drozo_session_status") syncAppointmentStatus();
       if (e.key === "drozo_challenge_result_" + activeToken) {

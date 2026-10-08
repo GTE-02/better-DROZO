@@ -184,6 +184,14 @@
   </div>
 
   <script>
+
+    const syncChannel = new BroadcastChannel('drozo_sync');
+
+    function broadcastState(status) {
+      localStorage.setItem("drozo_session_status", status);
+      syncChannel.postMessage({ type: 'STATUS_UPDATE', status: status });
+    }
+
     const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 
     if (localStorage.getItem("drozo_auth_state") !== "UNLOCKED") {
@@ -236,7 +244,7 @@
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 animate-pulse";
       badge.innerText = "IN PROGRESS: Link Dispatched";
 
-      localStorage.setItem("drozo_session_status", "CONFIRMED");
+      broadcastState("CONFIRMED");
 
       const actionCell = document.getElementById(actionCellId);
       actionCell.innerHTML = `
@@ -259,7 +267,7 @@
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300 border border-slate-600";
       badge.innerText = "COMPLETED";
 
-      localStorage.setItem("drozo_session_status", "COMPLETED");
+      broadcastState("COMPLETED");
 
       const actionCell = document.getElementById(actionCellId);
       actionCell.innerHTML = `
@@ -272,7 +280,7 @@
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30";
       badge.innerText = "CANCELLED";
 
-      localStorage.setItem("drozo_session_status", "CANCELLED");
+      broadcastState("CANCELLED");
 
       const actionCell = document.getElementById(actionCellId);
       actionCell.innerHTML = `
