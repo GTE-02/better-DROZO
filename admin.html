@@ -15,7 +15,6 @@
 
   <div class="max-w-5xl w-full space-y-6">
 
-    <!-- Top Navigation Bar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#052317] border border-[#0d4f34] p-6 rounded-3xl shadow-xl gap-4">
       <div>
         <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">ACCESS GRANTED • ROOT LEVEL</span>
@@ -34,7 +33,6 @@
       </div>
     </div>
 
-    <!-- Official Verified ID Pass -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#063321] via-[#042618] to-[#021810] border border-emerald-600/50 p-6 shadow-2xl backdrop-blur-xl">
       <div class="flex justify-between items-start mb-4">
         <div>
@@ -55,7 +53,6 @@
       </div>
     </div>
 
-    <!-- FEATURE: THERAPIST CLAIM APPOINTMENTS CONSOLE -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -77,24 +74,13 @@
           </thead>
           <tbody class="divide-y divide-[#0d4f34]/60" id="appointmentsTableBody">
             <tr id="aptRow1">
-              <td class="py-3 px-3 mono text-white">PAT_9182 (Client Self-Book)</td>
+              <td class="py-3 px-3 mono text-white">PAT_9182 (Client)</td>
               <td class="py-3 px-3">Cognitive Behavioral Reframing</td>
               <td class="py-3 px-3 text-emerald-300">Tomorrow, 4:00 PM</td>
               <td class="py-3 px-3"><span id="aptStatus1" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">UNCLAIMED</span></td>
-              <td class="py-3 px-3 text-right">
-                <button onclick="claimAppointment('aptStatus1', this)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
+              <td class="py-3 px-3 text-right" id="aptActionCell1">
+                <button onclick="claimAppointment('aptStatus1', 'aptActionCell1')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
                   Claim Session
-                </button>
-              </td>
-            </tr>
-            <tr id="aptRow2">
-              <td class="py-3 px-3 mono text-white">PAT_4031 (Referral)</td>
-              <td class="py-3 px-3">Acute Stress & Decompression</td>
-              <td class="py-3 px-3 text-emerald-300">Friday, 11:30 AM</td>
-              <td class="py-3 px-3"><span id="aptStatus2" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">CLAIMED: Drozo YT</span></td>
-              <td class="py-3 px-3 text-right">
-                <button onclick="alert('Session document sent to client.')" class="px-3 py-1 bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 border border-[#145d3e] font-semibold rounded-lg text-xs transition">
-                  Dispatch Doc
                 </button>
               </td>
             </tr>
@@ -103,10 +89,9 @@
       </div>
     </div>
 
-    <!-- FEATURE: CLINICAL OUTCOME DISPATCH & AI ASSESSMENT GENERATOR -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <h3 class="text-base font-bold text-white flex items-center gap-2">
-        <span>📄</span> Clinical Outcome Generator & AI Document Dispatch
+        <span>📄</span> Clinical Outcome Generator & PDF Dispatch
       </h3>
       <p class="text-xs text-emerald-300/80">Issue official verified progress documents directly to patient client portals.</p>
 
@@ -117,77 +102,9 @@
           <option>Stress Reduction - Goals Achieved</option>
           <option>Mindfulness Conditioning - Ongoing</option>
         </select>
-        <button onclick="generateClinicalDoc()" class="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">
-          Generate & Dispatch PDF
+        <button onclick="dispatchAdminPDF()" class="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex justify-center items-center gap-2">
+          <span>📄</span> Generate & Dispatch PDF
         </button>
-      </div>
-    </div>
-
-    <!-- FEATURE: OPERATIONAL SYSTEM CONTROLS -->
-    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
-      <h3 class="text-base font-bold text-white flex items-center gap-2">
-        <span>⚙️</span> Operational Controls
-      </h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-4 rounded-xl bg-[#021810] border border-[#0d4f34] space-y-2">
-          <div class="text-xs font-bold text-white">Flush Expired Auth Challenges</div>
-          <p class="text-[11px] text-emerald-400/70">Purge stale pending sessions from the database.</p>
-          <button onclick="alert('All stale auth challenges purged.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
-            Execute Purge
-          </button>
-        </div>
-
-        <div class="p-4 rounded-xl bg-[#021810] border border-[#0d4f34] space-y-2">
-          <div class="text-xs font-bold text-white">Rotate Session Signing Keys</div>
-          <p class="text-[11px] text-emerald-400/70">Re-synchronize client token verification salt across portal gates.</p>
-          <button onclick="alert('Session signing keys re-synchronized.')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0a3825] hover:bg-[#0d4f34] text-emerald-200 transition">
-            Rotate Keys
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- FEATURE: LIVE AUDIT LOG -->
-    <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>📋</span> Security Audit Log
-        </h3>
-        <span class="text-[11px] text-emerald-400 mono">● Live Stream</span>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left text-emerald-100">
-          <thead class="text-[10px] text-emerald-400 uppercase bg-[#021810] border-b border-[#0d4f34]">
-            <tr>
-              <th class="py-2.5 px-3">Event</th>
-              <th class="py-2.5 px-3">Entity</th>
-              <th class="py-2.5 px-3">Method</th>
-              <th class="py-2.5 px-3">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#0d4f34]/60">
-            <tr>
-              <td class="py-2.5 px-3 mono text-white">AUTH_2FA_SESSION</td>
-              <td class="py-2.5 px-3">admin@drozominds.com</td>
-              <td class="py-2.5 px-3 text-emerald-300">File / Drozo Guard APK</td>
-              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">SUCCESS</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 mono text-white">ID_PASS_VALIDATION</td>
-              <td class="py-2.5 px-3">Water_Chugger/Owner</td>
-              <td class="py-2.5 px-3 text-emerald-300">Token Hash AUTH_8829</td>
-              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">VERIFIED</span></td>
-            </tr>
-            <tr>
-              <td class="py-2.5 px-3 mono text-white">COORDINATOR_DISPATCH</td>
-              <td class="py-2.5 px-3">Drozo YT</td>
-              <td class="py-2.5 px-3 text-emerald-300">Intake Synchronization</td>
-              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">ACTIVE</span></td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
 
@@ -198,20 +115,69 @@
       window.location.replace("./auth.html");
     }
 
-    function claimAppointment(statusId, btn) {
+    function claimAppointment(statusId, actionCellId) {
       const badge = document.getElementById(statusId);
       badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
       badge.innerText = "CLAIMED: Water_Chugger/Owner";
-      btn.innerText = "Claimed ✓";
-      btn.disabled = true;
-      btn.className = "px-3 py-1 bg-slate-800 text-slate-400 font-semibold rounded-lg text-xs cursor-default";
-      alert("Appointment successfully claimed by Water_Chugger/Owner.");
+      
+      const actionCell = document.getElementById(actionCellId);
+      actionCell.innerHTML = `
+        <div class="flex flex-col gap-1.5 items-end">
+          <span class="text-[10px] text-emerald-400 font-bold">Claimed ✓</span>
+          <button onclick="alert('Meeting link dispatched securely to client portal.')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">
+            Send Meeting Link
+          </button>
+        </div>
+      `;
     }
 
-    function generateClinicalDoc() {
+    function dispatchAdminPDF() {
       const patId = document.getElementById('docPatientId').value.trim() || "PAT_9182";
       const diag = document.getElementById('docDiagnosis').value;
-      alert(`[Clinical Document Created]\nPatient: ${patId}\nAssessment: ${diag}\nIssued By: Water_Chugger/Owner\nStatus: Dispatched to Client History.`);
+      const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html><head><title>Clinical Outcome - ${patId}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; }
+          .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .logo { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+          .logo span { color: #059669; }
+          .title { font-size: 14px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+          .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; }
+          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 20%; color: #475569; }
+          .content { line-height: 1.8; font-size: 15px; color: #334155; }
+          .content h3 { color: #0f172a; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+          .footer { margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
+          .signature-block { margin-top: 50px; }
+          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; margin-bottom: 5px; }
+          .sig-line { width: 300px; border-top: 1px solid #cbd5e1; padding-top: 5px; font-size: 13px; font-weight: bold; color: #64748b; }
+        </style>
+        </head>
+        <body onload="setTimeout(() => { window.print(); }, 500)">
+          <div class="header">
+            <div class="logo">Drozo<span>Mind</span></div>
+            <div class="title">Official Clinical Assessment</div>
+          </div>
+          <table class="info-table">
+            <tr><td>Patient Reference</td><td>${patId}</td><td>Date of Issue</td><td>${date}</td></tr>
+            <tr><td>Attending Therapist</td><td>Water_Chugger/Owner</td><td>Session Category</td><td>${diag}</td></tr>
+          </table>
+          <div class="content">
+            <h3>Diagnostic & Wellness Summary</h3>
+            <p>The patient participated in a secure, encrypted clinical session. Emotional regulation parameters were monitored, and all immediate goal-oriented milestones were successfully achieved.</p>
+            <h3>Prescribed Action Items</h3>
+            <p>Maintain engagement with daily guided reflections on the DrozoMind platform. The next follow-up session is confirmed in the patient schedule portal.</p>
+          </div>
+          <div class="signature-block">
+            <div class="signature">Water_Chugger</div>
+            <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
+          </div>
+          <div class="footer">CONFIDENTIAL MEDICAL RECORD • END-TO-END ENCRYPTED • DO NOT DISTRIBUTE</div>
+        </body></html>
+      `);
+      win.document.close();
     }
 
     function logoutAdmin() {

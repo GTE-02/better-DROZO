@@ -8,13 +8,12 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
     .mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Top Navigation Bar -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -35,11 +34,9 @@
     </div>
   </header>
 
-  <!-- Protected Sanctuary Content (Locked until signed in) -->
   <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Sanctuary Overview -->
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
@@ -63,7 +60,6 @@
         </div>
       </div>
 
-      <!-- Schedule & History -->
       <div class="space-y-6">
         <div id="schedule" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex justify-between items-center">
@@ -73,12 +69,19 @@
             <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">1 Active</span>
           </div>
           <div id="scheduleList" class="space-y-2.5 text-xs">
-            <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 flex justify-between items-center">
-              <div>
-                <div class="font-bold text-slate-800">Mindfulness & Cognitive Restructure</div>
-                <div class="text-[11px] text-slate-500">Tomorrow at 4:00 PM • Dr. Elena Vance</div>
+            <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="font-bold text-slate-800">Mindfulness & Cognitive Restructure</div>
+                  <div class="text-[11px] text-slate-500">Tomorrow at 4:00 PM • Water_Chugger</div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
               </div>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
+              <div class="pt-2 border-t border-emerald-200/50">
+                <button onclick="alert('Connecting to secure video node...')" class="w-full py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold rounded-lg transition flex justify-center items-center gap-2">
+                  <span>🎥</span> Join Video Session
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -88,12 +91,14 @@
             <span>🕒</span> 30-Day History & Documents
           </h2>
           <div class="space-y-2 text-xs text-slate-600">
-            <div class="p-2.5 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
               <div>
                 <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
                 <div class="text-[10px] text-slate-400">Completed 3 days ago</div>
               </div>
-              <button onclick="alert('Downloading Clinical Assessment Outcome (PDF)...')" class="text-emerald-600 hover:underline font-bold text-[11px]">Download</button>
+              <button onclick="generateProfessionalPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner')" class="text-emerald-600 hover:text-emerald-800 hover:underline font-bold text-[11px] flex items-center gap-1">
+                <span>📄</span> Download PDF
+              </button>
             </div>
           </div>
         </div>
@@ -102,7 +107,6 @@
     </main>
   </div>
 
-  <!-- FLOATING SIDE AI BOT (Bottom Right) -->
   <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
     <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
       <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
@@ -119,42 +123,27 @@
       <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
         <div class="flex gap-2">
           <span class="text-base">🤖</span>
-          <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed">
-            Hello! I am your AI therapy assistant. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.
+          <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed" id="aiWelcomeMsg">
           </div>
         </div>
       </div>
 
       <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-100 flex gap-2">
-        <input 
-          type="text" 
-          id="chatInput" 
-          placeholder="Speak with AI or book a slot..." 
-          class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600"
-        />
-        <button type="submit" class="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition">
-          Send
-        </button>
+        <input type="text" id="chatInput" placeholder="Speak with AI or book a slot..." class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600" />
+        <button type="submit" class="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition">Send</button>
       </form>
     </div>
 
-    <!-- Floating Circular Trigger -->
-    <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">
-      💬
-    </button>
+    <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
-  <!-- MANDATORY SIGN-IN MODAL -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    
-    <!-- STEP 1: Email / Password -->
     <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="text-center">
         <span class="text-3xl">🧠</span>
         <h3 class="text-lg font-extrabold text-slate-900 mt-2">Sign In to DrozoMind</h3>
         <p class="text-xs text-slate-500 mt-1">Please sign in to access your therapy sanctuary.</p>
       </div>
-
       <form onsubmit="handleStep1Submit(event)" class="space-y-3 pt-2">
         <div>
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Email Address</label>
@@ -164,66 +153,42 @@
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Password</label>
           <input type="password" id="loginPass" required value="admin123" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
-          Continue to 2FA Verification →
-        </button>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
       </form>
     </div>
 
-    <!-- STEP 2: 2FA Choice -->
     <div id="authStep2" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Select 2FA Verification</h3>
       <p class="text-xs text-slate-500">Choose how you want to authorize:</p>
-      
       <div class="space-y-3 pt-2">
         <button onclick="startDrozoGuard2FA()" class="w-full p-3.5 rounded-2xl bg-[#031d13] text-emerald-300 border border-emerald-600 hover:bg-[#052b1d] transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">🛡️</span>
-            <div>
-              <div class="text-xs font-bold text-white">Drozo Guard Hardware</div>
-              <div class="text-[10px] text-emerald-400">QR App Scan / Upload ID File</div>
-            </div>
+            <div><div class="text-xs font-bold text-white">Drozo Guard Hardware</div><div class="text-[10px] text-emerald-400">QR App Scan / Upload ID File</div></div>
           </div>
           <span class="text-xs font-bold">→</span>
         </button>
-
         <button onclick="startStandardAuth2FA()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2.5 text-left">
             <span class="text-xl">📱</span>
-            <div>
-              <div class="text-xs font-bold text-slate-900">Standard Authenticator</div>
-              <div class="text-[10px] text-slate-500">6-Digit TOTP Code</div>
-            </div>
+            <div><div class="text-xs font-bold text-slate-900">Standard Authenticator</div><div class="text-[10px] text-slate-500">6-Digit TOTP Code</div></div>
           </div>
           <span class="text-xs font-bold">→</span>
         </button>
       </div>
-
       <button onclick="backToStep1()" class="text-xs text-slate-400 hover:underline pt-2">← Back to credentials</button>
     </div>
 
-    <!-- STEP 3A: Drozo Guard Hardware Gate -->
     <div id="authStep3Guard" class="bg-[#02140d] text-emerald-50 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#0d4f34] space-y-4 hidden text-center">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#0a3825] text-emerald-300 border border-emerald-500/30">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Drozo Guard Handshake
       </div>
-      <div>
-        <h3 class="text-sm font-bold text-white">Scan Challenge QR</h3>
-        <p class="text-[11px] text-emerald-300/80">Scan via Drozo Guard APK, enter token, or open file.</p>
-      </div>
-
-      <div class="flex justify-center">
-        <div id="modalChallengeBox" class="bg-white p-2.5 rounded-2xl min-h-[170px] min-w-[170px] flex items-center justify-center">
-          <span class="text-xs text-slate-500 mono">Generating...</span>
-        </div>
-      </div>
-
+      <div><h3 class="text-sm font-bold text-white">Scan Challenge QR</h3><p class="text-[11px] text-emerald-300/80">Scan via Drozo Guard APK, enter token, or open file.</p></div>
+      <div class="flex justify-center"><div id="modalChallengeBox" class="bg-white p-2.5 rounded-2xl min-h-[170px] min-w-[170px] flex items-center justify-center"><span class="text-xs text-slate-500 mono">Generating...</span></div></div>
       <div class="flex gap-2">
         <input type="text" id="modalTokenOverride" class="flex-1 bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none uppercase" />
         <button onclick="executeFinalLogin()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">Enter →</button>
       </div>
-
-      <!-- Instant File Open + Webcam -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <label class="cursor-pointer py-2 px-2 bg-[#093522] hover:bg-[#0c472d] border border-[#145d3e] text-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition">
           <span>📁</span> Open ID File
@@ -233,37 +198,22 @@
           <span>📷</span> Scan Webcam
         </button>
       </div>
-
       <div id="modalWebcamBox" class="hidden p-2 bg-black rounded-xl border border-slate-700">
         <div id="modalQrReader"></div>
         <button onclick="closeModalWebcamScanner()" class="text-[10px] text-rose-400 hover:underline mt-1">Cancel Camera</button>
       </div>
-
       <button onclick="backToStep2()" class="text-xs text-emerald-400/80 hover:underline">← Change method</button>
     </div>
 
-    <!-- STEP 3B: Standard Authenticator 6-Digit -->
     <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <h3 class="text-base font-extrabold text-slate-900">Enter Authenticator Code</h3>
       <p class="text-xs text-slate-500">Enter the 6-digit TOTP code generated by your Authenticator app.</p>
-      
       <form onsubmit="handleStandardTOTP(event)" class="space-y-3 pt-2">
-        <input 
-          type="text" 
-          id="totpInput" 
-          maxlength="6" 
-          placeholder="123456" 
-          required 
-          class="w-full text-center tracking-widest text-lg font-bold mono px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600"
-        />
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">
-          Verify & Sign In →
-        </button>
+        <input type="text" id="totpInput" maxlength="6" placeholder="123456" required class="w-full text-center tracking-widest text-lg font-bold mono px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Verify & Sign In →</button>
       </form>
-
       <button onclick="backToStep2()" class="text-xs text-slate-400 hover:underline">← Change method</button>
     </div>
-
   </div>
 
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
@@ -279,43 +229,34 @@
     let pollTimer = null;
     let modalQrScanner = null;
 
-    // Check if user is already signed in
+    const liveDate = new Date().toLocaleString("en-US", {timeZone: "Asia/Dubai", dateStyle: "full", timeStyle: "short"});
+
     window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('aiWelcomeMsg').innerHTML = `Hello! I am your AI therapy assistant. Today is <strong>${liveDate}</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.`;
       const activeUser = localStorage.getItem("drozo_active_session");
-      if (activeUser) {
-        unlockSanctuaryUI(activeUser);
-      } else {
-        openLoginModal();
-      }
+      if (activeUser) unlockSanctuaryUI(activeUser);
+      else openLoginModal();
     });
 
-    // Hidden Admin Shortcut: Press Shift + A to open dark-green Admin Gate directly
     window.addEventListener('keydown', (e) => {
-      if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-        window.location.href = "./auth.html";
-      }
+      if (e.shiftKey && (e.key === 'A' || e.key === 'a')) window.location.href = "./auth.html";
     });
 
-    function toggleAiBot() {
-      const drawer = document.getElementById('aiChatDrawer');
-      drawer.classList.toggle('hidden');
-    }
+    function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
 
     function handleChatSubmit(e) {
       e.preventDefault();
       const input = document.getElementById('chatInput');
       const val = input.value.trim();
       if (!val) return;
-
       appendChatMessage("You", val, "user");
       input.value = "";
-
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
-          appendChatMessage("Drozo AI", "Appointment registered for tomorrow at 4:00 PM with Dr. Elena Vance. Added to your schedule.", "bot");
+          appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger. It is updated in your Schedule panel.", "bot");
           document.getElementById('appointmentCount').innerText = "2 Active";
         } else {
-          appendChatMessage("Drozo AI", "I hear you. Let us take a deep, mindful breath and work through it together.", "bot");
+          appendChatMessage("Drozo AI", "I hear you. Let us take a deep, steady breath and explore this together.", "bot");
         }
       }, 500);
     }
@@ -324,14 +265,56 @@
       const box = document.getElementById('chatMessages');
       const msg = document.createElement('div');
       msg.className = "flex gap-2 " + (type === "user" ? "justify-end" : "");
-      msg.innerHTML = `
-        ${type === "bot" ? '<span class="text-base">🤖</span>' : ''}
-        <div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">
-          ${text}
-        </div>
-      `;
+      msg.innerHTML = `${type === "bot" ? '<span class="text-base">🤖</span>' : ''}<div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">${text}</div>`;
       box.appendChild(msg);
       box.scrollTop = box.scrollHeight;
+    }
+
+    function generateProfessionalPDF(patient, type, therapist) {
+      const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html><head><title>Clinical Outcome - ${patient}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; }
+          .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .logo { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+          .logo span { color: #059669; }
+          .title { font-size: 14px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+          .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; }
+          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 20%; color: #475569; }
+          .content { line-height: 1.8; font-size: 15px; color: #334155; }
+          .content h3 { color: #0f172a; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+          .footer { margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
+          .signature-block { margin-top: 50px; }
+          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; margin-bottom: 5px; }
+          .sig-line { width: 300px; border-top: 1px solid #cbd5e1; padding-top: 5px; font-size: 13px; font-weight: bold; color: #64748b; }
+        </style>
+        </head>
+        <body onload="setTimeout(() => { window.print(); }, 500)">
+          <div class="header">
+            <div class="logo">Drozo<span>Mind</span></div>
+            <div class="title">Official Clinical Assessment</div>
+          </div>
+          <table class="info-table">
+            <tr><td>Patient Reference</td><td>${patient}</td><td>Date of Issue</td><td>${date}</td></tr>
+            <tr><td>Attending Therapist</td><td>${therapist}</td><td>Session Category</td><td>${type}</td></tr>
+          </table>
+          <div class="content">
+            <h3>Diagnostic & Wellness Summary</h3>
+            <p>The patient participated in a secure, encrypted clinical session focused on cognitive reframing and decompression techniques. Emotional regulation parameters were monitored, and all immediate goal-oriented milestones were successfully achieved. The active therapeutic framework is recommended to continue without alteration.</p>
+            <h3>Prescribed Action Items</h3>
+            <p>Maintain engagement with daily guided reflections on the DrozoMind platform. Continue to monitor autonomous stress indicators. The next follow-up session is confirmed in the patient schedule portal.</p>
+          </div>
+          <div class="signature-block">
+            <div class="signature">${therapist.split('/')[0]}</div>
+            <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
+          </div>
+          <div class="footer">CONFIDENTIAL MEDICAL RECORD • END-TO-END ENCRYPTED • DO NOT DISTRIBUTE</div>
+        </body></html>
+      `);
+      win.document.close();
     }
 
     function openLoginModal() {
@@ -341,168 +324,56 @@
       document.getElementById('authStep3Guard').classList.add('hidden');
       document.getElementById('authStep3Standard').classList.add('hidden');
     }
-
-    function handleStep1Submit(e) {
-      e.preventDefault();
-      currentEmail = document.getElementById('loginEmail').value.trim();
-      document.getElementById('authStep1').classList.add('hidden');
-      document.getElementById('authStep2').classList.remove('hidden');
-    }
-
-    function backToStep1() {
-      document.getElementById('authStep2').classList.add('hidden');
-      document.getElementById('authStep1').classList.remove('hidden');
-    }
-
-    function backToStep2() {
-      if (pollTimer) clearInterval(pollTimer);
-      closeModalWebcamScanner();
-      document.getElementById('authStep3Guard').classList.add('hidden');
-      document.getElementById('authStep3Standard').classList.add('hidden');
-      document.getElementById('authStep2').classList.remove('hidden');
-    }
+    function handleStep1Submit(e) { e.preventDefault(); currentEmail = document.getElementById('loginEmail').value.trim(); document.getElementById('authStep1').classList.add('hidden'); document.getElementById('authStep2').classList.remove('hidden'); }
+    function backToStep1() { document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep1').classList.remove('hidden'); }
+    function backToStep2() { if (pollTimer) clearInterval(pollTimer); closeModalWebcamScanner(); document.getElementById('authStep3Guard').classList.add('hidden'); document.getElementById('authStep3Standard').classList.add('hidden'); document.getElementById('authStep2').classList.remove('hidden'); }
 
     function startDrozoGuard2FA() {
-      document.getElementById('authStep2').classList.add('hidden');
-      document.getElementById('authStep3Guard').classList.remove('hidden');
-
+      document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep3Guard').classList.remove('hidden');
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
       document.getElementById('modalTokenOverride').value = activeToken;
-
       const payload = `DROZO_GUARD_AUTH:${activeToken}:${currentEmail}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(payload)}`;
-      document.getElementById('modalChallengeBox').innerHTML = `<img src="${qrUrl}" alt="Auth QR" class="w-36 h-36" />`;
-
-      try {
-        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
-          method: "POST",
-          headers: {
-            "apikey": SUPABASE_ANON,
-            "Authorization": `Bearer ${SUPABASE_ANON}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal"
-          },
-          body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" })
-        }).catch(() => {});
-      } catch (_) {}
-
+      document.getElementById('modalChallengeBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(payload)}" class="w-36 h-36" />`;
+      try { fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, { method: "POST", headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json", "Prefer": "return=minimal" }, body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" }) }).catch(() => {}); } catch (_) {}
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, {
-            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
-          });
-          if (res.ok) {
-            const rows = await res.json();
-            if (rows && rows.length > 0 && rows[0].status === "authorized") {
-              executeFinalLogin();
-            }
-          }
-        } catch (_) {}
+        try { const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, { headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` } }); if (res.ok) { const rows = await res.json(); if (rows && rows.length > 0 && rows[0].status === "authorized") executeFinalLogin(); } } catch (_) {}
       }, 1000);
     }
 
-    function startStandardAuth2FA() {
-      document.getElementById('authStep2').classList.add('hidden');
-      document.getElementById('authStep3Standard').classList.remove('hidden');
-    }
+    function startStandardAuth2FA() { document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep3Standard').classList.remove('hidden'); }
+    function handleStandardTOTP(e) { e.preventDefault(); const code = document.getElementById('totpInput').value.trim(); if (code.length === 6) executeFinalLogin(); else alert("Enter a valid 6-digit Authenticator code."); }
 
-    function handleStandardTOTP(e) {
-      e.preventDefault();
-      const code = document.getElementById('totpInput').value.trim();
-      if (code.length === 6) {
-        executeFinalLogin();
-      } else {
-        alert("Enter a valid 6-digit Authenticator code.");
-      }
-    }
-
-    // Instant File Reader Fix
     function handleModalIdFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function() {
-        // Fast direct validation: immediately authorize and return to index
-        executeFinalLogin();
-      };
+      reader.onload = function() { executeFinalLogin(); };
       reader.readAsDataURL(file);
     }
+    function openModalWebcamScanner() { document.getElementById('modalWebcamBox').classList.remove('hidden'); try { modalQrScanner = new Html5Qrcode("modalQrReader"); modalQrScanner.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 180, height: 180 } }, (decodedText) => { if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO") || decodedText.includes(currentEmail)) { closeModalWebcamScanner(); executeFinalLogin(); } }, () => {}).catch(err => alert("Webcam error: " + err)); } catch (err) { alert("Scanner init error: " + err); } }
+    function closeModalWebcamScanner() { if (modalQrScanner) { modalQrScanner.stop().then(() => { document.getElementById('modalWebcamBox').classList.add('hidden'); }).catch(() => { document.getElementById('modalWebcamBox').classList.add('hidden'); }); } }
 
-    function openModalWebcamScanner() {
-      document.getElementById('modalWebcamBox').classList.remove('hidden');
-      try {
-        modalQrScanner = new Html5Qrcode("modalQrReader");
-        modalQrScanner.start(
-          { facingMode: "user" },
-          { fps: 10, qrbox: { width: 180, height: 180 } },
-          (decodedText) => {
-            if (decodedText.includes("AUTH_8829") || decodedText.includes("DROZO_ROOT_ADMIN") || decodedText.includes(currentEmail)) {
-              closeModalWebcamScanner();
-              executeFinalLogin();
-            }
-          },
-          () => {}
-        ).catch(err => alert("Webcam error: " + err));
-      } catch (err) {
-        alert("Scanner init error: " + err);
-      }
-    }
-
-    function closeModalWebcamScanner() {
-      if (modalQrScanner) {
-        modalQrScanner.stop().then(() => {
-          document.getElementById('modalWebcamBox').classList.add('hidden');
-        }).catch(() => {
-          document.getElementById('modalWebcamBox').classList.add('hidden');
-        });
-      }
-    }
-
-    // Always unlocks and stays on index.html with signed-in account
     function executeFinalLogin() {
-      if (pollTimer) clearInterval(pollTimer);
-      closeModalWebcamScanner();
-
-      // Set active session
+      if (pollTimer) clearInterval(pollTimer); closeModalWebcamScanner();
       localStorage.setItem("drozo_active_session", currentEmail);
-      if (currentEmail === "admin@drozominds.com") {
-        localStorage.setItem("drozo_auth_state", "UNLOCKED");
-      }
-
+      if (currentEmail === "admin@drozominds.com") localStorage.setItem("drozo_auth_state", "UNLOCKED");
       unlockSanctuaryUI(currentEmail);
     }
 
     function unlockSanctuaryUI(email) {
       document.getElementById('authModal').classList.add('hidden');
-      const portal = document.getElementById('portalContent');
-      portal.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
-
+      document.getElementById('portalContent').classList.remove('blur-sm', 'pointer-events-none', 'select-none');
       const isOwnerAdmin = (email === "admin@drozominds.com");
       const displayName = isOwnerAdmin ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : email.split('@')[0]);
-
-      const navArea = document.getElementById('navAuthArea');
-      navArea.innerHTML = `
-        ${isOwnerAdmin ? `
-          <a href="./admin.html" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#042d1b] text-emerald-300 border border-emerald-600 hover:bg-[#064228] transition flex items-center gap-1.5">
-            <span>🛡️</span> Admin Console
-          </a>
-        ` : ''}
-        <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-          👤 ${displayName}
-        </span>
-        <button onclick="logoutClient()" class="text-xs text-rose-500 hover:underline font-bold px-2 py-1">
-          Sign Out
-        </button>
+      document.getElementById('navAuthArea').innerHTML = `
+        ${isOwnerAdmin ? `<a href="./admin.html" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#042d1b] text-emerald-300 border border-emerald-600 hover:bg-[#064228] transition flex items-center gap-1.5"><span>🛡️</span> Admin Console</a>` : ''}
+        <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">👤 ${displayName}</span>
+        <button onclick="logoutClient()" class="text-xs text-rose-500 hover:underline font-bold px-2 py-1">Sign Out</button>
       `;
     }
 
-    function logoutClient() {
-      localStorage.removeItem("drozo_active_session");
-      localStorage.removeItem("drozo_auth_state");
-      location.reload();
-    }
+    function logoutClient() { localStorage.removeItem("drozo_active_session"); localStorage.removeItem("drozo_auth_state"); location.reload(); }
   </script>
 </body>
 </html>
