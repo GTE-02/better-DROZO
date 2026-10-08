@@ -815,64 +815,22 @@
       window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=740');
     }
 
-                    async function getRealClientLocation() {
-      // 1. Try Browser Native Geolocation for street/city precision
-      if (navigator.geolocation) {
-        try {
-          const coords = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 });
-          });
-          const lat = coords.coords.latitude;
-          const lon = coords.coords.longitude;
-          const revRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-          if (revRes.ok) {
-            const revData = await revRes.json();
-            const locality = revData.locality || revData.city || "";
-            const country = revData.countryName || "";
-            if (locality && country) return `${locality}, ${country}`;
-          }
-        } catch (_) {}
-      }
-
-      // 2. Fallback to Primary Free Dynamic IP Lookup (ipwho.is - no API key required, CORS open)
+                        function getQuickLocationString() {
       try {
-        const res1 = await fetch("https://ipwho.is/");
-        if (res1.ok) {
-          const d1 = await res1.json();
-          if (d1.success !== false && d1.city && d1.country) {
-            return `${d1.city}, ${d1.country}`;
-          }
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        if (tz.includes("/")) {
+          return tz.replace("_", " ").split("/").reverse().join(", ");
         }
       } catch (_) {}
-
-      // 3. Fallback to Secondary IP Service (ipapi.co)
-      try {
-        const res2 = await fetch("https://ipapi.co/json/");
-        if (res2.ok) {
-          const d2 = await res2.json();
-          if (d2.city && d2.country_name) {
-            return `${d2.city}, ${d2.country_name}`;
-          }
-        }
-      } catch (_) {}
-
-      // 4. Fallback to Third IP Service (geoplugin)
-      try {
-        const res3 = await fetch("https://api.country.is/");
-        if (res3.ok) {
-          const d3 = await res3.json();
-          if (d3.country) return `Regional Network (${d3.country})`;
-        }
-      } catch (_) {}
-
-      return "Sign-In Device Location";
+      return "Current Device Location";
     }
 
-    async function startDrozoGuard2FA() {
+    function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStepOnboarding').classList.add('hidden');
-      document.getElementById('wizardDrozoGuard').classList.add('hidden');
+      const wizardGuard = document.getElementById('wizardDrozoGuard');
+      if (wizardGuard) wizardGuard.classList.add('hidden');
       document.getElementById('authStep3Guard').classList.remove('hidden');
 
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -882,12 +840,13 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      // Determine actual live location of this computer
-      const realLocation = await getRealClientLocation();
+      // Fast, non-blocking time-zone based location first
+      let resolvedLoc = getQuickLocationString();
 
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
-      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}&loc=${encodeURIComponent(realLocation)}`;
+      const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}&loc=${encodeURIComponent(resolvedLoc)}`;
 
+      // 1. Immediately render the QR code
       const qrContainer = document.getElementById('qrCanvasContainer');
       if (qrContainer) {
         qrContainer.innerHTML = "";
@@ -909,8 +868,8 @@
         }
       }
 
-      // Dispatch clean real-time session with actual computer location
-      try {
+      // 2. Immediately send handshake to Supabase so phone picks it up without waiting
+      const postHandshake = (locStr) => {
         fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
           method: "POST",
           headers: {
@@ -923,12 +882,32 @@
             session_token: activeToken,
             email: currentEmail,
             status: "pending",
-            client_location: realLocation,
+            client_location: locStr,
             created_at: new Date().toISOString()
           })
         }).catch(() => {});
-      } catch (_) {}
+      };
 
+      postHandshake(resolvedLoc);
+
+      // 3. Background IP lookup to refine city/country if available without blocking UI
+      fetch("https://ipwho.is/").then(r => r.json()).then(d => {
+        if (d && d.city && d.country) {
+          const fineLoc = `${d.city}, ${d.country}`;
+          // Update the existing Supabase session record in background
+          fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": SUPABASE_ANON,
+              "Authorization": `Bearer ${SUPABASE_ANON}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ client_location: fineLoc })
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+
+      // 4. Start polling for Approval / Denial from phone
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
         const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);

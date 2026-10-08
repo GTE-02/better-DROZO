@@ -158,53 +158,7 @@
     });
 
         
-    let html5QrScannerMobile = null;
-
-    async function startScanner() {
-      const scannerBox = document.getElementById('cameraScannerBox') || createScannerBox();
-      scannerBox.classList.remove('hidden');
-
-      try {
-        if (html5QrScannerMobile) {
-          try { await html5QrScannerMobile.stop(); } catch(_) {}
-        }
-        html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
-        await html5QrScannerMobile.start(
-          { facingMode: "environment" },
-          { fps: 15, qrbox: { width: 220, height: 220 } },
-          async (decodedText) => {
-            console.log("Scanned QR Text:", decodedText);
-            try {
-              // Parse URL query parameters if a full URL was scanned
-              if (decodedText.includes("?") && (decodedText.includes("token=") || decodedText.includes("SES_"))) {
-                const url = new URL(decodedText);
-                const token = url.searchParams.get("token");
-                const email = url.searchParams.get("email") || "admin@drozominds.com";
-                const loc = url.searchParams.get("loc") || "Detected Device";
-                if (token) {
-                  await stopMobileScanner();
-                  verifyAndShowChallenge(token, email, loc);
-                  return;
-                }
-              }
-              // Direct Token scan fallback
-              if (decodedText.startsWith("SES_")) {
-                await stopMobileScanner();
-                verifyAndShowChallenge(decodedText, "admin@drozominds.com", "Detected Device");
-                return;
-              }
-            } catch (_) {}
-          },
-          () => {}
-        );
-      } catch (err) {
-        alert("Camera error: Ensure browser permissions allow camera access.");
-      }
-    }
-
-    async function stopMobileScanner() {
-      if (html5QrScannerMobile) {
-        try { await html5QrScannerMobile.stop(); } catch (_) {}
+     catch (_) {}
       }
       const scannerBox = document.getElementById('cameraScannerBox');
       if (scannerBox) scannerBox.classList.add('hidden');
@@ -230,11 +184,113 @@
       return box;
     }
 
+        
+    let html5QrScannerMobile = null;
+
+    async function startScanner() {
+      let box = document.getElementById('cameraScannerBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'cameraScannerBox';
+        box.className = 'fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4';
+        box.innerHTML = `
+          <div class="w-full max-w-sm bg-[#0e1722] rounded-3xl p-5 border border-[#1e2f42] text-center space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-white uppercase tracking-wider">Scan Challenge QR</span>
+              <button onclick="stopMobileScanner()" class="text-rose-400 text-xs font-bold px-2 py-1">Close ✕</button>
+            </div>
+            <div id="mobileQrReaderArea" class="w-full h-64 rounded-2xl overflow-hidden bg-black border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+              Initializing Camera...
+            </div>
+            <p class="text-[11px] text-slate-400">Point your camera at the QR code on your computer screen.</p>
+            <div class="pt-1">
+              <button type="button" onclick="promptManualSessionToken()" class="text-xs text-sky-400 underline font-semibold">
+                Type Session ID Manually instead
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(box);
+      }
+      box.classList.remove('hidden');
+
+      const onScanSuccess = async (decodedText) => {
+        try {
+          if (decodedText.includes("token=") || decodedText.includes("SES_")) {
+            let token = "";
+            let email = "admin@drozominds.com";
+            let loc = "Detected Device";
+
+            if (decodedText.includes("?")) {
+              const url = new URL(decodedText);
+              token = url.searchParams.get("token") || "";
+              email = url.searchParams.get("email") || email;
+              loc = url.searchParams.get("loc") || loc;
+            } else if (decodedText.startsWith("SES_")) {
+              token = decodedText;
+            }
+
+            if (token) {
+              await stopMobileScanner();
+              verifyAndShowChallenge(token, email, loc);
+            }
+          }
+        } catch (_) {}
+      };
+
+      try {
+        if (typeof Html5Qrcode === "undefined") {
+          alert("QR scanner library loading. Please try again in 1 second.");
+          return;
+        }
+        if (html5QrScannerMobile) {
+          try { await html5QrScannerMobile.stop(); } catch(_) {}
+        }
+        html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
+        
+        // Try back camera first; if unsupported, fallback to standard video stream
+        try {
+          await html5QrScannerMobile.start(
+            { facingMode: "environment" },
+            { fps: 15, qrbox: { width: 220, height: 220 } },
+            onScanSuccess,
+            () => {}
+          );
+        } catch (camErr) {
+          await html5QrScannerMobile.start(
+            { facingMode: "user" },
+            { fps: 15, qrbox: { width: 220, height: 220 } },
+            onScanSuccess,
+            () => {}
+          );
+        }
+      } catch (err) {
+        alert("Camera access was not permitted. You can type the Session Token manually.");
+      }
+    }
+
+    async function stopMobileScanner() {
+      if (html5QrScannerMobile) {
+        try { await html5QrScannerMobile.stop(); } catch(_) {}
+        html5QrScannerMobile = null;
+      }
+      const box = document.getElementById('cameraScannerBox');
+      if (box) box.classList.add('hidden');
+    }
+
+    function promptManualSessionToken() {
+      stopMobileScanner();
+      const code = prompt("Enter the Session ID from the website (e.g., SES_XXXXXX):");
+      if (code && code.trim().startsWith("SES_")) {
+        verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com", "Manual Pairing");
+      }
+    }
+
         async function pollForPendingIncomingSessions() {
       setInterval(async () => {
         if (activeSessionToken) return;
         try {
-          const freshTime = new Date(Date.now() - 60000).toISOString();
+          const freshTime = new Date(Date.now() - 120000).toISOString();
           const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&created_at=gte.${freshTime}&order=created_at.desc&limit=1`, {
             headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
           });
@@ -247,7 +303,7 @@
             }
           }
         } catch (_) {}
-      }, 1500);
+      }, 1000);
     }
 
     function verifyAndShowChallenge(token, email) {
