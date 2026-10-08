@@ -551,25 +551,31 @@
 
     function startAuthenticatorEnrollment() {
       document.getElementById('authStepOnboarding').classList.add('hidden');
-      document.getElementById('wizardAuthenticator').classList.remove('hidden');
+      const wizardAuth = document.getElementById('wizardAuthenticator');
+      if (wizardAuth) wizardAuth.classList.remove('hidden');
 
       const issuer = "DrozoMind";
-      const otpauthUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(currentEmail)}?secret=${enrolledSecret}&issuer=${encodeURIComponent(issuer)}`;
+      const userMail = currentEmail || "user@drozominds.com";
+      const otpauthUri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userMail)}?secret=${enrolledSecret}&issuer=${encodeURIComponent(issuer)}`;
 
       const qrBox = document.getElementById('enrollTotpQrContainer');
       if (qrBox) {
         qrBox.innerHTML = "";
         try {
-          new QRCode(qrBox, {
-            text: otpauthUri,
-            width: 160,
-            height: 160,
-            colorDark: "#02140d",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
-        } catch (_) {
-          qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" />`;
+          if (typeof QRCode !== "undefined") {
+            new QRCode(qrBox, {
+              text: otpauthUri,
+              width: 160,
+              height: 160,
+              colorDark: "#02140d",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } else {
+            qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
+          }
+        } catch (err) {
+          qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpauthUri)}" class="w-36 h-36 rounded-lg" alt="QR Code" />`;
         }
       }
     }
@@ -788,19 +794,31 @@
       const dynamicCode = String((timeStep * 31337) % 1000000).padStart(6, '0');
 
       if (validPins.includes(code) || code === dynamicCode) {
+        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "totp");
+        localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
         executeFinalLogin();
       } else {
         alert("Authentication Failed: Invalid 6-digit code.");
-        document.getElementById('totpInput').value = "";
+        const inp = document.getElementById('totpInput');
+        if (inp) {
+          inp.value = "";
+          inp.focus();
+        }
       }
     }
 
-    function executeFinalLogin() {
+        function executeFinalLogin() {
       if (pollTimer) clearInterval(pollTimer);
       stopWebcamIDPass();
-            localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
+      
+      // Preserve existing TOTP preference if user verified via TOTP
+      const existingPref = localStorage.getItem("drozo_user_2fa_pref_" + currentEmail);
+      if (!existingPref) {
+        localStorage.setItem("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
+      }
       localStorage.setItem("drozo_user_2fa_verified_" + currentEmail, "true");
       localStorage.setItem("drozo_active_session", currentEmail);
+
       if (currentEmail === "admin@drozominds.com" || currentEmail === "gamerkids1109@gmail.com") {
         localStorage.setItem("drozo_auth_state", "UNLOCKED");
       }
