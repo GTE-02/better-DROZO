@@ -3,189 +3,205 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Drozo Guard - Mobile Security</title>
+  <title>Drozo Guard Authenticator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background-color: #0b1118;
-      color: #e2e8f0;
-      -webkit-font-smoothing: antialiased;
-      user-select: none;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #060b11; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    .map-grid {
-      background-color: #121c26;
-      background-image: 
-        linear-gradient(rgba(30, 58, 86, 0.3) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30, 58, 86, 0.3) 1px, transparent 1px);
-      background-size: 24px 24px;
-    }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-3 sm:p-4">
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto relative select-none">
 
-  <!-- Mobile Guard Card Container -->
-  <div class="w-full max-w-sm rounded-[36px] bg-[#101923] border border-[#1e2d3d] shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col justify-between min-h-[620px]">
-    
-    <!-- Top Header Bar -->
-    <div class="px-6 pt-5 pb-3 flex items-center justify-between border-b border-[#182635]">
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs">🛡️</div>
-        <span class="text-xs font-black tracking-widest text-slate-200 uppercase">DROZO GUARD</span>
-      </div>
-      <span id="guardStatusBadge" class="text-[10px] mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/30 animate-pulse font-bold">
-        STANDBY
-      </span>
+  <!-- TOP APP BAR -->
+  <header class="flex items-center justify-between py-3 border-b border-slate-800/80">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">🛡️</span>
+      <span class="text-xs font-black tracking-widest uppercase text-slate-200">DROZO GUARD</span>
     </div>
-
-    <!-- VIEW 1: STANDBY / IDLE (When no sign-in is requested) -->
-    <div id="standbyView" class="p-6 flex-1 flex flex-col items-center justify-center text-center space-y-5">
-      <div class="w-20 h-20 rounded-3xl bg-[#0f1924] border border-[#1e2f42] flex items-center justify-center text-3xl shadow-lg">
-        🛡️
-      </div>
-      <div>
-        <h3 class="text-base font-bold text-white">Drozo Guard Active</h3>
-        <p class="text-xs text-slate-400 mt-1 max-w-[240px]">Listening for incoming sanctuary sign-in requests from DrozoMind...</p>
-      </div>
-
-      <div class="w-full pt-4 space-y-3">
-        <button onclick="startAppQrScanner()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl text-xs transition shadow flex items-center justify-center gap-2">
-          <span>📷</span> Scan Website Challenge QR
-        </button>
-
-        <div id="appScannerBox" class="hidden p-2 bg-black rounded-2xl border border-slate-700">
-          <div id="appQrReader"></div>
-          <button onclick="stopAppQrScanner()" class="text-[11px] text-rose-400 font-bold hover:underline mt-2">Close Camera</button>
-        </div>
-      </div>
+    <div id="guardPill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      STANDBY
     </div>
+  </header>
 
-    <!-- VIEW 2: APPROVE / DENY (Triggered ONLY when an active login request is received) -->
-    <div id="approvalView" class="hidden p-5 space-y-4 flex-1 flex flex-col justify-center">
-
-      <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-[#223547] map-grid flex items-center justify-center shadow-inner">
-        <div class="absolute inset-0 bg-gradient-to-tr from-[#0d1620] via-transparent to-[#132230] opacity-80"></div>
-        <div class="absolute w-32 h-16 bg-[#1a2f44]/40 rounded-full blur-xl"></div>
-        
-        <div class="relative z-10 flex flex-col items-center">
-          <div class="relative flex items-center justify-center">
-            <span class="w-8 h-8 rounded-full bg-emerald-500/20 animate-ping absolute"></span>
-            <div class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.8)] border-2 border-white">
-              📍
-            </div>
-          </div>
-          <div class="mt-2 bg-[#091118]/90 backdrop-blur-md px-3 py-1 rounded-full border border-[#1e3247] shadow-lg text-center">
-            <span class="text-xs font-bold text-white tracking-wide">Dubai</span>
-            <span class="text-[10px] text-slate-400 block">United Arab Emirates</span>
-          </div>
-        </div>
-        
-        <div class="absolute bottom-2 left-3 text-[9px] text-slate-500 uppercase tracking-widest mono font-bold">
-          DROZO MAPS
-        </div>
-      </div>
-
-      <div class="bg-[#0b131c] border border-[#1b2a3a] rounded-2xl p-4 space-y-3 shadow-md">
-        <div class="text-center">
-          <div class="text-[11px] text-slate-400 font-medium">New sign in request for</div>
-          <div class="text-sm font-extrabold text-white mt-0.5" id="targetAccountName">Loading...</div>
-          <div class="text-[10px] text-emerald-400 mono mt-0.5" id="targetAccountEmail">Loading...</div>
-        </div>
-
-        <div class="border-t border-[#182635] pt-3 grid grid-cols-2 gap-2 text-center text-xs">
-          <div class="bg-[#0f1924] p-2 rounded-xl border border-[#1d2d3e]">
-            <div class="text-[10px] text-slate-400 uppercase font-semibold">Client</div>
-            <div class="font-bold text-slate-200 mt-0.5 truncate" id="guardClientInfo">Web Portal</div>
-          </div>
-          <div class="bg-[#0f1924] p-2 rounded-xl border border-[#1d2d3e]">
-            <div class="text-[10px] text-slate-400 uppercase font-semibold">Session ID</div>
-            <div class="font-bold text-emerald-400 mono mt-0.5 truncate" id="guardSessionToken">SES_ACTIVE</div>
-          </div>
-        </div>
-
-        <label class="flex items-center gap-2 pt-1 text-left cursor-pointer select-none">
-          <input type="checkbox" checked class="w-4 h-4 rounded text-emerald-500 bg-[#162330] border-slate-700 focus:ring-0 focus:outline-none" />
-          <span class="text-[11px] text-slate-300">Remember this trusted device</span>
-        </label>
-      </div>
-
+  <!-- STATE A: STANDBY VIEW -->
+  <div id="standbyView" class="my-auto py-12 flex flex-col items-center text-center space-y-6">
+    <div class="relative w-28 h-28 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-center shadow-2xl">
+      <div class="absolute inset-0 rounded-3xl bg-emerald-500/10 blur-xl animate-pulse"></div>
+      <span class="text-5xl">🛡️</span>
     </div>
-
-    <!-- Action Buttons for View 2 -->
-    <div id="actionButtons" class="hidden p-5 pt-0 grid grid-cols-2 gap-3">
-      <button 
-        onclick="authorizeChallenge(true)" 
-        id="btnApprove" 
-        class="py-3.5 px-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-[0_4px_20px_rgba(14,165,233,0.35)] transition transform active:scale-95 flex items-center justify-center gap-2"
-      >
-        <span>✓</span> Approve
+    <div class="space-y-2">
+      <h2 class="text-base font-extrabold text-white tracking-wide">Drozo Guard Active</h2>
+      <p class="text-xs text-slate-400 max-w-[240px] leading-relaxed">
+        Listening for incoming sanctuary sign-in requests from DrozoMind...
+      </p>
+    </div>
+    <div class="w-full pt-4 space-y-3">
+      <button type="button" onclick="startScanner()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-extrabold rounded-2xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+        <span>📷</span> Scan Website Challenge QR
       </button>
-
-      <button 
-        onclick="authorizeChallenge(false)" 
-        id="btnDeny" 
-        class="py-3.5 px-4 rounded-2xl font-bold text-sm bg-[#1f2937] hover:bg-[#374151] border border-slate-700 text-slate-300 transition transform active:scale-95 flex items-center justify-center gap-2"
-      >
-        <span>✕</span> Deny
+      <button type="button" onclick="promptManualSessionToken()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-semibold border border-slate-800 transition">
+        Enter Session ID Manually
       </button>
     </div>
-
   </div>
+
+  <!-- STATE B: CHALLENGE APPROVAL PROMPT (NO LOCATION) -->
+  <div id="challengeView" class="my-auto py-6 space-y-5 hidden">
+    <div class="p-4 rounded-3xl bg-gradient-to-b from-slate-900 to-[#0e1724] border border-sky-500/30 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🔐</span>
+          <span class="text-xs font-extrabold text-white tracking-wide uppercase">Sign-In Request</span>
+        </div>
+        <span class="text-[10px] mono px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 font-bold">
+          CONFIRM
+        </span>
+      </div>
+
+      <!-- Account Card -->
+      <div class="p-3.5 rounded-2xl bg-[#090f17] border border-slate-800 flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow">
+          DG
+        </div>
+        <div class="overflow-hidden">
+          <div class="text-xs font-bold text-white truncate" id="userNameDisplay">Water_Chugger/Owner</div>
+          <div class="text-[11px] text-sky-400 mono truncate" id="userEmailDisplay">admin@drozominds.com</div>
+        </div>
+      </div>
+
+      <!-- Session Reference -->
+      <div class="p-3 rounded-xl bg-black/40 border border-slate-800/80 flex items-center justify-between text-xs">
+        <span class="text-slate-400">Session ID:</span>
+        <span class="mono font-bold text-sky-300" id="sessionTokenDisplay">SES_XXXX</span>
+      </div>
+
+      <p class="text-[11px] text-slate-400 text-center leading-relaxed">
+        Are you attempting to sign in to your DrozoMind therapy portal right now?
+      </p>
+
+      <!-- Approve / Deny Buttons -->
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <button type="button" onclick="respondChallenge('denied')" class="py-3 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs transition active:scale-[0.98]">
+          ✕ Deny
+        </button>
+        <button type="button" onclick="respondChallenge('authorized')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
+          <span>✓</span> Approve
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-3 text-center text-[10px] text-slate-600 mono">
+    Drozo Guard Protection Engine &bull; Steam Guard Protocol
+  </footer>
 
   <script>
     const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
     let activeSessionToken = null;
-    let activeUserEmail = null;
-    let qrAppScanner = null;
+    let pollerTimer = null;
+    let html5QrScannerMobile = null;
 
-    // Check on startup if URL contains incoming challenge parameters
+    // Cross-tab broadcast for instant zero-latency popups in side-by-side windows
+    const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
+    guardSyncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'NEW_CHALLENGE' && event.data.token) {
+        verifyAndShowChallenge(event.data.token, event.data.email);
+      }
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const email = urlParams.get('email');
+      const tokenParam = urlParams.get('token');
+      const emailParam = urlParams.get('email');
 
-      if (token && email) {
-        verifyAndShowChallenge(token, email);
+      if (tokenParam) {
+        verifyAndShowChallenge(tokenParam, emailParam);
       } else {
-        // Poll for pending sessions
-        pollForPendingIncomingSessions();
+        startPollingForPendingSessions();
       }
     });
 
-        
-     catch (_) {}
-      }
-      const scannerBox = document.getElementById('cameraScannerBox');
-      if (scannerBox) scannerBox.classList.add('hidden');
+    function verifyAndShowChallenge(token, email) {
+      if (!token) return;
+      activeSessionToken = token;
+
+      document.getElementById('standbyView').classList.add('hidden');
+      document.getElementById('challengeView').classList.remove('hidden');
+
+      document.getElementById('sessionTokenDisplay').innerText = token;
+      const targetEmail = email || "admin@drozominds.com";
+      document.getElementById('userEmailDisplay').innerText = targetEmail;
+
+      const displayName = (targetEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (targetEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : targetEmail.split('@')[0]);
+      document.getElementById('userNameDisplay').innerText = displayName;
+
+      const pill = document.getElementById('guardPill');
+      pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-950/60 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
+      pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> CHALLENGE';
     }
 
-    function createScannerBox() {
-      let box = document.getElementById('cameraScannerBox');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'cameraScannerBox';
-        box.className = 'fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4';
-        box.innerHTML = `
-          <div class="w-full max-w-xs bg-slate-900 rounded-3xl p-4 border border-slate-700 text-center space-y-3">
-            <div class="text-xs font-bold text-white uppercase tracking-wider">Point Camera at Computer QR</div>
-            <div id="mobileQrReaderArea" class="w-full h-64 rounded-2xl overflow-hidden bg-black"></div>
-            <button type="button" onclick="stopMobileScanner()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition">
-              Cancel Scan
-            </button>
-          </div>
-        `;
-        document.body.appendChild(box);
-      }
-      return box;
+    function startPollingForPendingSessions() {
+      checkPendingSessionsNow();
+      if (pollerTimer) clearInterval(pollerTimer);
+      pollerTimer = setInterval(checkPendingSessionsNow, 1000);
     }
 
-        
-    let html5QrScannerMobile = null;
+    async function checkPendingSessionsNow() {
+      if (activeSessionToken) return;
+      try {
+        // Query pending requests without ordering by column 'id' to avoid 400 Bad Request
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`
+          },
+          cache: "no-store"
+        });
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows && rows.length > 0) {
+            const req = rows[0];
+            if (sessionStorage.getItem("handled_" + req.session_token)) return;
+            verifyAndShowChallenge(req.session_token, req.email);
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function respondChallenge(statusDecision) {
+      if (!activeSessionToken) return;
+      const tok = activeSessionToken;
+
+      sessionStorage.setItem("handled_" + tok, "true");
+      localStorage.setItem("drozo_challenge_result_" + tok, statusDecision);
+
+      // Post decision to Supabase
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${tok}`, {
+          method: "PATCH",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ status: statusDecision })
+        });
+      } catch (_) {}
+
+      // Cross-tab broadcast result
+      try {
+        const resultChannel = new BroadcastChannel('drozo_sync');
+        resultChannel.postMessage({ type: 'GUARD_RESULT', token: tok, status: statusDecision });
+      } catch (_) {}
+
+      alert(statusDecision === 'authorized' ? 'Login Approved ✓' : 'Login Denied ✕');
+      location.href = window.location.pathname;
+    }
 
     async function startScanner() {
       let box = document.getElementById('cameraScannerBox');
@@ -194,20 +210,13 @@
         box.id = 'cameraScannerBox';
         box.className = 'fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4';
         box.innerHTML = `
-          <div class="w-full max-w-sm bg-[#0e1722] rounded-3xl p-5 border border-[#1e2f42] text-center space-y-4">
+          <div class="w-full max-w-sm bg-[#0e1724] rounded-3xl p-5 border border-slate-800 text-center space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2">
               <span class="text-xs font-bold text-white uppercase tracking-wider">Scan Challenge QR</span>
               <button onclick="stopMobileScanner()" class="text-rose-400 text-xs font-bold px-2 py-1">Close ✕</button>
             </div>
-            <div id="mobileQrReaderArea" class="w-full h-64 rounded-2xl overflow-hidden bg-black border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
-              Initializing Camera...
-            </div>
+            <div id="mobileQrReaderArea" class="w-full h-64 rounded-2xl overflow-hidden bg-black border border-slate-800"></div>
             <p class="text-[11px] text-slate-400">Point your camera at the QR code on your computer screen.</p>
-            <div class="pt-1">
-              <button type="button" onclick="promptManualSessionToken()" class="text-xs text-sky-400 underline font-semibold">
-                Type Session ID Manually instead
-              </button>
-            </div>
           </div>
         `;
         document.body.appendChild(box);
@@ -219,53 +228,31 @@
           if (decodedText.includes("token=") || decodedText.includes("SES_")) {
             let token = "";
             let email = "admin@drozominds.com";
-            let loc = "Detected Device";
-
             if (decodedText.includes("?")) {
               const url = new URL(decodedText);
               token = url.searchParams.get("token") || "";
               email = url.searchParams.get("email") || email;
-              loc = url.searchParams.get("loc") || loc;
             } else if (decodedText.startsWith("SES_")) {
               token = decodedText;
             }
-
             if (token) {
               await stopMobileScanner();
-              verifyAndShowChallenge(token, email, loc);
+              verifyAndShowChallenge(token, email);
             }
           }
         } catch (_) {}
       };
 
       try {
-        if (typeof Html5Qrcode === "undefined") {
-          alert("QR scanner library loading. Please try again in 1 second.");
-          return;
-        }
-        if (html5QrScannerMobile) {
-          try { await html5QrScannerMobile.stop(); } catch(_) {}
-        }
+        if (html5QrScannerMobile) { try { await html5QrScannerMobile.stop(); } catch(_) {} }
         html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
-        
-        // Try back camera first; if unsupported, fallback to standard video stream
         try {
-          await html5QrScannerMobile.start(
-            { facingMode: "environment" },
-            { fps: 15, qrbox: { width: 220, height: 220 } },
-            onScanSuccess,
-            () => {}
-          );
-        } catch (camErr) {
-          await html5QrScannerMobile.start(
-            { facingMode: "user" },
-            { fps: 15, qrbox: { width: 220, height: 220 } },
-            onScanSuccess,
-            () => {}
-          );
+          await html5QrScannerMobile.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 220, height: 220 } }, onScanSuccess, () => {});
+        } catch (_) {
+          await html5QrScannerMobile.start({ facingMode: "user" }, { fps: 15, qrbox: { width: 220, height: 220 } }, onScanSuccess, () => {});
         }
       } catch (err) {
-        alert("Camera access was not permitted. You can type the Session Token manually.");
+        alert("Camera permission is required to scan. You can enter the Session ID manually.");
       }
     }
 
@@ -279,145 +266,10 @@
     }
 
     function promptManualSessionToken() {
-      stopMobileScanner();
-      const code = prompt("Enter the Session ID from the website (e.g., SES_XXXXXX):");
+      const code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
       if (code && code.trim().startsWith("SES_")) {
-        verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com", "Manual Pairing");
+        verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com");
       }
-    }
-
-            // Instant cross-window broadcast listener
-        const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
-    guardSyncChannel.onmessage = (event) => {
-      if (event.data && event.data.type === 'NEW_CHALLENGE') {
-        verifyAndShowChallenge(event.data.token, event.data.email);
-      }
-    };
-
-    async function pollForPendingIncomingSessions() {
-      checkPendingNow();
-      setInterval(checkPendingNow, 1000);
-    }
-
-    async function checkPendingNow() {
-      if (activeSessionToken) return;
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&order=id.desc&limit=1&_t=${Date.now()}`, {
-          cache: "no-store",
-          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
-        });
-        if (res.ok) {
-          const rows = await res.json();
-          if (rows && rows.length > 0) {
-            const req = rows[0];
-            if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email);
-          }
-        }
-      } catch (_) {}
-    });
-        if (res.ok) {
-          const rows = await res.json();
-          if (rows && rows.length > 0) {
-            const req = rows[0];
-            if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email);
-          }
-        }
-      } catch (_) {}
-    }
-
-        function verifyAndShowChallenge(token, email) {
-      activeSessionToken = token;
-      document.getElementById('standbyView').classList.add('hidden');
-      document.getElementById('challengeView').classList.remove('hidden');
-
-      const tokEl = document.getElementById('sessionTokenDisplay');
-      if (tokEl) tokEl.innerText = token;
-      
-      const emEl = document.getElementById('userEmailDisplay');
-      if (emEl) emEl.innerText = email || "admin@drozominds.com";
-      
-      const displayName = (email === "admin@drozominds.com") ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : (email ? email.split('@')[0] : "Client"));
-      const nameEl = document.getElementById('userNameDisplay');
-      if (nameEl) nameEl.innerText = displayName;
-
-      // Force hide the location UI block completely
-      const mapTitle = document.getElementById('mapCityDisplay');
-      if (mapTitle && mapTitle.parentNode && mapTitle.parentNode.parentNode) {
-         mapTitle.parentNode.parentNode.style.display = 'none';
-      }
-    }
-
-function authorizeChallenge(approved) {
-      const btnA = document.getElementById('btnApprove');
-      const btnD = document.getElementById('btnDeny');
-      btnA.disabled = true;
-      btnD.disabled = true;
-
-      const newStatus = approved ? "authorized" : "denied";
-
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeSessionToken}`, {
-          method: "PATCH",
-          headers: {
-            "apikey": SUPABASE_ANON,
-            "Authorization": `Bearer ${SUPABASE_ANON}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal"
-          },
-          body: JSON.stringify({ status: newStatus })
-        });
-      } catch (_) {}
-
-      localStorage.setItem("drozo_challenge_result_" + activeSessionToken, newStatus);
-
-      if (approved) {
-        btnA.innerText = "Approved ✓";
-        setTimeout(() => {
-          alert("Login approved. Website session is now unlocked.");
-          location.href = "./auth.html"; // Return to standby
-        }, 500);
-      } else {
-        btnD.innerText = "Denied ✕";
-        setTimeout(() => {
-          alert("Login denied. Session invalidated.");
-          location.href = "./auth.html"; // Return to standby
-        }, 500);
-      }
-    }
-
-    function startAppQrScanner() {
-      const box = document.getElementById('appScannerBox');
-      box.classList.remove('hidden');
-      qrAppScanner = new Html5Qrcode("appQrReader");
-      qrAppScanner.start(
-        { facingMode: "environment" },
-        { fps: 15, qrbox: { width: 190, height: 190 } },
-        (decodedText) => {
-          stopAppQrScanner();
-          try {
-            const url = new URL(decodedText);
-            const token = url.searchParams.get("token");
-            const email = url.searchParams.get("email");
-            if (token && email) {
-              verifyAndShowChallenge(token, email);
-            }
-          } catch (_) {
-            if (decodedText.startsWith("SES_")) {
-              verifyAndShowChallenge(decodedText, "admin@drozominds.com");
-            }
-          }
-        },
-        () => {}
-      ).catch(err => alert("Camera error: " + err));
-    }
-
-    async function stopAppQrScanner() {
-      if (qrAppScanner) {
-        try { await qrAppScanner.stop(); } catch (_) {}
-      }
-      document.getElementById('appScannerBox').classList.add('hidden');
     }
   </script>
 </body>

@@ -493,7 +493,7 @@
       }
     }
 
-    function startDrozoGuard2FA() {
+        function startDrozoGuard2FA() {
       document.getElementById('authStep1').classList.add('hidden');
       document.getElementById('authStep2').classList.add('hidden');
       document.getElementById('authStepOnboarding').classList.add('hidden');
@@ -507,7 +507,6 @@
       const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
       document.getElementById('steamAccountDisplay').innerText = displayName;
 
-      
       const currentHost = window.location.origin + window.location.pathname.replace("index.html", "");
       const guardAuthUrl = `${currentHost}auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
 
@@ -525,17 +524,20 @@
         }
       }
 
+      // 1. Instant cross-tab broadcast for side-by-side testing
       try {
         const guardBroadcast = new BroadcastChannel('drozo_guard_sync');
         guardBroadcast.postMessage({ type: 'NEW_CHALLENGE', token: activeToken, email: currentEmail });
       } catch (_) {}
 
+      // 2. Write to Supabase with clean schema
       fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
         method: "POST",
         headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
         body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" })
       }).catch(() => {});
 
+      // 3. Poll for approval from phone or other tab
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
         const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);
@@ -550,8 +552,8 @@
         }
         try {
           const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status&_t=${Date.now()}`, {
-            cache: "no-store",
-            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
+            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` },
+            cache: "no-store"
           });
           if (res.ok) {
             const rows = await res.json();
