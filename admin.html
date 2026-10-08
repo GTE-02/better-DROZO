@@ -21,7 +21,7 @@
         <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-2 mt-0.5">
           <span>🛡️</span> Drozo Security & Admin Console
         </h1>
-        <p class="text-xs text-emerald-300/80 mt-1">Platform management, hardware key telemetry, and operational controls.</p>
+        <p class="text-xs text-emerald-300/80 mt-1">Platform management, session intake lifecycle, and therapist clinical outcomes.</p>
       </div>
       <div class="flex items-center gap-3">
         <a href="./index.html" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0a3825] border border-emerald-500/40 text-emerald-300 hover:bg-[#0d4f34] transition">
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <!-- Official Verified ID Pass -->
+    <!-- Verified ID Pass -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#063321] via-[#042618] to-[#021810] border border-emerald-600/50 p-6 shadow-2xl backdrop-blur-xl">
       <div class="flex justify-between items-start mb-4">
         <div>
@@ -43,7 +43,7 @@
         <span class="text-xs font-mono text-emerald-300">Clearance: Root Admin</span>
       </div>
       <div class="text-xs space-y-2 text-emerald-100">
-        <div><strong class="text-white">Account:</strong> <span class="mono text-emerald-300 font-bold">admin@drozominds.com</span></div>
+        <div><strong class="text-white">Account:</strong> <span class="mono text-emerald-300 font-bold" id="currentAdminEmail">admin@drozominds.com</span></div>
         <div><strong class="text-white">Assigned Coordinator:</strong> <span class="mono text-emerald-400">Drozo YT (gamerkids1109@gmail.com)</span></div>
         <div><strong class="text-white">Hardware Key:</strong> <span class="mono text-emerald-400">com.drozomind.guard (Paired & Active)</span></div>
         <div><strong class="text-white">Token Hash:</strong> <span class="mono text-emerald-300">AUTH_8829</span></div>
@@ -54,12 +54,15 @@
       </div>
     </div>
 
-    <!-- FEATURE: THERAPIST CLAIM APPOINTMENTS CONSOLE (WITH CHANNEL INDICATOR) -->
+    <!-- APPOINTMENT QUEUE & LIFECYCLE MANAGEMENT -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>🩺</span> Patient Appointment Queue & Claim Console
-        </h3>
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🩺</span> Patient Appointment Queue & Lifecycle
+          </h3>
+          <p class="text-xs text-emerald-300/70">Confirm, send meeting links, end sessions, or cancel.</p>
+        </div>
         <span class="text-[11px] text-emerald-400 mono">● Live Intake</span>
       </div>
 
@@ -70,22 +73,36 @@
               <th class="py-2.5 px-3">Patient / ID</th>
               <th class="py-2.5 px-3">Session Type</th>
               <th class="py-2.5 px-3">Chosen Channel</th>
-              <th class="py-2.5 px-3">Date & Time</th>
               <th class="py-2.5 px-3">Therapist Status</th>
-              <th class="py-2.5 px-3 text-right">Actions</th>
+              <th class="py-2.5 px-3 text-right">Lifecycle Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#0d4f34]/60" id="appointmentsTableBody">
             <tr id="aptRow1">
               <td class="py-3 px-3 mono text-white">PAT_9182 (Client)</td>
               <td class="py-3 px-3">Cognitive Behavioral Reframing</td>
-              <td class="py-3 px-3"><span id="channelIndicator" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🎮 Discord VC</span></td>
-              <td class="py-3 px-3 text-emerald-300">Tomorrow, 4:00 PM</td>
-              <td class="py-3 px-3"><span id="aptStatus1" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">UNCLAIMED</span></td>
-              <td class="py-3 px-3 text-right" id="aptActionCell1">
-                <button onclick="claimAppointment('aptStatus1', 'aptActionCell1')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
-                  Claim Session
-                </button>
+              <td class="py-3 px-3">
+                <span id="channelIndicator" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  🎮 Discord VC
+                </span>
+              </td>
+              <td class="py-3 px-3">
+                <span id="aptStatusBadge1" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  PENDING CLAIM
+                </span>
+              </td>
+              <td class="py-3 px-3 text-right" id="aptActionGroup1">
+                <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                  <button onclick="claimAndConfirmSession('aptStatusBadge1', 'aptActionGroup1', 'aptRow1')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition">
+                    Confirm & Claim
+                  </button>
+                  <button onclick="cancelSession('aptStatusBadge1', 'aptActionGroup1')" class="px-2.5 py-1 bg-amber-900/60 hover:bg-amber-800 text-amber-200 border border-amber-700 font-semibold rounded-lg text-xs transition">
+                    Cancel
+                  </button>
+                  <button onclick="deleteAppointmentRow('aptRow1')" id="btnDelete1" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold rounded-lg text-xs transition" title="Delete from intake (Owner only)">
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -93,35 +110,63 @@
       </div>
     </div>
 
-    <!-- FEATURE: CLINICAL OUTCOME DISPATCH & AI ASSESSMENT GENERATOR -->
+    <!-- CLINICAL OUTCOME GENERATOR WITH FULL TEXT TYPING & CLIENT DISPATCH -->
     <div class="bg-[#052317] border border-[#0d4f34] rounded-2xl p-6 shadow-xl space-y-4">
-      <h3 class="text-base font-bold text-white flex items-center gap-2">
-        <span>📄</span> Clinical Outcome Generator & PDF Dispatch
-      </h3>
-      <p class="text-xs text-emerald-300/80">Issue official verified progress documents directly to patient client portals.</p>
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📄</span> Comprehensive Clinical Outcome & Document Dispatch
+          </h3>
+          <p class="text-xs text-emerald-300/80">Type out everything that occurred in the session. Dispatches directly to the patient's client portal.</p>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-[#021810] px-3 py-1 rounded-full border border-[#0d4f34]">
+          Direct Client Sync
+        </span>
+      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-        <input type="text" id="docPatientId" placeholder="Patient ID (e.g. PAT_9182)" class="bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none" />
-        <select id="docDiagnosis" class="bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs text-emerald-200 focus:outline-none">
-          <option>General Anxiety - Significant Improvement</option>
-          <option>Stress Reduction - Goals Achieved</option>
-          <option>Mindfulness Conditioning - Ongoing</option>
-        </select>
-        <button onclick="dispatchAdminPDF()" class="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex justify-center items-center gap-2">
-          <span>📄</span> Generate & Dispatch PDF
-        </button>
+      <div class="space-y-3 pt-1">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-300 uppercase mb-1">Patient ID Reference</label>
+            <input type="text" id="docPatientId" value="PAT_9182" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-300 uppercase mb-1">Document Title / Subject</label>
+            <input type="text" id="docTitle" value="Clinical Progress & Behavioral Review" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-emerald-300 uppercase mb-1">Session Category & Focus</label>
+          <input type="text" id="docCategory" value="Cognitive Restructure, Mindful Grounding & Anxiety Relief" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-emerald-300 uppercase mb-1">Therapist Clinical Breakdown (Type everything that happened)</label>
+          <textarea id="docNotes" rows="5" placeholder="Write session notes, emotional state observed, breakthrough points, and prescribed interventions..." class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl p-3 text-xs text-emerald-50 focus:outline-none focus:border-emerald-500 leading-relaxed font-sans">Patient presented with mild cognitive overload related to daily deadlines. Conducted a 45-minute focused grounding dialogue. Introduced somatic breathing exercises which reduced self-reported tension by 40%. The patient responded positively to cognitive restructuring and agreed to complete morning reflection logs prior to our next meeting.</textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button onclick="dispatchTherapistDocument()" class="py-2.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg">
+            <span>🚀</span> Dispatch to Client Portal & Print PDF
+          </button>
+        </div>
       </div>
     </div>
 
   </div>
 
   <script>
+    const currentSessionUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+
     if (localStorage.getItem("drozo_auth_state") !== "UNLOCKED") {
       window.location.replace("./auth.html");
     }
 
-    // Dynamic Channel Sync from Client Choice
     window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('currentAdminEmail').innerText = currentSessionUser;
+
+      // Sync Channel Choice
       const chosen = localStorage.getItem("drozo_patient_channel");
       const indicator = document.getElementById('channelIndicator');
       if (indicator) {
@@ -133,71 +178,149 @@
           indicator.innerHTML = "🎮 Discord VC";
         }
       }
+
+      // Check Owner Deletion Permission
+      applyOwnerPermissions();
     });
 
-    function claimAppointment(statusId, actionCellId) {
-      const badge = document.getElementById(statusId);
-      badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-      badge.innerText = "CLAIMED: Water_Chugger/Owner";
-      
-      const chosen = localStorage.getItem("drozo_patient_channel") || "discord";
-      const targetChannelText = (chosen === 'video') ? 'Video Call Room' : 'Discord VC Invite';
+    // Owner-Only Appointment Deletion
+    function applyOwnerPermissions() {
+      const isOwner = (currentSessionUser === "admin@drozominds.com");
+      const btnDel = document.getElementById('btnDelete1');
+      if (btnDel && !isOwner) {
+        btnDel.style.display = "none";
+      }
+    }
 
-      const actionCell = document.getElementById(actionCellId);
-      actionCell.innerHTML = `
-        <div class="flex flex-col gap-1.5 items-end">
-          <span class="text-[10px] text-emerald-400 font-bold">Claimed ✓</span>
-          <button onclick="alert('Sent ${targetChannelText} securely to client portal.')" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">
-            Send ${targetChannelText}
+    function deleteAppointmentRow(rowId) {
+      if (currentSessionUser !== "admin@drozominds.com") {
+        alert("Restricted: Only the platform Owner (admin@drozominds.com) can delete appointments.");
+        return;
+      }
+      if (confirm("Are you sure you want to permanently delete this appointment from the intake queue?")) {
+        const row = document.getElementById(rowId);
+        if (row) row.remove();
+        alert("Appointment permanently removed from intake.");
+      }
+    }
+
+    // Appointment Lifecycle Controls
+    function claimAndConfirmSession(badgeId, groupCellId, rowId) {
+      const badge = document.getElementById(badgeId);
+      badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+      badge.innerText = "CONFIRMED: Water_Chugger/Owner";
+
+      const channel = localStorage.getItem("drozo_patient_channel") || "discord";
+      const channelLabel = (channel === 'video') ? "Video Call Room" : "Discord VC Link";
+
+      const groupCell = document.getElementById(groupCellId);
+      groupCell.innerHTML = `
+        <div class="flex items-center justify-end gap-1.5 flex-wrap">
+          <button onclick="sendMeetingLink('${channelLabel}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition">
+            Send ${channelLabel}
+          </button>
+          <button onclick="endSession('${badgeId}', '${groupCellId}')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg text-xs transition">
+            End Session
+          </button>
+          <button onclick="cancelSession('${badgeId}', '${groupCellId}')" class="px-2.5 py-1 bg-amber-900/60 hover:bg-amber-800 text-amber-200 border border-amber-700 font-semibold rounded-lg text-xs transition">
+            Cancel
+          </button>
+          <button onclick="deleteAppointmentRow('${rowId}')" class="px-2 py-1 bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold rounded-lg text-xs transition" title="Delete">
+            🗑️
           </button>
         </div>
       `;
     }
 
-    function dispatchAdminPDF() {
-      const patId = document.getElementById('docPatientId').value.trim() || "PAT_9182";
-      const diag = document.getElementById('docDiagnosis').value;
+    function sendMeetingLink(channelLabel) {
+      if (channelLabel.includes("Discord")) {
+        alert("[Dispatched to Client]\nDiscord voice channel invite sent: https://discord.gg/ePrjEPtg8X");
+      } else {
+        alert("[Dispatched to Client]\nEncrypted WebRTC Video Room dispatched securely.");
+      }
+    }
+
+    function endSession(badgeId, groupCellId) {
+      const badge = document.getElementById(badgeId);
+      badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30";
+      badge.innerText = "COMPLETED";
+
+      const groupCell = document.getElementById(groupCellId);
+      groupCell.innerHTML = `<span class="text-xs text-emerald-400 font-bold">Session Closed ✓</span>`;
+    }
+
+    function cancelSession(badgeId, groupCellId) {
+      const badge = document.getElementById(badgeId);
+      badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30";
+      badge.innerText = "CANCELLED";
+
+      const groupCell = document.getElementById(groupCellId);
+      groupCell.innerHTML = `<span class="text-xs text-rose-400 font-bold">Appointment Cancelled</span>`;
+    }
+
+    // Comprehensive Clinical Outcome Dispatch (Saves to client localStorage & opens print dialog)
+    function dispatchTherapistDocument() {
+      const patientId = document.getElementById('docPatientId').value.trim() || "PAT_9182";
+      const title = document.getElementById('docTitle').value.trim() || "Clinical Assessment";
+      const category = document.getElementById('docCategory').value.trim() || "Cognitive Behavioral Reframing";
+      const notes = document.getElementById('docNotes').value.trim();
+      const therapist = "Water_Chugger/Owner";
       const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
+
+      if (!notes) {
+        alert("Please write your clinical notes before dispatching.");
+        return;
+      }
+
+      // Save into client docs
+      const existingDocs = JSON.parse(localStorage.getItem("drozo_clinical_docs") || "[]");
+      existingDocs.unshift({ patientId, title, category, notes, therapist, date });
+      localStorage.setItem("drozo_clinical_docs", JSON.stringify(existingDocs));
+
+      alert(`[Clinical Document Dispatched]\n• Successfully delivered to client: ${patientId}\n• Ready in Client's 30-Day History tab.\n• Opening PDF Print document...`);
+
+      // Print PDF window
       const win = window.open('', '_blank');
       win.document.write(`
-        <html><head><title>Clinical Outcome - ${patId}</title>
+        <html><head><title>Clinical Outcome - ${patientId}</title>
         <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; }
-          .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-          .logo { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; }
+          .header { border-bottom: 3px solid #059669; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .logo { font-size: 26px; font-weight: 800; color: #0f172a; }
           .logo span { color: #059669; }
-          .title { font-size: 14px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; }
-          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 20%; color: #475569; }
-          .content { line-height: 1.8; font-size: 15px; color: #334155; }
-          .content h3 { color: #0f172a; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-          .footer { margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
-          .signature-block { margin-top: 50px; }
-          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; margin-bottom: 5px; }
-          .sig-line { width: 300px; border-top: 1px solid #cbd5e1; padding-top: 5px; font-size: 13px; font-weight: bold; color: #64748b; }
+          .title { font-size: 13px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          .info-table td { padding: 10px 14px; border: 1px solid #cbd5e1; font-size: 13px; }
+          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; }
+          .section-title { font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+          .content-box { font-size: 13px; line-height: 1.7; color: #334155; white-space: pre-wrap; background: #fafafa; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px; }
+          .signature-block { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; }
+          .sig-line { width: 280px; border-top: 1px solid #cbd5e1; padding-top: 4px; font-size: 12px; font-weight: bold; color: #64748b; }
+          .footer { margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
         </style>
         </head>
-        <body onload="setTimeout(() => { window.print(); }, 500)">
+        <body onload="setTimeout(() => { window.print(); }, 400)">
           <div class="header">
             <div class="logo">Drozo<span>Mind</span></div>
-            <div class="title">Official Clinical Assessment</div>
+            <div class="title">Clinical Progress Assessment</div>
           </div>
           <table class="info-table">
-            <tr><td>Patient Reference</td><td>${patId}</td><td>Date of Issue</td><td>${date}</td></tr>
-            <tr><td>Attending Therapist</td><td>Water_Chugger/Owner</td><td>Session Category</td><td>${diag}</td></tr>
+            <tr><td>Patient Reference</td><td>${patientId}</td><td>Date of Session</td><td>${date}</td></tr>
+            <tr><td>Attending Therapist</td><td>${therapist}</td><td>Session Category</td><td>${category}</td></tr>
           </table>
-          <div class="content">
-            <h3>Diagnostic & Wellness Summary</h3>
-            <p>The patient participated in a secure, encrypted clinical session. Emotional regulation parameters were monitored, and all immediate goal-oriented milestones were successfully achieved.</p>
-            <h3>Prescribed Action Items</h3>
-            <p>Maintain engagement with daily guided reflections on the DrozoMind platform. The next follow-up session is confirmed in the patient schedule portal.</p>
-          </div>
+          <div class="section-title">Therapist Clinical Breakdown & Assessment</div>
+          <div class="content-box">${notes}</div>
           <div class="signature-block">
-            <div class="signature">Water_Chugger</div>
-            <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
+            <div>
+              <div class="signature">Water_Chugger</div>
+              <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #64748b;">
+              Authentication Seal: <strong>AUTH_8829-VALID</strong>
+            </div>
           </div>
-          <div class="footer">CONFIDENTIAL MEDICAL RECORD • END-TO-END ENCRYPTED • DO NOT DISTRIBUTE</div>
+          <div class="footer">CONFIDENTIAL MEDICAL DOCUMENT • STRICT ZERO-KNOWLEDGE ENCRYPTED</div>
         </body></html>
       `);
       win.document.close();

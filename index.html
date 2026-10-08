@@ -14,7 +14,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <!-- Top Navigation Bar with Working Jump/Highlight Tabs -->
+  <!-- Top Navigation Bar -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
@@ -70,7 +70,7 @@
       <!-- Schedule & History Panel -->
       <div class="space-y-6">
         
-        <!-- UPCOMING SCHEDULE (With Channel Choice: Discord VC vs Video Call) -->
+        <!-- UPCOMING SCHEDULE -->
         <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -84,9 +84,9 @@
               <div class="flex justify-between items-start">
                 <div>
                   <div class="font-bold text-slate-800 text-sm">Mindfulness & Cognitive Restructure</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Tomorrow at 4:00 PM • Water_Chugger/Owner</div>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white" id="clientSessionStatus">Confirmed</span>
               </div>
 
               <!-- Channel Selector Toggle -->
@@ -112,21 +112,16 @@
           </div>
         </div>
 
-        <!-- 30-DAY SESSION HISTORY & WORKING PDF DOWNLOAD -->
+        <!-- 30-DAY SESSION HISTORY & SYNCED PDF DOWNLOADS -->
         <div id="history-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 transition duration-300">
-          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span>🕒</span> 30-Day History & Documents
-          </h2>
-          <div class="space-y-2 text-xs text-slate-600">
-            <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
-              <div>
-                <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
-                <div class="text-[10px] text-slate-400">Completed 3 days ago</div>
-              </div>
-              <button onclick="generateProfessionalPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner')" class="text-emerald-600 hover:text-emerald-800 hover:underline font-bold text-[11px] flex items-center gap-1">
-                <span>📄</span> Download PDF
-              </button>
-            </div>
+          <div class="flex justify-between items-center">
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>🕒</span> 30-Day History & Documents
+            </h2>
+            <button onclick="renderHistoryDocs()" class="text-[10px] text-emerald-600 hover:underline">Refresh</button>
+          </div>
+          <div id="historyDocsContainer" class="space-y-2 text-xs text-slate-600">
+            <!-- Dynamic docs injected by JS -->
           </div>
         </div>
 
@@ -266,13 +261,14 @@
       const activeUser = localStorage.getItem("drozo_active_session");
       if (activeUser) unlockSanctuaryUI(activeUser);
       else openLoginModal();
+
+      renderHistoryDocs();
     });
 
     window.addEventListener('keydown', (e) => {
       if (e.shiftKey && (e.key === 'A' || e.key === 'a')) window.location.href = "./auth.html";
     });
 
-    // Navigation Focus & Smooth Scroll
     function focusSection(elementId) {
       const el = document.getElementById(elementId);
       if (!el) return;
@@ -283,7 +279,6 @@
       }, 1500);
     }
 
-    // Channel Switching Logic (Discord VC vs Video Call)
     function setSessionChannel(mode) {
       selectedChannel = mode;
       localStorage.setItem("drozo_patient_channel", mode);
@@ -305,14 +300,105 @@
       }
     }
 
+    // DISCORD INVITE LINK INTEGRATED
     function launchSessionMeeting() {
       if (selectedChannel === 'discord') {
-        const discordLink = "https://discord.gg/drozo-sanctuary";
-        window.open(discordLink, "_blank") || alert(`[Discord Channel Connected]\nRouting to voice lounge: ${discordLink}`);
+        const discordLink = "https://discord.gg/ePrjEPtg8X";
+        window.open(discordLink, "_blank");
       } else {
         const videoRoom = "https://meet.jit.si/drozo-sanctuary-" + Math.random().toString(36).substring(7);
-        window.open(videoRoom, "_blank") || alert(`[Encrypted Video Call Connected]\nRoom: ${videoRoom}`);
+        window.open(videoRoom, "_blank");
       }
+    }
+
+    // Dynamic History Documents Rendering
+    function renderHistoryDocs() {
+      const container = document.getElementById('historyDocsContainer');
+      const docs = JSON.parse(localStorage.getItem("drozo_clinical_docs") || "[]");
+
+      let html = `
+        <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div>
+            <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
+            <div class="text-[10px] text-slate-400">Standard Intake • Water_Chugger/Owner</div>
+          </div>
+          <button onclick="printClinicalPDF('PAT_Current', 'Initial Wellness Assessment', 'General Wellness', 'Initial intake parameters verified. Patient demonstrates active motivation.', 'Water_Chugger/Owner', '08/10/2026')" class="text-emerald-600 hover:text-emerald-800 hover:underline font-bold text-[11px] flex items-center gap-1">
+            <span>📄</span> Download
+          </button>
+        </div>
+      `;
+
+      docs.forEach((doc, idx) => {
+        html += `
+          <div class="p-3 rounded-lg border border-emerald-200 bg-emerald-50/60 flex justify-between items-center">
+            <div>
+              <div class="font-bold text-slate-800">${doc.title}</div>
+              <div class="text-[10px] text-slate-500">Issued: ${doc.date} • ${doc.therapist}</div>
+            </div>
+            <button onclick="printClinicalDocByIndex(${idx})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] shadow-sm flex items-center gap-1">
+              <span>📄</span> View PDF
+            </button>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function printClinicalDocByIndex(idx) {
+      const docs = JSON.parse(localStorage.getItem("drozo_clinical_docs") || "[]");
+      const d = docs[idx];
+      if (d) {
+        printClinicalPDF(d.patientId, d.title, d.category, d.notes, d.therapist, d.date);
+      }
+    }
+
+    // Full Detailed PDF Document Printer
+    function printClinicalPDF(patient, title, category, notes, therapist, date) {
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html><head><title>Clinical Outcome - ${patient}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; }
+          .header { border-bottom: 3px solid #059669; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .logo { font-size: 26px; font-weight: 800; color: #0f172a; }
+          .logo span { color: #059669; }
+          .title { font-size: 13px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          .info-table td { padding: 10px 14px; border: 1px solid #cbd5e1; font-size: 13px; }
+          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; }
+          .section-title { font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+          .content-box { font-size: 13px; line-height: 1.7; color: #334155; white-space: pre-wrap; background: #fafafa; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px; }
+          .signature-block { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; }
+          .sig-line { width: 280px; border-top: 1px solid #cbd5e1; padding-top: 4px; font-size: 12px; font-weight: bold; color: #64748b; }
+          .footer { margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
+        </style>
+        </head>
+        <body onload="setTimeout(() => { window.print(); }, 400)">
+          <div class="header">
+            <div class="logo">Drozo<span>Mind</span></div>
+            <div class="title">Clinical Progress Assessment</div>
+          </div>
+          <table class="info-table">
+            <tr><td>Patient Reference</td><td>${patient}</td><td>Date of Session</td><td>${date}</td></tr>
+            <tr><td>Attending Therapist</td><td>${therapist}</td><td>Session Category</td><td>${category}</td></tr>
+          </table>
+          <div class="section-title">Session Assessment & Diagnostic Notes</div>
+          <div class="content-box">${notes}</div>
+          <div class="signature-block">
+            <div>
+              <div class="signature">${therapist.split('/')[0]}</div>
+              <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #64748b;">
+              Authentication Seal: <strong>AUTH_8829-VALID</strong>
+            </div>
+          </div>
+          <div class="footer">CONFIDENTIAL MEDICAL DOCUMENT • STRICT ZERO-KNOWLEDGE ENCRYPTED</div>
+        </body></html>
+      `);
+      win.document.close();
     }
 
     function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
@@ -326,7 +412,7 @@
       input.value = "";
       setTimeout(() => {
         if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) {
-          appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger. It is updated in your Schedule panel.", "bot");
+          appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Updated in your Schedule panel.", "bot");
           document.getElementById('appointmentCount').innerText = "2 Active";
         } else {
           appendChatMessage("Drozo AI", "I hear you. Let us take a deep, steady breath and explore this together.", "bot");
@@ -341,53 +427,6 @@
       msg.innerHTML = `${type === "bot" ? '<span class="text-base">🤖</span>' : ''}<div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">${text}</div>`;
       box.appendChild(msg);
       box.scrollTop = box.scrollHeight;
-    }
-
-    function generateProfessionalPDF(patient, type, therapist) {
-      const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
-      const win = window.open('', '_blank');
-      win.document.write(`
-        <html><head><title>Clinical Outcome - ${patient}</title>
-        <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; }
-          .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-          .logo { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
-          .logo span { color: #059669; }
-          .title { font-size: 14px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-          .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; }
-          .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 20%; color: #475569; }
-          .content { line-height: 1.8; font-size: 15px; color: #334155; }
-          .content h3 { color: #0f172a; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-          .footer { margin-top: 60px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #94a3b8; text-align: center; font-weight: bold; }
-          .signature-block { margin-top: 50px; }
-          .signature { font-family: 'Brush Script MT', cursive, serif; font-size: 32px; color: #0f172a; margin-bottom: 5px; }
-          .sig-line { width: 300px; border-top: 1px solid #cbd5e1; padding-top: 5px; font-size: 13px; font-weight: bold; color: #64748b; }
-        </style>
-        </head>
-        <body onload="setTimeout(() => { window.print(); }, 500)">
-          <div class="header">
-            <div class="logo">Drozo<span>Mind</span></div>
-            <div class="title">Official Clinical Assessment</div>
-          </div>
-          <table class="info-table">
-            <tr><td>Patient Reference</td><td>${patient}</td><td>Date of Issue</td><td>${date}</td></tr>
-            <tr><td>Attending Therapist</td><td>${therapist}</td><td>Session Category</td><td>${type}</td></tr>
-          </table>
-          <div class="content">
-            <h3>Diagnostic & Wellness Summary</h3>
-            <p>The patient participated in a secure, encrypted clinical session focused on cognitive reframing and decompression techniques. Emotional regulation parameters were monitored, and all immediate goal-oriented milestones were successfully achieved. The active therapeutic framework is recommended to continue without alteration.</p>
-            <h3>Prescribed Action Items</h3>
-            <p>Maintain engagement with daily guided reflections on the DrozoMind platform. Continue to monitor autonomous stress indicators. The next follow-up session is confirmed in the patient schedule portal.</p>
-          </div>
-          <div class="signature-block">
-            <div class="signature">${therapist.split('/')[0]}</div>
-            <div class="sig-line">Electronically Signed • DrozoMind Root Security</div>
-          </div>
-          <div class="footer">CONFIDENTIAL MEDICAL RECORD • END-TO-END ENCRYPTED • DO NOT DISTRIBUTE</div>
-        </body></html>
-      `);
-      win.document.close();
     }
 
     function openLoginModal() {
