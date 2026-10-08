@@ -550,18 +550,79 @@
     function backToStep1() { document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep1').classList.remove('hidden'); }
     function backToStep2() { if (pollTimer) clearInterval(pollTimer); closeModalWebcamScanner(); document.getElementById('authStep3Guard').classList.add('hidden'); document.getElementById('authStep3Standard').classList.add('hidden'); document.getElementById('authStep2').classList.remove('hidden'); }
 
+    
+    function openApprovalSimulator() {
+      localStorage.setItem("drozo_current_challenge_token", activeToken);
+      localStorage.setItem("drozo_current_challenge_email", currentEmail);
+      window.open(`./auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`, '_blank', 'width=420,height=720');
+    }
+
     function startDrozoGuard2FA() {
-      document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep3Guard').classList.remove('hidden');
+      document.getElementById('authStep2').classList.add('hidden');
+      document.getElementById('authStep3Guard').classList.remove('hidden');
+
       activeToken = "SES_" + Math.random().toString(36).substring(2, 9).toUpperCase();
-      document.getElementById('modalTokenOverride').value = activeToken;
-      const payload = `DROZO_GUARD_AUTH:${activeToken}:${currentEmail}`;
-      document.getElementById('modalChallengeBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(payload)}" class="w-36 h-36" />`;
-      try { fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, { method: "POST", headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json", "Prefer": "return=minimal" }, body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" }) }).catch(() => {}); } catch (_) {}
+      document.getElementById('steamTokenLabel').innerText = activeToken;
+      document.getElementById('steamEmailDisplay').innerText = currentEmail;
+      
+      const displayName = (currentEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (currentEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : currentEmail.split('@')[0]);
+      document.getElementById('steamAccountDisplay').innerText = displayName;
+
+      // Direct URL that mobile camera can scan to open approval screen
+      const guardAuthUrl = `https://gte-02.github.io/better-DROZO/auth.html?token=${activeToken}&email=${encodeURIComponent(currentEmail)}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(guardAuthUrl)}`;
+      document.getElementById('modalChallengeBox').innerHTML = `<img src="${qrUrl}" alt="Drozo Guard QR" class="w-36 h-36 rounded-lg" />`;
+
+      // Save pending challenge
+      try {
+        fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions`, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: "pending" })
+        }).catch(() => {});
+      } catch (_) {}
+
+      // Dual-poll Supabase and LocalStorage for real-time mobile approval
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(async () => {
-        try { const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, { headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` } }); if (res.ok) { const rows = await res.json(); if (rows && rows.length > 0 && rows[0].status === "authorized") executeFinalLogin(); } } catch (_) {}
+        // 1. Check local storage instant response
+        const localRes = localStorage.getItem("drozo_challenge_result_" + activeToken);
+        if (localRes === "authorized") {
+          executeFinalLogin();
+          return;
+        } else if (localRes === "denied") {
+          clearInterval(pollTimer);
+          alert("Sign in was denied on your mobile device.");
+          location.reload();
+          return;
+        }
+
+        // 2. Poll Supabase REST API
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${activeToken}&select=status`, {
+            headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` }
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows && rows.length > 0) {
+              if (rows[0].status === "authorized") {
+                executeFinalLogin();
+              } else if (rows[0].status === "denied") {
+                clearInterval(pollTimer);
+                alert("Sign in was denied on your mobile device.");
+                location.reload();
+              }
+            }
+          }
+        } catch (_) {}
       }, 1000);
     }
+
 
     function startStandardAuth2FA() { document.getElementById('authStep2').classList.add('hidden'); document.getElementById('authStep3Standard').classList.remove('hidden'); }
     // Strict TOTP Code Validation
