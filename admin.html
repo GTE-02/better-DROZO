@@ -326,6 +326,80 @@
       win.document.close();
     }
 
+    
+    // STRICT OWNER CHECK: Unlock Admin Giver Console ONLY for Water_Chugger
+    window.addEventListener('DOMContentLoaded', () => {
+      const activeSession = localStorage.getItem("drozo_active_session");
+      const adminGiver = document.getElementById('rootOwnerAdminGiver');
+
+      if (activeSession === "admin@drozominds.com") {
+        if (adminGiver) adminGiver.classList.remove('hidden');
+      } else {
+        if (adminGiver) adminGiver.remove(); // Completely purge from DOM for non-owners
+      }
+
+      loadDelegatedAdmins();
+    });
+
+    function handleGrantAdmin(e) {
+      e.preventDefault();
+      const email = document.getElementById('targetAdminEmail').value.trim();
+      const role = document.getElementById('targetAdminRole').value;
+
+      if (!email) return;
+
+      const delegated = JSON.parse(localStorage.getItem("drozo_delegated_admins") || "[]");
+      delegated.push({ email, role, token: "AUTH_" + Math.floor(1000 + Math.random() * 9000) });
+      localStorage.setItem("drozo_delegated_admins", JSON.stringify(delegated));
+
+      alert(`[Root Authority Confirmed]
+Granted [${role}] privileges to: ${email}`);
+      document.getElementById('targetAdminEmail').value = "";
+      loadDelegatedAdmins();
+    }
+
+    function loadDelegatedAdmins() {
+      const delegated = JSON.parse(localStorage.getItem("drozo_delegated_admins") || "[]");
+      const tbody = document.getElementById('adminStaffDirectoryBody');
+      if (!tbody) return;
+
+      // Clean non-default rows
+      const customRows = tbody.querySelectorAll('.custom-admin-row');
+      customRows.forEach(r => r.remove());
+
+      delegated.forEach((adm, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "custom-admin-row";
+        tr.innerHTML = `
+          <td class="py-3 px-3 mono text-white">${adm.email}</td>
+          <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${adm.role.toUpperCase()}</span></td>
+          <td class="py-3 px-3 text-emerald-400 mono">${adm.token}</td>
+          <td class="py-3 px-3 text-right">
+            <button onclick="removeDelegatedAdmin(${idx})" class="px-2.5 py-1 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-xs font-bold transition">
+              Revoke
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function removeDelegatedAdmin(index) {
+      const delegated = JSON.parse(localStorage.getItem("drozo_delegated_admins") || "[]");
+      const removed = delegated.splice(index, 1);
+      localStorage.setItem("drozo_delegated_admins", JSON.stringify(delegated));
+      alert(`Revoked admin clearance for: ${removed[0]?.email}`);
+      loadDelegatedAdmins();
+    }
+
+    function revokeStaffAccess(rowId, email) {
+      if (confirm(`Revoke administrative access for ${email}?`)) {
+        const row = document.getElementById(rowId);
+        if (row) row.remove();
+        alert(`Access revoked for ${email}. Account demoted to standard user.`);
+      }
+    }
+
     function logoutAdmin() {
       localStorage.removeItem("drozo_auth_state");
       window.location.replace("./index.html");
