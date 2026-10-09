@@ -4,7 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drozo Admin Console - Root Control</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com">
+    function ownerRevokeUserBiometrics() {
+      const email = document.getElementById('revokeTargetEmail').value.trim();
+      if (!email) return alert('Enter target email.');
+      if (confirm('Revoke permanent biometric binding for ' + email + '? They will be required to re-choose on their next login.')) {
+        localStorage.removeItem('drozo_guard_bio_type');
+        localStorage.removeItem('drozo_bio_cred_fingerprint_' + email);
+        localStorage.removeItem('drozo_bio_cred_faceid_' + email);
+        alert('Biometric lock successfully revoked for ' + email + '.');
+      }
+    }
+
+  </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #02140d; }
@@ -350,6 +362,18 @@
       localStorage.removeItem("drozo_auth_state");
       window.location.replace("./index.html");
     }
+  
+    function ownerRevokeUserBiometrics() {
+      const email = document.getElementById('revokeTargetEmail').value.trim();
+      if (!email) return alert('Enter target email.');
+      if (confirm('Revoke permanent biometric binding for ' + email + '? They will be required to re-choose on their next login.')) {
+        localStorage.removeItem('drozo_guard_bio_type');
+        localStorage.removeItem('drozo_bio_cred_fingerprint_' + email);
+        localStorage.removeItem('drozo_bio_cred_faceid_' + email);
+        alert('Biometric lock successfully revoked for ' + email + '.');
+      }
+    }
+
   </script>
 </body>
 </html>

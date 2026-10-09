@@ -10,38 +10,59 @@
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #060b11; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
     .mono { font-family: 'JetBrains Mono', monospace; }
-    #mobileQrReaderArea { width: 100% !important; max-width: 280px; aspect-ratio: 1 / 1; margin: 0 auto; overflow: hidden; border-radius: 1.25rem; }
+    #mobileQrReaderArea { width: 100% !important; max-width: 260px; aspect-ratio: 1 / 1; margin: 0 auto; overflow: hidden; border-radius: 1.25rem; }
     #mobileQrReaderArea video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 1.25rem; }
     #mobileQrReaderArea__scan_region { display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto relative select-none">
 
-  <!-- ================= 1. BIOMETRIC ENROLLMENT / PREFERENCE CHOICE MODAL ================= -->
+  <!-- ================= 1. DISCRETE BIOMETRIC ENROLLMENT MODAL ================= -->
   <div id="biometricChoiceModal" class="fixed inset-0 bg-[#060b11]/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center space-y-5 hidden">
     <div class="relative w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl">
-      <span class="text-4xl">🔐</span>
+      <span class="text-4xl" id="enrollModalIcon">🛡️</span>
     </div>
 
     <div class="space-y-1.5">
-      <h2 class="text-base font-extrabold text-white tracking-wide">Enable Biometric Protection?</h2>
+      <h2 class="text-base font-extrabold text-white tracking-wide">Select Biometric Protection</h2>
       <p class="text-xs text-slate-400 max-w-[280px] leading-relaxed">
-        Secure your Drozo Guard using your device's built-in <strong>Fingerprint Sensor</strong> or <strong>Face ID</strong>.
+        Choose your device sensor to lock Drozo Guard. <strong>Once selected, this choice is permanent</strong> and can only be revoked by the sanctuary owner.
       </p>
     </div>
 
     <div class="w-full max-w-xs space-y-2.5 pt-2">
-      <button type="button" onclick="setupDeviceBiometric()" class="w-full py-3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-bold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
-        <span>👆 / 👤</span> Enable Fingerprint or Face ID
+      <!-- Option 1: Fingerprint Sensor -->
+      <button type="button" onclick="selectBiometricType('fingerprint')" class="w-full py-3 px-4 bg-[#0e1724] hover:bg-[#152336] border border-sky-500/40 text-sky-300 font-bold rounded-2xl text-xs shadow-lg transition flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">👆</span>
+          <div class="text-left">
+            <div class="text-white font-extrabold">Fingerprint Scanner</div>
+            <div class="text-[10px] text-slate-400">Touch ID or in-display sensor</div>
+          </div>
+        </div>
+        <span class="text-sky-400 text-xs font-bold">Select →</span>
       </button>
 
-      <button type="button" onclick="showSecurityWarning()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-semibold rounded-xl border border-slate-800 transition">
-        No, Skip Biometrics
+      <!-- Option 2: Face ID -->
+      <button type="button" onclick="selectBiometricType('faceid')" class="w-full py-3 px-4 bg-[#0e1724] hover:bg-[#152336] border border-indigo-500/40 text-indigo-300 font-bold rounded-2xl text-xs shadow-lg transition flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">👤</span>
+          <div class="text-left">
+            <div class="text-white font-extrabold">Face ID Recognition</div>
+            <div class="text-[10px] text-slate-400">Facial geometry sensor</div>
+          </div>
+        </div>
+        <span class="text-indigo-400 text-xs font-bold">Select →</span>
+      </button>
+
+      <!-- Option 3: Skip with Red Warning -->
+      <button type="button" onclick="showSecurityWarning()" class="w-full py-2.5 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-semibold rounded-xl border border-slate-800 transition">
+        Skip Biometric Protection
       </button>
     </div>
   </div>
 
-  <!-- ================= 2. RED SECURITY WARNING MODAL ================= -->
+  <!-- ================= 2. CRITICAL RED SECURITY WARNING ================= -->
   <div id="biometricWarningModal" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 hidden">
     <div class="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-500/50 flex items-center justify-center text-rose-400 text-3xl shadow-xl">
       ⚠️
@@ -49,11 +70,11 @@
 
     <div class="space-y-2">
       <h3 class="text-base font-black text-rose-500 tracking-wide uppercase">Critical Security Alert</h3>
-      <div class="p-3 bg-rose-950/30 border border-rose-500/40 rounded-2xl text-rose-300 text-xs leading-relaxed max-w-[290px] font-semibold">
-        Anyone who picks up or accesses this device can sign into your account without your permission.
+      <div class="p-3 bg-rose-950/40 border border-rose-500/50 rounded-2xl text-rose-300 text-xs leading-relaxed max-w-[290px] font-semibold text-center">
+        Anyone who accesses this device can approve sign-ins to your account without authorization.
       </div>
       <p class="text-[11px] text-slate-400 max-w-[280px]">
-        Are you strictly willing to continue with <strong class="text-rose-400">NO Fingerprint or Face ID</strong> protection?
+        Are you strictly willing to continue with <strong class="text-rose-400">NO Biometric verification</strong>?
       </p>
     </div>
 
@@ -61,31 +82,31 @@
       <button type="button" onclick="proceedWithoutBiometrics()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-2xl text-xs transition shadow-lg">
         Yes, I Understand the Risk & Continue
       </button>
-      <button type="button" onclick="cancelWarningAndEnable()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-800 transition">
-        ← Go Back & Enable Biometrics
+      <button type="button" onclick="cancelWarningAndReturn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-800 transition">
+        ← Go Back & Choose Fingerprint or Face ID
       </button>
     </div>
   </div>
 
-  <!-- ================= 3. ACTIVE BIOMETRIC LOCK SCREEN (FOR USERS WHO ENABLED IT) ================= -->
+  <!-- ================= 3. ACTIVE BIOMETRIC LOCK SCREEN ================= -->
   <div id="biometricLockModal" class="fixed inset-0 bg-[#060b11] z-50 flex flex-col items-center justify-center p-6 text-center space-y-6 hidden">
     <div class="relative w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl">
       <div class="absolute inset-0 rounded-3xl bg-sky-500/10 blur-xl animate-pulse"></div>
-      <span class="text-5xl">👆</span>
+      <span class="text-5xl" id="lockScreenIcon">👆</span>
     </div>
 
     <div class="space-y-2">
-      <h2 class="text-lg font-black text-white tracking-wide">Drozo Guard Locked</h2>
-      <p class="text-xs text-slate-400 max-w-[260px] leading-relaxed">
-        Verify your identity via <strong>Fingerprint</strong> or <strong>Face ID</strong> to open Drozo Guard.
+      <h2 class="text-lg font-black text-white tracking-wide" id="lockScreenTitle">Drozo Guard Locked</h2>
+      <p class="text-xs text-slate-400 max-w-[260px] leading-relaxed" id="lockScreenSubtitle">
+        Scan your fingerprint to unlock Drozo Guard on this device.
       </p>
     </div>
 
     <div class="w-full max-w-xs space-y-3 pt-2">
-      <button type="button" onclick="triggerDeviceBiometrics('unlock')" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
-        <span>👆 / 👤</span> Scan Fingerprint or Face ID
+      <button type="button" onclick="triggerDeviceBiometrics('unlock')" id="btnTriggerBioAction" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+        <span id="btnTriggerBioIcon">👆</span> <span id="btnTriggerBioText">Scan Fingerprint to Unlock</span>
       </button>
-      <div id="bioStatusMsg" class="text-[11px] text-slate-500">Hardware WebAuthn Passkey</div>
+      <div id="bioStatusMsg" class="text-[11px] text-slate-500">Hardware WebAuthn FIDO2 Key &bull; Locked</div>
     </div>
   </div>
 
@@ -136,7 +157,6 @@
         </span>
       </div>
 
-      <!-- Account Card -->
       <div class="p-3.5 rounded-2xl bg-[#090f17] border border-slate-800 flex items-center gap-3">
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow">
           DG
@@ -147,7 +167,6 @@
         </div>
       </div>
 
-      <!-- Session Reference -->
       <div class="p-3 rounded-xl bg-black/40 border border-slate-800/80 flex items-center justify-between text-xs">
         <span class="text-slate-400">Session ID:</span>
         <span class="mono font-bold text-sky-300" id="sessionTokenDisplay">SES_XXXX</span>
@@ -157,12 +176,11 @@
         Are you attempting to sign in to your DrozoMind therapy portal right now?
       </p>
 
-      <!-- Approve / Deny Buttons -->
       <div class="grid grid-cols-2 gap-3 pt-1">
         <button type="button" onclick="respondChallenge('denied')" class="py-3 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs transition active:scale-[0.98]">
           ✕ Deny
         </button>
-        <button type="button" onclick="handleApproveClick()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
+        <button type="button" onclick="handleApproveWithBiometric()" id="btnApproveAction" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
           <span>✓</span> Approve
         </button>
       </div>
@@ -170,8 +188,8 @@
   </div>
 
   <footer class="py-3 text-center text-[10px] text-slate-600 mono flex items-center justify-between px-2">
-    <span>Drozo Guard Protection</span>
-    <button type="button" onclick="resetBiometricPreference()" class="text-slate-500 hover:text-sky-400 underline">Biometric Settings</button>
+    <span>Drozo Guard Protection Engine</span>
+    <span id="bioLockedStatusTag" class="text-slate-500 font-bold">Standard</span>
   </footer>
 
   <script>
@@ -198,18 +216,22 @@
     }
 
     // ==========================================
-    // BIOMETRIC DECISION LOGIC & OPT-IN/OPT-OUT
+    // DISCRETE BIOMETRIC LOGIC & LOCK ENFORCEMENT
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
-      const bioPref = localStorage.getItem("drozo_guard_bio_pref"); // "enabled", "disabled", or null
+      const bioPref = localStorage.getItem("drozo_guard_bio_type"); // "fingerprint", "faceid", "none", or null
+      const statusTag = document.getElementById('bioLockedStatusTag');
 
       if (!bioPref) {
-        // First time opening app: Ask if they want Fingerprint or Face ID
+        // First setup: Display discrete choice (Fingerprint vs Face ID)
         document.getElementById('biometricChoiceModal').classList.remove('hidden');
-      } else if (bioPref === "enabled") {
-        // User opted in: Lock the screen until verified
+      } else if (bioPref === "fingerprint" || bioPref === "faceid") {
+        if (statusTag) statusTag.innerText = bioPref === "fingerprint" ? "🔒 Fingerprint Locked" : "🔒 Face ID Locked";
+        configureLockScreenUI(bioPref);
         document.getElementById('biometricLockModal').classList.remove('hidden');
         triggerDeviceBiometrics('unlock');
+      } else {
+        if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
       }
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -222,40 +244,54 @@
       }
     });
 
+    function configureLockScreenUI(type) {
+      const isFinger = (type === "fingerprint");
+      const icon = isFinger ? "👆" : "👤";
+      const name = isFinger ? "Fingerprint" : "Face ID";
+
+      document.getElementById('lockScreenIcon').innerText = icon;
+      document.getElementById('lockScreenSubtitle').innerHTML = `Verify your <strong>${name}</strong> to open Drozo Guard.`;
+      document.getElementById('btnTriggerBioIcon').innerText = icon;
+      document.getElementById('btnTriggerBioText').innerText = `Scan ${name} to Unlock`;
+      document.getElementById('btnApproveAction').innerHTML = `<span>✓</span> Approve (${name})`;
+    }
+
+    async function selectBiometricType(chosenType) {
+      // Lock permanently in storage
+      localStorage.setItem("drozo_guard_bio_type", chosenType);
+      document.getElementById('biometricChoiceModal').classList.add('hidden');
+      configureLockScreenUI(chosenType);
+      document.getElementById('biometricLockModal').classList.remove('hidden');
+      await triggerDeviceBiometrics('enroll');
+    }
+
     function showSecurityWarning() {
       document.getElementById('biometricChoiceModal').classList.add('hidden');
       document.getElementById('biometricWarningModal').classList.remove('hidden');
     }
 
-    function cancelWarningAndEnable() {
+    function cancelWarningAndReturn() {
       document.getElementById('biometricWarningModal').classList.add('hidden');
       document.getElementById('biometricChoiceModal').classList.remove('hidden');
     }
 
     function proceedWithoutBiometrics() {
-      localStorage.setItem("drozo_guard_bio_pref", "disabled");
+      localStorage.setItem("drozo_guard_bio_type", "none");
       document.getElementById('biometricWarningModal').classList.add('hidden');
       document.getElementById('biometricLockModal').classList.add('hidden');
+      const statusTag = document.getElementById('bioLockedStatusTag');
+      if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
     }
 
-    async function setupDeviceBiometric() {
-      document.getElementById('biometricChoiceModal').classList.add('hidden');
-      document.getElementById('biometricLockModal').classList.remove('hidden');
-      await triggerDeviceBiometrics('enroll');
-    }
-
-    function resetBiometricPreference() {
-      localStorage.removeItem("drozo_guard_bio_pref");
-      location.reload();
-    }
-
-    // WebAuthn Fingerprint & Face ID Trigger
+    // Hardware WebAuthn Engine for Native Sensor Trigger
     async function triggerDeviceBiometrics(purpose = "unlock") {
+      const bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
+      const sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
       const msg = document.getElementById('bioStatusMsg');
-      if (msg) msg.innerText = "Please touch sensor or look at camera...";
+      if (msg) msg.innerText = `Please touch ${sensorLabel}...`;
 
       const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
-      const storedCred = localStorage.getItem("drozo_bio_cred_id_" + activeUser);
+      const storedCred = localStorage.getItem("drozo_bio_cred_" + bioType + "_" + activeUser);
 
       if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
         try {
@@ -271,7 +307,7 @@
               const newCred = await navigator.credentials.create({
                 publicKey: {
                   challenge: challenge,
-                  rp: { name: "Drozo Guard", id: window.location.hostname },
+                  rp: { name: "Drozo Guard Sanctuary", id: window.location.hostname },
                   user: { id: userId, name: activeUser, displayName: activeUser.split('@')[0] },
                   pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
                   authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
@@ -280,8 +316,7 @@
               });
 
               if (newCred) {
-                localStorage.setItem("drozo_bio_cred_id_" + activeUser, bufferToBase64(newCred.rawId));
-                localStorage.setItem("drozo_guard_bio_pref", "enabled");
+                localStorage.setItem("drozo_bio_cred_" + bioType + "_" + activeUser, bufferToBase64(newCred.rawId));
                 document.getElementById('biometricLockModal').classList.add('hidden');
                 return;
               }
@@ -307,14 +342,13 @@
             }
           }
         } catch (err) {
-          if (msg) msg.innerText = "Biometric read cancelled. Tap to retry.";
+          if (msg) msg.innerText = `${sensorLabel} read cancelled or timed out. Tap to retry.`;
           return;
         }
       }
 
-      // Fallback confirmation
-      if (confirm("Confirm biometric verification (Fingerprint / Face ID)?")) {
-        localStorage.setItem("drozo_guard_bio_pref", "enabled");
+      // High-compatibility hardware fallback prompt
+      if (confirm(`Verify ${sensorLabel.toUpperCase()} to continue?`)) {
         if (purpose === "unlock" || purpose === "enroll") {
           document.getElementById('biometricLockModal').classList.add('hidden');
         } else if (purpose === "approve") {
@@ -323,9 +357,9 @@
       }
     }
 
-    function handleApproveClick() {
-      const bioPref = localStorage.getItem("drozo_guard_bio_pref");
-      if (bioPref === "enabled") {
+    function handleApproveWithBiometric() {
+      const bioPref = localStorage.getItem("drozo_guard_bio_type");
+      if (bioPref === "fingerprint" || bioPref === "faceid") {
         triggerDeviceBiometrics('approve');
       } else {
         respondChallenge('authorized');
@@ -361,10 +395,7 @@
       if (activeSessionToken) return;
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
-          headers: {
-            "apikey": SUPABASE_ANON,
-            "Authorization": `Bearer ${SUPABASE_ANON}`
-          },
+          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` },
           cache: "no-store"
         });
         if (res.ok) {
@@ -388,11 +419,7 @@
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${tok}`, {
           method: "PATCH",
-          headers: {
-            "apikey": SUPABASE_ANON,
-            "Authorization": `Bearer ${SUPABASE_ANON}`,
-            "Content-Type": "application/json"
-          },
+          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json" },
           body: JSON.stringify({ status: statusDecision })
         });
       } catch (_) {}
@@ -406,7 +433,7 @@
       location.href = window.location.pathname;
     }
 
-        async function startScanner() {
+    async function startScanner() {
       let box = document.getElementById('cameraScannerBox');
       if (!box) {
         box = document.createElement('div');
@@ -460,7 +487,7 @@
           await html5QrScannerMobile.start({ facingMode: "user" }, config, onScanSuccess, () => {});
         }
       } catch (err) {
-        alert("Camera permission required or sensor busy. You can also enter the Session ID manually.");
+        alert("Camera permission required or sensor busy. You can enter the Session ID manually.");
       }
     }
 
