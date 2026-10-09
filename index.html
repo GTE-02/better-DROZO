@@ -840,6 +840,15 @@
         lockedMethod = await pullCloudState("drozo_user_2fa_pref_" + currentEmail, null);
       }
 
+            // If user 2FA preference is unset or reset, launch setup choice
+      const hasCompleted2FASetup = localStorage.getItem("drozo_user_2fa_verified_" + currentEmail) === "true";
+      const userPref = localStorage.getItem("drozo_user_2fa_pref_" + currentEmail);
+
+      if (!hasCompleted2FASetup || !userPref) {
+        showOnboardingChoice();
+        return;
+      }
+
       if (lockedMethod === "drozo_guard") {
         document.getElementById('authStep1').classList.add('hidden');
         startDrozoGuard2FA();
