@@ -147,6 +147,54 @@
     <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
   </div>
 
+  
+  <!-- ================= RESET 2FA & SECURITY MANAGEMENT MODAL ================= -->
+  <div id="securityManagementModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Security Settings</h3>
+        </div>
+        <button type="button" onclick="closeSecurityModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold leading-none">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-500">Manage credentials and authentication devices for <strong id="secUserEmailDisplay" class="text-slate-800"></strong>.</p>
+
+      <!-- Option A: Switch 2FA Method -->
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800">
+            <span>🛡️</span> Switch 2FA Method
+          </div>
+          <span class="text-[10px] text-sky-600 bg-sky-50 border border-sky-200 font-bold px-2 py-0.5 rounded-full">Re-link</span>
+        </div>
+        <p class="text-[11px] text-slate-500">Reset your linked device. You will be taken straight to the setup tutorial to pick Drozo Guard or Authenticator.</p>
+        <button type="button" onclick="executeSwitch2FAMethod()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          Reset 2FA & Launch Setup Wizard →
+        </button>
+      </div>
+
+      <!-- Option B: Change Password -->
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800">
+            <span>🔑</span> Change Password
+          </div>
+          <span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-full">Credentials</span>
+        </div>
+        <input type="password" id="newSecPassword" autocomplete="new-password" placeholder="Enter new password (min. 4 chars)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
+        <button type="button" onclick="executeChangePassword()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          Save New Password ✓
+        </button>
+      </div>
+
+      <div class="text-center pt-1">
+        <button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= AUTHENTICATION MODAL ================= -->
   <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     
@@ -753,9 +801,12 @@
       }
 
       const isGamerKid = (currentEmail === "gamerkids1109@gmail.com");
-      const hasCompleted2FASetup = localStorage.getItem("drozo_user_2fa_verified_" + currentEmail);
+      const hasCompleted2FASetup = localStorage.getItem("drozo_user_2fa_verified_" + currentEmail) === "true";
+      const forcedWizardUser = localStorage.getItem("drozo_force_setup_wizard");
 
-      if (authMode === "register" || (isGamerKid && !hasCompleted2FASetup)) {
+      // Gamer Kid and any user who pressed 'Reset 2FA' must complete onboarding
+      if (authMode === "register" || (isGamerKid && !hasCompleted2FASetup) || (forcedWizardUser === currentEmail && !hasCompleted2FASetup)) {
+        localStorage.removeItem("drozo_force_setup_wizard");
         showOnboardingChoice();
         return;
       }
@@ -994,16 +1045,62 @@
       `;
     }
 
+    
     function resetMy2FAMethod() {
       const activeUser = localStorage.getItem("drozo_active_session");
       if (!activeUser) return;
-      if (confirm("Reset your linked 2FA method? You will be prompted to re-enroll on next sign in.")) {
-        localStorage.removeItem("drozo_user_2fa_pref_" + activeUser);
-        localStorage.removeItem("drozo_user_2fa_verified_" + activeUser);
-        alert("2FA method reset. Please sign in again.");
-        logoutClient();
-      }
+      const displayEl = document.getElementById('secUserEmailDisplay');
+      if (displayEl) displayEl.innerText = activeUser;
+      const inputEl = document.getElementById('newSecPassword');
+      if (inputEl) inputEl.value = "";
+      document.getElementById('securityManagementModal').classList.remove('hidden');
     }
+
+    function closeSecurityModal() {
+      document.getElementById('securityManagementModal').classList.add('hidden');
+    }
+
+    function executeSwitch2FAMethod() {
+      const activeUser = localStorage.getItem("drozo_active_session");
+      if (!activeUser) return;
+
+      // 1. Wipe current 2FA locks
+      localStorage.removeItem("drozo_user_2fa_pref_" + activeUser);
+      localStorage.removeItem("drozo_user_2fa_verified_" + activeUser);
+      if (typeof setCloudState === "function") {
+        setCloudState("drozo_user_2fa_pref_" + activeUser, "");
+        setCloudState("drozo_user_2fa_verified_" + activeUser, "");
+      }
+
+      // 2. Mark for immediate setup wizard on load
+      localStorage.setItem("drozo_force_setup_wizard", activeUser);
+      closeSecurityModal();
+      logoutClient();
+    }
+
+    async function executeChangePassword() {
+      const activeUser = localStorage.getItem("drozo_active_session");
+      const newPass = document.getElementById('newSecPassword').value.trim();
+      if (!activeUser) return;
+
+      if (!newPass || newPass.length < 4) {
+        alert("Please enter a valid password (minimum 4 characters).");
+        return;
+      }
+
+      const storedPasswords = JSON.parse(localStorage.getItem("drozo_custom_passwords") || "{}");
+      storedPasswords[activeUser] = newPass;
+
+      if (typeof setCloudState === "function") {
+        await setCloudState("drozo_custom_passwords", storedPasswords);
+      } else {
+        localStorage.setItem("drozo_custom_passwords", JSON.stringify(storedPasswords));
+      }
+
+      alert("Password updated successfully! Please remember your new password.");
+      closeSecurityModal();
+    }
+
 
     function logoutClient() {
       localStorage.removeItem("drozo_active_session");
