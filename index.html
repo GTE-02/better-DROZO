@@ -11,6 +11,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
     .mono { font-family: 'JetBrains Mono', monospace; }
+    #idQrReader, #idQrReaderTotp { width: 100% !important; max-width: 220px; aspect-ratio: 1 / 1; margin: 0 auto; overflow: hidden; border-radius: 1rem; }
+    #idQrReader video, #idQrReaderTotp video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 1rem; }
+    #qrCanvasContainer img, #qrCanvasContainer canvas { margin: 0 auto; display: block; border-radius: 0.75rem; width: 160px !important; height: 160px !important; }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
@@ -753,7 +757,7 @@
       document.getElementById('authStep1').classList.remove('hidden');
     }
 
-    async function startWebcamIDPass(viewMode = "guard") {
+        async function startWebcamIDPass(viewMode = "guard") {
       const boxId = viewMode === "totp" ? 'idWebcamBoxTotp' : 'idWebcamBox';
       const readerId = viewMode === "totp" ? 'idQrReaderTotp' : 'idQrReader';
       const box = document.getElementById(boxId);
@@ -763,8 +767,9 @@
       try {
         if (html5QrScanner) { try { await html5QrScanner.stop(); } catch(_) {} }
         html5QrScanner = new Html5Qrcode(readerId);
-        await html5QrScanner.start({ facingMode: "user" }, { fps: 15, qrbox: { width: 180, height: 180 } }, async (decodedText) => {
-          if (decodedText.length > 5) {
+        const scanConfig = { fps: 20, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 };
+        await html5QrScanner.start({ facingMode: "user" }, scanConfig, async (decodedText) => {
+          if (decodedText.length > 4) {
             await stopWebcamIDPass();
             executeFinalLogin(viewMode === "totp" ? "totp" : "drozo_guard");
           }
