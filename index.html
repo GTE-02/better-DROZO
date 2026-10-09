@@ -102,7 +102,7 @@
         <div id="history-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 transition duration-300">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2"><span>🕒</span> 30-Day History & Documents</h2>
-            <span class="text-[10px] text-slate-400 mono">Synced</span>
+            <span class="text-[10px] text-emerald-600 font-bold mono">☁️ Cloud Synced</span>
           </div>
           <div class="space-y-2 text-xs text-slate-600" id="clientHistoryList">
             <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
@@ -600,7 +600,71 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    
+    // ==========================================
+    // GLOBAL CLOUD PERSISTENCE ENGINE (SUPABASE)
+    // ==========================================
+    const SUPABASE_STATE_TABLE = "drozo_state_sync";
+
+    async function setCloudState(key, value) {
+      localStorage.setItem(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_STATE_TABLE}`, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`,
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            state_key: key,
+            state_value: typeof value === "object" ? JSON.stringify(value) : String(value),
+            updated_at: new Date().toISOString()
+          })
+        });
+      } catch (_) {}
+    }
+
+    async function pullCloudState(key, fallback = null) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_STATE_TABLE}?state_key=eq.${encodeURIComponent(key)}&select=state_value&limit=1&_t=${Date.now()}`, {
+          headers: {
+            "apikey": SUPABASE_ANON,
+            "Authorization": `Bearer ${SUPABASE_ANON}`
+          },
+          cache: "no-store"
+        });
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows && rows.length > 0 && rows[0].state_value !== undefined) {
+            localStorage.setItem(key, rows[0].state_value);
+            return rows[0].state_value;
+          }
+        }
+      } catch (_) {}
+      return localStorage.getItem(key) || fallback;
+    }
+
+    async function bootstrapEntireWebsiteFromCloud() {
+      // 1. Sync appointments
+      const cloudStatus = await pullCloudState("drozo_session_status", "NONE");
+      const cloudDel = await pullCloudState("drozo_appointment_deleted", "false");
+      
+      // 2. Sync registered accounts
+      const cloudAccounts = await pullCloudState("drozo_custom_passwords", "{}");
+
+      // 3. Sync clinical history documents
+      const cloudDocs = await pullCloudState("drozo_client_dispatched_docs", "[]");
+
+      // Refresh page components with synchronized data
+      syncAppointmentStatus();
+      loadDispatchedDocuments();
+      loadCloudVaultFiles();
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await bootstrapEntireWebsiteFromCloud();
       document.getElementById('aiWelcomeMsg').innerHTML = `Hello! I am your AI therapy assistant. Today is <strong>${liveDate}</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.`;
       syncAppointmentStatus();
       loadDispatchedDocuments();
@@ -677,7 +741,7 @@
           return;
         }
         storedPasswords[currentEmail] = enteredPass;
-        localStorage.setItem("drozo_custom_passwords", JSON.stringify(storedPasswords));
+        setCloudState("drozo_custom_passwords", storedPasswords);
         localStorage.setItem("drozo_registered_account", currentEmail);
       } else {
         const expectedPassword = storedPasswords[currentEmail] || defaultAccounts[currentEmail];
@@ -985,8 +1049,8 @@
     
     function ownerDirectDeleteAppointment() {
       if (confirm("Owner Override: Remove this appointment from client sanctuary now?")) {
-        localStorage.setItem("drozo_appointment_deleted", "true");
-        localStorage.setItem("drozo_session_status", "DELETED");
+        setCloudState("drozo_appointment_deleted", "true");
+        setCloudState("drozo_session_status", "DELETED");
         syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
         syncAppointmentStatus();
       }
@@ -1028,7 +1092,7 @@
     function launchSessionMeeting() { if (selectedChannel === 'discord') window.open(DISCORD_INVITE_URL, "_blank"); else window.open("https://meet.jit.si/drozo-sanctuary-" + Math.random().toString(36).substring(7), "_blank"); }
     function focusSection(id) { const el = document.getElementById(id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('ring-4', 'ring-emerald-500', 'ring-offset-2'); setTimeout(() => el.classList.remove('ring-4', 'ring-emerald-500', 'ring-offset-2'), 1500); } }
     function toggleAiBot() { document.getElementById('aiChatDrawer').classList.toggle('hidden'); }
-    function handleChatSubmit(e) { e.preventDefault(); const input = document.getElementById('chatInput'); const val = input.value.trim(); if (!val) return; appendChatMessage("You", val, "user"); input.value = ""; setTimeout(() => { if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) { localStorage.removeItem("drozo_appointment_deleted"); localStorage.setItem("drozo_session_status", "CONFIRMED"); syncAppointmentStatus(); appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.", "bot"); } else { appendChatMessage("Drozo AI", "I hear you. Let us take a deep, steady breath and explore this together.", "bot"); } }, 500); }
+    function handleChatSubmit(e) { e.preventDefault(); const input = document.getElementById('chatInput'); const val = input.value.trim(); if (!val) return; appendChatMessage("You", val, "user"); input.value = ""; setTimeout(() => { if (val.toLowerCase().includes("book") || val.toLowerCase().includes("schedule")) { setCloudState("drozo_appointment_deleted", "false"); setCloudState("drozo_session_status", "CONFIRMED"); syncAppointmentStatus(); appendChatMessage("Drozo AI", "Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.", "bot"); } else { appendChatMessage("Drozo AI", "I hear you. Let us take a deep, steady breath and explore this together.", "bot"); } }, 500); }
     function appendChatMessage(sender, text, type) { const box = document.getElementById('chatMessages'); const msg = document.createElement('div'); msg.className = "flex gap-2 " + (type === "user" ? "justify-end" : ""); msg.innerHTML = `${type === "bot" ? '<span class="text-base">🤖</span>' : ''}<div class="${type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800'} p-3 rounded-2xl max-w-[80%] leading-relaxed">${text}</div>`; box.appendChild(msg); box.scrollTop = box.scrollHeight; }
     function loadDispatchedDocuments() { const docs = JSON.parse(localStorage.getItem("drozo_client_dispatched_docs") || "[]"); const list = document.getElementById('clientHistoryList'); if (docs.length > 0) { docs.forEach(doc => { const item = document.createElement('div'); item.className = "p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex justify-between items-center"; item.innerHTML = `<div><div class="font-bold text-slate-800">${doc.category}</div><div class="text-[10px] text-emerald-700">Issued by ${doc.therapist} • ${doc.date}</div></div><button onclick="renderCustomPDF('${doc.patientId}', '${doc.category}', '${doc.therapist}', '${encodeURIComponent(doc.notes)}', '${encodeURIComponent(doc.actions)}')" class="text-emerald-700 hover:text-emerald-900 font-bold text-[11px] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-emerald-300 shadow-sm"><span>📄</span> View PDF</button>`; list.prepend(item); }); } }
     function renderCustomPDF(patient, type, therapist, notes, actions) { const decodedNotes = decodeURIComponent(notes); const decodedActions = decodeURIComponent(actions); const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' }); const win = window.open('', '_blank'); win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div></body></html>`); win.document.close(); }
