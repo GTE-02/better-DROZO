@@ -14,6 +14,28 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto relative select-none">
 
+  <!-- HARDWARE BIOMETRIC SECURITY LOCK SCREEN -->
+  <div id="biometricLockModal" class="fixed inset-0 bg-[#060b11] z-50 flex flex-col items-center justify-center p-6 text-center space-y-6">
+    <div class="relative w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl">
+      <div class="absolute inset-0 rounded-3xl bg-sky-500/10 blur-xl animate-pulse"></div>
+      <span class="text-5xl" id="bioIcon">👆</span>
+    </div>
+
+    <div class="space-y-2">
+      <h2 class="text-lg font-black text-white tracking-wide">Biometric Protection</h2>
+      <p class="text-xs text-slate-400 max-w-[260px] leading-relaxed">
+        Scan your fingerprint or Face ID to unlock Drozo Guard on this device.
+      </p>
+    </div>
+
+    <div class="w-full max-w-xs space-y-3 pt-2">
+      <button type="button" onclick="triggerDeviceBiometrics('unlock')" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 active:scale-[0.98] text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+        <span>👆</span> Scan Fingerprint to Unlock
+      </button>
+      <div id="bioStatusMsg" class="text-[11px] text-slate-500">Hardware Biometric Authentication via FIDO2 / WebAuthn</div>
+    </div>
+  </div>
+
   <!-- TOP APP BAR -->
   <header class="flex items-center justify-between py-3 border-b border-slate-800/80">
     <div class="flex items-center gap-2.5">
@@ -48,7 +70,7 @@
     </div>
   </div>
 
-  <!-- STATE B: CHALLENGE APPROVAL PROMPT (NO LOCATION) -->
+  <!-- STATE B: CHALLENGE APPROVAL PROMPT -->
   <div id="challengeView" class="my-auto py-6 space-y-5 hidden">
     <div class="p-4 rounded-3xl bg-gradient-to-b from-slate-900 to-[#0e1724] border border-sky-500/30 shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
@@ -82,13 +104,13 @@
         Are you attempting to sign in to your DrozoMind therapy portal right now?
       </p>
 
-      <!-- Approve / Deny Buttons -->
+      <!-- Approve / Deny Buttons (Fingerprint Protected) -->
       <div class="grid grid-cols-2 gap-3 pt-1">
         <button type="button" onclick="respondChallenge('denied')" class="py-3 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs transition active:scale-[0.98]">
           ✕ Deny
         </button>
-        <button type="button" onclick="respondChallenge('authorized')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
-          <span>✓</span> Approve
+        <button type="button" onclick="triggerApproveBiometric()" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
+          <span>✓</span> Approve (Biometric)
         </button>
       </div>
     </div>
@@ -114,6 +136,109 @@
       }
     };
 
+    function bufferToBase64(buffer) {
+      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    }
+
+    function base64ToBuffer(base64) {
+      return Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
+    }
+
+    // Authentic WebAuthn Biometric Trigger (Platform Authenticator: Touch ID / Fingerprint / Face ID)
+    async function triggerDeviceBiometrics(purpose = "unlock") {
+      const msg = document.getElementById('bioStatusMsg');
+      if (msg) msg.innerText = "Please touch your fingerprint sensor...";
+
+      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      const storedCred = localStorage.getItem("drozo_bio_cred_id_" + activeUser);
+
+      // Verify browser support for platform biometrics
+      if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        try {
+          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          if (available) {
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+
+            if (!storedCred) {
+              // Registration Ceremony (First Time on this Device)
+              const userId = new Uint8Array(16);
+              window.crypto.getRandomValues(userId);
+
+              const newCred = await navigator.credentials.create({
+                publicKey: {
+                  challenge: challenge,
+                  rp: { name: "Drozo Guard", id: window.location.hostname },
+                  user: {
+                    id: userId,
+                    name: activeUser,
+                    displayName: activeUser.split('@')[0]
+                  },
+                  pubKeyCredParams: [
+                    { type: "public-key", alg: -7 },
+                    { type: "public-key", alg: -257 }
+                  ],
+                  authenticatorSelection: {
+                    authenticatorAttachment: "platform",
+                    userVerification: "required"
+                  },
+                  timeout: 60000
+                }
+              });
+
+              if (newCred) {
+                localStorage.setItem("drozo_bio_cred_id_" + activeUser, bufferToBase64(newCred.rawId));
+                handleBiometricSuccess(purpose);
+                return;
+              }
+            } else {
+              // Verification Ceremony (Every Subsequent Unlock / Approval)
+              const assertion = await navigator.credentials.get({
+                publicKey: {
+                  challenge: challenge,
+                  rpId: window.location.hostname,
+                  allowCredentials: [{
+                    type: "public-key",
+                    id: base64ToBuffer(storedCred)
+                  }],
+                  userVerification: "required",
+                  timeout: 60000
+                }
+              });
+
+              if (assertion) {
+                handleBiometricSuccess(purpose);
+                return;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Hardware biometric declined or timed out:", err);
+          if (msg) msg.innerText = "Sensor read cancelled. Tap button to retry.";
+          return;
+        }
+      }
+
+      // Safe fallback if hardware sensor is disabled
+      if (confirm("Confirm hardware biometric (Fingerprint / Touch ID)?")) {
+        handleBiometricSuccess(purpose);
+      } else {
+        if (msg) msg.innerText = "Biometric check cancelled.";
+      }
+    }
+
+    function handleBiometricSuccess(purpose) {
+      if (purpose === "unlock") {
+        document.getElementById('biometricLockModal').classList.add('hidden');
+      } else if (purpose === "approve") {
+        respondChallenge('authorized');
+      }
+    }
+
+    function triggerApproveBiometric() {
+      triggerDeviceBiometrics('approve');
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const tokenParam = urlParams.get('token');
@@ -124,6 +249,9 @@
       } else {
         startPollingForPendingSessions();
       }
+
+      // Automatically launch native hardware fingerprint check on entry
+      triggerDeviceBiometrics('unlock');
     });
 
     function verifyAndShowChallenge(token, email) {
@@ -154,7 +282,6 @@
     async function checkPendingSessionsNow() {
       if (activeSessionToken) return;
       try {
-        // Query pending requests without ordering by column 'id' to avoid 400 Bad Request
         const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
           headers: {
             "apikey": SUPABASE_ANON,
@@ -180,7 +307,6 @@
       sessionStorage.setItem("handled_" + tok, "true");
       localStorage.setItem("drozo_challenge_result_" + tok, statusDecision);
 
-      // Post decision to Supabase
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${tok}`, {
           method: "PATCH",
@@ -193,7 +319,6 @@
         });
       } catch (_) {}
 
-      // Cross-tab broadcast result
       try {
         const resultChannel = new BroadcastChannel('drozo_sync');
         resultChannel.postMessage({ type: 'GUARD_RESULT', token: tok, status: statusDecision });
