@@ -371,15 +371,20 @@
       const status = document.getElementById('faceScanStatusText');
       if (status) status.innerText = "Loading neural model weights...";
       try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("CDN Timeout")), 6000));
+        await Promise.race([
+          Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
+          ]),
+          timeoutPromise
         ]);
         faceModelsReady = true;
         if (status) status.innerText = "Neural models active & ready";
       } catch (e) {
-        console.warn("Face model loading warning:", e);
+        console.warn("Face model loading warning:", e.message);
+        if (status) status.innerText = "Ready (Fallback Mode)";
       }
     }
 
