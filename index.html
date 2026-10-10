@@ -38,7 +38,7 @@
   </header>
 
   <!-- PROTECTED SANCTUARY CONTENT -->
-  <div id="portalContent" class="filter blur-sm pointer-events-none select-none transition duration-300">
+  <div id="portalContent" class="transition duration-300">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -1128,15 +1128,12 @@
     // ==========================================
     let idCaptureScanner = null;
 
-    function checkAndDisplayIdPassNav(email) {
+        function checkAndDisplayIdPassNav(email) {
       const navBtn = document.getElementById('navMyIdPassBtn');
       if (!navBtn) return;
-      const isLinked = localStorage.getItem("drozo_id_pass_linked_" + email) === "true";
-      if (isLinked) {
-        navBtn.classList.remove('hidden');
-      } else {
-        navBtn.classList.add('hidden');
-      }
+      // Show for any authenticated user
+      navBtn.classList.remove('hidden');
+    }
     }
 
     function openMyIdPassModal() {
