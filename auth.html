@@ -580,7 +580,7 @@
 
     // Hardware WebAuthn Engine for Native Sensor Trigger
     async function triggerDeviceBiometrics(purpose = "unlock") {
-      const bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
+      var bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
       if (bioType === "faceid") {
         openCustomFaceScanner(purpose);
         return;
