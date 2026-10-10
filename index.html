@@ -1459,51 +1459,59 @@ window.addEventListener('load', clearScreenLocks);
       const win = window.open('', '_blank');
       win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div>
 
-<script>
-// CLEAN CORE AUTHENTICATION PIPELINE
-window.handleStep1Submit = function(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  var emailEl = document.getElementById('authEmail');
-  var passEl = document.getElementById('authPassword');
-  var email = (emailEl ? emailEl.value : '').trim().toLowerCase();
-  var pass = passEl ? passEl.value : '';
-  window.currentEmail = email;
 
-  var storedPw = localStorage.getItem('drozo_user_pw_' + email) || 'admin123';
+</script>
+
+<script>
+window.handleStep1Submit = function(event) {
+  if (event && event.preventDefault) event.preventDefault();
+  const emailField = document.getElementById('authEmail');
+  const passField = document.getElementById('authPassword');
+  const email = (emailField ? emailField.value : '').trim().toLowerCase();
+  const pass = passField ? passField.value : '';
+  
+  if (!email) {
+    alert('Please enter your email.');
+    return false;
+  }
+  
+  window.currentEmail = email;
+  localStorage.setItem('drozo_active_session', email);
+
+  const storedPw = localStorage.getItem('drozo_user_pw_' + email) || 'admin123';
   if (storedPw && storedPw !== pass) {
     alert('Invalid credentials.');
     return false;
   }
 
-  var pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
-  var verified = localStorage.getItem('drozo_user_2fa_verified_' + email) === 'true';
+  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
+  const isVerified = localStorage.getItem('drozo_user_2fa_verified_' + email) === 'true';
 
-  var loginStep = document.getElementById('authStepLogin');
-  if (loginStep) loginStep.classList.add('hidden');
+  const loginCard = document.getElementById('authStepLogin');
+  if (loginCard) loginCard.classList.add('hidden');
 
   if (pref === 'none') {
-    finishDirectLogin(email);
-  } else if (pref === 'drozo_guard' && verified && typeof startDrozoGuard2FA === 'function') {
+    unlockPortal(email);
+  } else if (pref === 'drozo_guard' && isVerified && typeof startDrozoGuard2FA === 'function') {
     startDrozoGuard2FA();
-  } else if (pref === 'totp' && verified) {
-    var totpBox = document.getElementById('authStepTOTP');
+  } else if (pref === 'totp' && isVerified) {
+    const totpBox = document.getElementById('authStepTOTP');
     if (totpBox) totpBox.classList.remove('hidden');
     if (typeof initTotpVerification === 'function') initTotpVerification();
   } else {
-    var onboard = document.getElementById('authStepOnboarding');
+    const onboard = document.getElementById('authStepOnboarding');
     if (onboard) onboard.classList.remove('hidden');
-    else finishDirectLogin(email);
+    else unlockPortal(email);
   }
   return false;
 };
 
 window.handleAuthSubmit = window.handleStep1Submit;
 
-function finishDirectLogin(email) {
-  localStorage.setItem('drozo_active_session', email);
-  var modal = document.getElementById('authModal');
+function unlockPortal(email) {
+  const modal = document.getElementById('authModal');
   if (modal) modal.classList.add('hidden');
-  var portal = document.getElementById('portalContent');
+  const portal = document.getElementById('portalContent');
   if (portal) {
     portal.classList.remove('blur-sm', 'filter', 'pointer-events-none');
     portal.style.filter = 'none';
@@ -1512,13 +1520,13 @@ function finishDirectLogin(email) {
 }
 
 // Immediate unfreeze on page load
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
     el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
     el.style.filter = 'none';
     el.style.pointerEvents = 'auto';
   });
-});
+})();
 </script>
 </body>
 </html>
