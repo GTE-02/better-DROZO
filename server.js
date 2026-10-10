@@ -114,6 +114,51 @@ function startKeepAliveEngine() {
   }, PING_INTERVAL_MS);
 }
 
+
+// ==========================================
+// GOOGLE DRIVE 1 TB STORAGE RELAY (NO GOOGLE CONSOLE)
+// ==========================================
+const GDRIVE_SCRIPT_URL = process.env.GDRIVE_SCRIPT_URL || "";
+
+app.post('/api/drive/upload', async (req, res) => {
+  if (!GDRIVE_SCRIPT_URL) {
+    return res.status(503).json({ error: "GDRIVE_SCRIPT_URL environment variable is not configured." });
+  }
+
+  try {
+    const response = await fetch(GDRIVE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    console.error("[DriveRelay] Upload error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Periodic Database Snapshot to Google Drive
+app.post('/api/drive/backup-database', async (req, res) => {
+  if (!GDRIVE_SCRIPT_URL) return res.status(503).json({ error: "Drive relay not configured" });
+
+  try {
+    const response = await fetch(GDRIVE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: `DrozoMind_Backup_${Date.now()}.json`,
+        content: JSON.stringify(memoryStateStore, null, 2)
+      })
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Better-Drozo backend active on port ${PORT}`);
   startKeepAliveEngine();
