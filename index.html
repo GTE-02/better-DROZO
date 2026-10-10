@@ -1390,7 +1390,34 @@
       const decodedActions = decodeURIComponent(actions);
       const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
       const win = window.open('', '_blank');
-      win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div></body></html>`);
+      win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div><script>
+    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
+    function forceClearAllBlurs() {
+      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
+        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        el.style.filter = 'none';
+        el.style.pointerEvents = 'auto';
+        el.style.userSelect = 'auto';
+      });
+      const portal = document.getElementById('portalContent');
+      if (portal) {
+        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        portal.style.filter = 'none';
+        portal.style.pointerEvents = 'auto';
+      }
+      // Ensure hidden modals don't hold invisible click blocks
+      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m && m.classList.contains('hidden')) {
+          m.style.pointerEvents = 'none';
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
+    window.addEventListener('load', forceClearAllBlurs);
+    setInterval(forceClearAllBlurs, 1000);
+</script>
+</body></html>`);
       win.document.close();
     }
 
@@ -1483,5 +1510,32 @@
       renderVaultFileList(files);
     }
   </script>
+<script>
+    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
+    function forceClearAllBlurs() {
+      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
+        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        el.style.filter = 'none';
+        el.style.pointerEvents = 'auto';
+        el.style.userSelect = 'auto';
+      });
+      const portal = document.getElementById('portalContent');
+      if (portal) {
+        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        portal.style.filter = 'none';
+        portal.style.pointerEvents = 'auto';
+      }
+      // Ensure hidden modals don't hold invisible click blocks
+      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m && m.classList.contains('hidden')) {
+          m.style.pointerEvents = 'none';
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
+    window.addEventListener('load', forceClearAllBlurs);
+    setInterval(forceClearAllBlurs, 1000);
+</script>
 </body>
 </html>

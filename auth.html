@@ -31,9 +31,9 @@
     <div class="relative w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
       <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
       <canvas id="faceCaptureCanvas" class="hidden"></canvas>
-      <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] pointer-events-none"></div>
-      <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce pointer-events-none"></div>
-      <div id="livenessInstructionOverlay" class="absolute bottom-3 left-3 right-3 bg-black/75 backdrop-blur-sm p-2 rounded-xl border border-slate-700 text-[11px] text-white font-bold">
+      <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] "></div>
+      <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce "></div>
+      <div id="livenessInstructionOverlay" class="min-h-screen">
         Align face inside oval frame
       </div>
     </div>
@@ -802,5 +802,32 @@
       }
     }
   </script>
+<script>
+    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
+    function forceClearAllBlurs() {
+      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
+        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        el.style.filter = 'none';
+        el.style.pointerEvents = 'auto';
+        el.style.userSelect = 'auto';
+      });
+      const portal = document.getElementById('portalContent');
+      if (portal) {
+        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        portal.style.filter = 'none';
+        portal.style.pointerEvents = 'auto';
+      }
+      // Ensure hidden modals don't hold invisible click blocks
+      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m && m.classList.contains('hidden')) {
+          m.style.pointerEvents = 'none';
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
+    window.addEventListener('load', forceClearAllBlurs);
+    setInterval(forceClearAllBlurs, 1000);
+</script>
 </body>
 </html>
