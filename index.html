@@ -1385,6 +1385,34 @@
       }
     }
 
+        // ==========================================
+    // 1 TB GOOGLE DRIVE VAULT SYNC ENGINE
+    // ==========================================
+    async function syncToGoogleDriveVault(filename, contentOrBase64, isBase64 = false, mimeType = "application/pdf") {
+      try {
+        const payload = {
+          filename: filename,
+          mimeType: mimeType
+        };
+        if (isBase64) {
+          payload.base64Data = contentOrBase64.replace(/^data:.*,/, '');
+        } else {
+          payload.content = (typeof contentOrBase64 === "object") ? JSON.stringify(contentOrBase64, null, 2) : String(contentOrBase64);
+        }
+
+        const res = await fetch(`${RENDER_API_URL}/api/drive/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          console.log(`[GoogleDrive] Successfully vaulted: ${filename}`);
+        }
+      } catch (err) {
+        console.warn("[GoogleDrive] Vault relay notice:", err.message);
+      }
+    }
+
     function renderCustomPDF(patient, type, therapist, notes, actions) {
       const decodedNotes = decodeURIComponent(notes);
       const decodedActions = decodeURIComponent(actions);
