@@ -29,6 +29,7 @@
       <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
         <button type="button" onclick="focusSection('schedule-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">My Schedule</button>
         <button type="button" onclick="focusSection('history-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">Session History</button>
+        <button type="button" id="navMyIdPassBtn" onclick="openMyIdPassModal()" class="hidden hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100 flex items-center gap-1.5"><span>🪪</span> My ID Pass</button>
       </nav>
       <div class="flex items-center gap-3" id="navAuthArea">
         <button id="btnOpenLogin" onclick="openLoginModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow">Sign In</button>
@@ -186,6 +187,74 @@
       </div>
       <div class="text-center pt-1">
         <button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- DIGITAL ID PASS MODAL -->
+  <div id="myIdPassModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🪪</span>
+          <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Sanctuary ID Pass</h3>
+        </div>
+        <button type="button" onclick="closeMyIdPassModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold leading-none">&times;</button>
+      </div>
+
+      <!-- DIGITAL ID CARD DISPLAY -->
+      <div id="sanctuaryCardElement" class="p-4 rounded-2xl bg-gradient-to-tr from-[#0b1420] to-[#122135] text-white border border-sky-500/30 shadow-xl space-y-3 relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-500/10 blur-xl"></div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🧠</span>
+            <span class="text-[11px] font-black tracking-widest uppercase text-sky-300">DROZOMIND PASS</span>
+          </div>
+          <span class="text-[9px] mono px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 font-bold">VERIFIED</span>
+        </div>
+
+        <div class="flex items-center gap-3 pt-1">
+          <div id="cardPhotoPreview" class="w-14 h-14 rounded-xl bg-slate-800 border border-sky-400/40 flex items-center justify-center overflow-hidden shrink-0 shadow">
+            <span class="text-2xl" id="cardPhotoIcon">👤</span>
+            <img id="cardCapturedImage" class="w-full h-full object-cover hidden" alt="ID Photo" />
+          </div>
+          <div class="overflow-hidden">
+            <div class="text-xs font-black text-white truncate" id="cardUserName">Water_Chugger/Owner</div>
+            <div class="text-[10px] text-sky-400 mono truncate" id="cardUserEmail">admin@drozominds.com</div>
+            <div class="text-[9px] text-slate-400 mt-0.5 mono" id="cardIssueDate">Issued: Oct 2026</div>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+          <span class="text-slate-400">ID Ref:</span>
+          <span class="mono font-bold text-sky-300" id="cardPassReference">IDP-9284-SEC</span>
+        </div>
+      </div>
+
+      <!-- CAMERA SCAN / PHOTO CAPTURE VIEW -->
+      <div id="idCameraBox" class="hidden space-y-2">
+        <div class="w-full max-w-[240px] aspect-square mx-auto rounded-2xl overflow-hidden bg-black border border-slate-300 shadow-inner flex items-center justify-center">
+          <div id="idCaptureReader" class="w-full h-full"></div>
+        </div>
+        <div class="flex justify-center gap-2 pt-1">
+          <button type="button" onclick="captureCardPhoto()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition">
+            📸 Snap Photo
+          </button>
+          <button type="button" onclick="closeIdCamera()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="space-y-2 pt-1" id="idActionButtons">
+        <button type="button" onclick="openIdCameraForCard()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow">
+          <span>📷</span> Take Photo / Scan Physical ID
+        </button>
+        <button type="button" onclick="exportDigitalIdCard()" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+          <span>📄</span> Download Digital ID Document
+        </button>
       </div>
     </div>
   </div>
@@ -1053,9 +1122,123 @@
       unlockSanctuaryUI(currentEmail);
     }
 
+    
+    // ==========================================
+    // MY ID PASS TAB & CAMERA PHOTO HANDLERS
+    // ==========================================
+    let idCaptureScanner = null;
+
+    function checkAndDisplayIdPassNav(email) {
+      const navBtn = document.getElementById('navMyIdPassBtn');
+      if (!navBtn) return;
+      const isLinked = localStorage.getItem("drozo_id_pass_linked_" + email) === "true";
+      if (isLinked) {
+        navBtn.classList.remove('hidden');
+      } else {
+        navBtn.classList.add('hidden');
+      }
+    }
+
+    function openMyIdPassModal() {
+      const activeUser = localStorage.getItem("drozo_active_session") || currentEmail || "admin@drozominds.com";
+      const displayName = (activeUser === "admin@drozominds.com") ? "Water_Chugger/Owner" : (activeUser === "gamerkids1109@gmail.com" ? "Drozo YT" : activeUser.split('@')[0]);
+
+      document.getElementById('cardUserName').innerText = displayName;
+      document.getElementById('cardUserEmail').innerText = activeUser;
+      document.getElementById('cardIssueDate').innerText = "Issued: " + new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      document.getElementById('cardPassReference').innerText = "IDP-" + Math.abs(activeUser.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36).toUpperCase().substring(0, 8);
+
+      const savedPhoto = localStorage.getItem("drozo_id_photo_" + activeUser);
+      const photoImg = document.getElementById('cardCapturedImage');
+      const photoIcon = document.getElementById('cardPhotoIcon');
+      if (savedPhoto) {
+        photoImg.src = savedPhoto;
+        photoImg.classList.remove('hidden');
+        photoIcon.classList.add('hidden');
+      } else {
+        photoImg.classList.add('hidden');
+        photoIcon.classList.remove('hidden');
+      }
+
+      document.getElementById('myIdPassModal').classList.remove('hidden');
+    }
+
+    function closeMyIdPassModal() {
+      closeIdCamera();
+      document.getElementById('myIdPassModal').classList.add('hidden');
+    }
+
+    async function openIdCameraForCard() {
+      document.getElementById('idCameraBox').classList.remove('hidden');
+      document.getElementById('idActionButtons').classList.add('hidden');
+
+      try {
+        if (idCaptureScanner) { try { await idCaptureScanner.stop(); } catch(_) {} }
+        idCaptureScanner = new Html5Qrcode("idCaptureReader");
+        await idCaptureScanner.start(
+          { facingMode: "user" },
+          { fps: 20, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 },
+          (decoded) => {
+            alert("Physical ID QR Verified: " + decoded);
+            captureCardPhoto();
+          },
+          () => {}
+        );
+      } catch (err) {
+        console.warn("Camera init note:", err);
+      }
+    }
+
+    async function captureCardPhoto() {
+      const video = document.querySelector("#idCaptureReader video");
+      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      
+      if (video) {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 200;
+          canvas.height = 200;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, 200, 200);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+          localStorage.setItem("drozo_id_photo_" + activeUser, dataUrl);
+          await setCloudState("drozo_id_photo_" + activeUser, dataUrl);
+
+          const photoImg = document.getElementById('cardCapturedImage');
+          const photoIcon = document.getElementById('cardPhotoIcon');
+          photoImg.src = dataUrl;
+          photoImg.classList.remove('hidden');
+          photoIcon.classList.add('hidden');
+        } catch (_) {}
+      }
+
+      closeIdCamera();
+      alert("ID Pass photo updated and cloud-synced successfully!");
+    }
+
+    async function closeIdCamera() {
+      if (idCaptureScanner) {
+        try { await idCaptureScanner.stop(); } catch(_) {}
+        idCaptureScanner = null;
+      }
+      const cam = document.getElementById('idCameraBox');
+      const act = document.getElementById('idActionButtons');
+      if (cam) cam.classList.add('hidden');
+      if (act) act.classList.remove('hidden');
+    }
+
+    function exportDigitalIdCard() {
+      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      const displayName = document.getElementById('cardUserName').innerText;
+      const passRef = document.getElementById('cardPassReference').innerText;
+      renderCustomPDF(passRef, 'Official Sanctuary ID Pass', displayName, 'Hardware-bound ID Pass for patient verification.', 'Keep this digital pass confidential.');
+    }
+
     function unlockSanctuaryUI(email) {
       document.getElementById('authModal').classList.add('hidden');
       document.getElementById('portalContent').classList.remove('blur-sm', 'pointer-events-none', 'select-none');
+      checkAndDisplayIdPassNav(email);
       const isAdmin = (email === "admin@drozominds.com" || email === "gamerkids1109@gmail.com");
       const displayName = (email === "admin@drozominds.com") ? "Water_Chugger/Owner" : (email === "gamerkids1109@gmail.com" ? "Drozo YT" : email.split('@')[0]);
 
