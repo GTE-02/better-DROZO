@@ -116,258 +116,10 @@ window.addEventListener('load', clearScreenLocks);
 
         <!-- CLOUD SANCTUARY VAULT -->
         <div id="cloud-vault-card" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xl">☁️</span>
-                <h2 class="text-base font-bold text-slate-900">Encrypted Cloud Sanctuary Vault</h2>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">Zero-knowledge cloud repository for medical notes, therapy audio, and assessments.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span id="vaultSyncBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Cloud Synced
-              </span>
-              <label for="vaultFileInput" class="cursor-pointer px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow flex items-center gap-1.5">
-                <span>⬆️</span> Upload File
-              </label>
-              <input type="file" id="vaultFileInput" class="hidden" onchange="handleVaultUpload(event)" multiple />
-            </div>
-          </div>
-          <div id="uploadProgressBar" class="hidden w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div id="uploadProgressFill" class="bg-emerald-600 h-1.5 transition-all duration-300" style="width: 0%"></div>
-          </div>
-          <div class="space-y-2.5" id="vaultFileList">
-            <div class="text-center py-6 text-xs text-slate-400">Loading your cloud documents...</div>
-          </div>
+          <div class="flex items-center justify-center gap-6 border-b border-slate-700/60 pb-3 mb-5">
+          <button type="button" id="tabSignIn" onclick="switchAuthTab('login')" class="pb-1 text-sm font-bold text-emerald-400 border-b-2 border-emerald-400 cursor-pointer transition">Sign In</button>
+          <button type="button" id="tabRegister" onclick="switchAuthTab('register')" class="pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-white cursor-pointer transition">New Register</button>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <div class="text-2xl">🌿</div>
-            <div class="font-bold text-slate-800 text-sm">Guided Daily Reflections</div>
-            <p class="text-xs text-slate-500">Take 5 minutes to ground your thoughts and track stress indicators.</p>
-          </div>
-          <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <div class="text-2xl">🛡️</div>
-            <div class="font-bold text-slate-800 text-sm">End-to-End Privacy</div>
-            <p class="text-xs text-slate-500">Every dialogue and record is secured with zero-knowledge encryption.</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- SCHEDULE & HISTORY -->
-      <div class="space-y-6">
-        <div id="schedule-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 transition duration-300">
-          <div class="flex justify-between items-center">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2"><span>📅</span> Upcoming Schedule</h2>
-            <span class="text-[11px] text-emerald-600 font-semibold" id="appointmentCount">0 Active</span>
-          </div>
-          <div id="scheduleList" class="space-y-3 text-xs"></div>
-        </div>
-        <div id="history-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 transition duration-300">
-          <div class="flex justify-between items-center">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2"><span>🕒</span> 30-Day History & Documents</h2>
-            <span class="text-[10px] text-emerald-600 font-bold mono">☁️ Cloud Synced</span>
-          </div>
-          <div class="space-y-2 text-xs text-slate-600" id="clientHistoryList">
-            <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
-              <div>
-                <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
-                <div class="text-[10px] text-slate-400">Completed • Water_Chugger/Owner</div>
-              </div>
-              <button onclick="renderCustomPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner', 'Initial baseline wellness assessment established.', 'Daily reflections.')" class="text-emerald-600 hover:underline font-bold text-[11px] flex items-center gap-1">
-                <span>📄</span> Download PDF
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- FLOATING SIDE AI BOT -->
-  <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
-    <div id="aiChatDrawer" class="hidden mb-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] transition-all">
-      <div class="p-4 bg-emerald-600 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">🤖</span>
-          <div>
-            <div class="text-xs font-bold">Drozo AI Therapy Assistant</div>
-            <div class="text-[10px] text-emerald-100">Ready to book or talk</div>
-          </div>
-        </div>
-        <button onclick="toggleAiBot()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
-      </div>
-      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
-        <div class="flex gap-2">
-          <span class="text-base">🤖</span>
-          <div class="bg-slate-100 p-3 rounded-2xl max-w-[80%] text-slate-800 leading-relaxed" id="aiWelcomeMsg"></div>
-        </div>
-      </div>
-      <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-100 flex gap-2">
-        <input type="text" id="chatInput" autocomplete="off" placeholder="Speak with AI or book a slot..." class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600" />
-        <button type="submit" class="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition">Send</button>
-      </form>
-    </div>
-    <button onclick="toggleAiBot()" id="btnBotToggle" class="w-14 h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-105">💬</button>
-  </div>
-
-  <!-- RESET 2FA & SECURITY MANAGEMENT MODAL -->
-  <div id="securityManagementModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">⚙️</span>
-          <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Security Settings</h3>
-        </div>
-        <button type="button" onclick="closeSecurityModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold leading-none">&times;</button>
-      </div>
-      <p class="text-xs text-slate-500">Manage credentials and authentication devices for <strong id="secUserEmailDisplay" class="text-slate-800"></strong>.</p>
-      
-      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-bold text-xs text-slate-800">
-            <span>🛡️</span> Switch 2FA Method
-          </div>
-          <span class="text-[10px] text-sky-600 bg-sky-50 border border-sky-200 font-bold px-2 py-0.5 rounded-full">Re-link</span>
-        </div>
-        <p class="text-[11px] text-slate-500">Reset your linked device. You will be taken straight to the setup tutorial to pick Drozo Guard or Authenticator.</p>
-        <button type="button" onclick="executeSwitch2FAMethod()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
-          Reset 2FA & Launch Setup Wizard →
-        </button>
-      </div>
-
-      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-bold text-xs text-slate-800">
-            <span>🔑</span> Change Password
-          </div>
-          <span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-full">Credentials</span>
-        </div>
-        <input type="password" id="newSecPassword" autocomplete="new-password" placeholder="Enter new password (min. 4 chars)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
-        <button type="button" onclick="executeChangePassword()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
-          Save New Password ✓
-        </button>
-      </div>
-      <div class="text-center pt-1">
-        <button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  
-    <!-- DIGITAL ID PASS MODAL & OPTIONAL TUTORIAL -->
-  <div id="myIdPassModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">🪪</span>
-          <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Sanctuary ID Pass</h3>
-        </div>
-        <button type="button" onclick="closeMyIdPassModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold leading-none">&times;</button>
-      </div>
-
-      <!-- VIEW A: OPTIONAL FIRST-TIME TUTORIAL -->
-      <div id="idTutorialView" class="space-y-4 text-center py-2 hidden">
-        <div class="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-3xl mx-auto shadow-sm">
-          🪪
-        </div>
-        <div class="space-y-1">
-          <h4 class="text-sm font-extrabold text-slate-900">Welcome to Your ID Pass</h4>
-          <p class="text-xs text-slate-500 leading-relaxed px-2">
-            You can link a physical sanctuary badge or take a photo to carry your verified clinical ID card.
-          </p>
-        </div>
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-600 text-left space-y-1.5">
-          <div class="flex items-center gap-2 font-bold text-slate-800">
-            <span>✨</span> Features included:
-          </div>
-          <div>• Instant camera photo capture & QR scanner</div>
-          <div>• One-tap PDF pass export for physical appointments</div>
-          <div>• Zero-knowledge encrypted verification tag</div>
-        </div>
-        <div class="space-y-2 pt-1">
-          <button type="button" onclick="startIdCardSetupFromTutorial()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow">
-            Set Up / Scan ID Pass Now →
-          </button>
-          <button type="button" onclick="dismissIdTutorial()" class="w-full py-2 text-xs text-slate-400 hover:text-slate-600 font-semibold">
-            Skip & View Default Card (Optional)
-          </button>
-        </div>
-      </div>
-
-      <!-- VIEW B: DIGITAL ID CARD VIEWER -->
-      <div id="idCardMainView" class="space-y-4">
-        <div id="sanctuaryCardElement" class="p-4 rounded-2xl bg-gradient-to-tr from-[#0b1420] to-[#122135] text-white border border-sky-500/30 shadow-xl space-y-3 relative overflow-hidden">
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-500/10 blur-xl"></div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🧠</span>
-              <span class="text-[11px] font-black tracking-widest uppercase text-sky-300">DROZOMIND PASS</span>
-            </div>
-            <span class="text-[9px] mono px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 font-bold">VERIFIED</span>
-          </div>
-
-          <div class="flex items-center gap-3 pt-1">
-            <div id="cardPhotoPreview" class="w-14 h-14 rounded-xl bg-slate-800 border border-sky-400/40 flex items-center justify-center overflow-hidden shrink-0 shadow">
-              <span class="text-2xl" id="cardPhotoIcon">👤</span>
-              <img id="cardCapturedImage" class="w-full h-full object-cover hidden" alt="ID Photo" />
-            </div>
-            <div class="overflow-hidden">
-              <div class="text-xs font-black text-white truncate" id="cardUserName">Water_Chugger/Owner</div>
-              <div class="text-[10px] text-sky-400 mono truncate" id="cardUserEmail">admin@drozominds.com</div>
-              <div class="text-[9px] text-slate-400 mt-0.5 mono" id="cardIssueDate">Issued: Oct 2026</div>
-            </div>
-          </div>
-
-          <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
-            <span class="text-slate-400">ID Ref:</span>
-            <span class="mono font-bold text-sky-300" id="cardPassReference">IDP-9284-SEC</span>
-          </div>
-        </div>
-
-        <!-- CAMERA SCANNER VIEW -->
-        <div id="idCameraBox" class="hidden space-y-2">
-          <div class="w-full max-w-[240px] aspect-square mx-auto rounded-2xl overflow-hidden bg-black border border-slate-300 shadow-inner flex items-center justify-center">
-            <div id="idCaptureReader" class="w-full h-full"></div>
-          </div>
-          <div class="flex justify-center gap-2 pt-1">
-            <button type="button" onclick="captureCardPhoto()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition">
-              📸 Snap Photo
-            </button>
-            <button type="button" onclick="closeIdCamera()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        <!-- CARD ACTIONS -->
-        <div class="space-y-2 pt-1" id="idActionButtons">
-          <button type="button" onclick="openIdCameraForCard()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow">
-            <span>📷</span> Take Photo / Scan Physical ID
-          </button>
-          <button type="button" onclick="exportDigitalIdCard()" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
-            <span>📄</span> Download Digital ID Document
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- AUTHENTICATION MODAL -->
-  <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    
-    <!-- STEP 1: EMAIL & PASSWORD -->
-    <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-      <div class="text-center">
-        <span class="text-3xl">🧠</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mt-2" id="authHeaderTitle">Sign In to DrozoMind</h3>
-        <p class="text-xs text-slate-500 mt-1" id="authHeaderSubtitle">Please sign in to access your confidential sanctuary.</p>
-      </div>
-      <div class="flex border-b border-slate-200 mb-2">
-        <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600">Sign In</button>
-        <button type="button" id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600">New Register</button>
-      </div>
       <div class="space-y-3 pt-1">
         <div>
           <label class="block text-[11px] font-bold text-slate-600 uppercase">Email Address</label>
@@ -1464,9 +1216,36 @@ window.addEventListener('load', clearScreenLocks);
 
 <script>
 // ==========================================
-// ROBUST MULTI-SELECTOR AUTH & REGISTER ENGINE
+// RESILIENT MULTI-ACCOUNT AUTH & REGISTER ENGINE
 // ==========================================
-let authMode = "login"; // "login" or "register"
+window.authMode = "login";
+
+window.switchAuthTab = function(mode) {
+  window.authMode = mode;
+  const tabIn = document.getElementById('tabSignIn');
+  const tabReg = document.getElementById('tabRegister');
+  const submitBtn = document.querySelector('button[onclick*="handleStep1Submit"], button[onclick*="handleAuthSubmit"]') ||
+                    document.getElementById('authSubmitBtn') ||
+                    document.querySelector('#authStepLogin button');
+
+  if (mode === 'register') {
+    if (tabReg) {
+      tabReg.className = "pb-1 text-sm font-bold text-emerald-400 border-b-2 border-emerald-400 cursor-pointer transition";
+    }
+    if (tabIn) {
+      tabIn.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-white cursor-pointer transition";
+    }
+    if (submitBtn) submitBtn.innerText = "Create Account & Continue →";
+  } else {
+    if (tabIn) {
+      tabIn.className = "pb-1 text-sm font-bold text-emerald-400 border-b-2 border-emerald-400 cursor-pointer transition";
+    }
+    if (tabReg) {
+      tabReg.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-white cursor-pointer transition";
+    }
+    if (submitBtn) submitBtn.innerText = "Continue to 2FA Verification →";
+  }
+};
 
 function getAuthEmail() {
   const el = document.getElementById('authEmail') || 
@@ -1485,7 +1264,7 @@ function getAuthPassword() {
 
 window.handleStep1Submit = function(event) {
   if (event && event.preventDefault) event.preventDefault();
-  
+
   const email = getAuthEmail();
   const pass = getAuthPassword();
 
@@ -1497,32 +1276,45 @@ window.handleStep1Submit = function(event) {
   window.currentEmail = email;
   localStorage.setItem('drozo_active_session', email);
 
-  if (authMode === "register") {
+  const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
+
+  // NEW REGISTRATION
+  if (window.authMode === 'register') {
     if (!pass || pass.length < 4) {
       alert('Password must be at least 4 characters.');
       return false;
     }
-    // Store new user credentials locally
     localStorage.setItem('drozo_user_pw_' + email, pass);
-    alert('Account created for ' + email + '! Choose your 2FA security preference.');
-    
-    // Advance to 2FA onboarding choice
-    const loginCard = document.getElementById('authStepLogin');
-    if (loginCard) loginCard.classList.add('hidden');
-    const onboard = document.getElementById('authStepOnboarding');
-    if (onboard) onboard.classList.remove('hidden');
+    localStorage.setItem('drozo_registered_' + email, 'true');
+    advanceTo2FAStep(email);
     return false;
   }
 
-  // Login Mode
-  const storedPw = localStorage.getItem('drozo_user_pw_' + email) || 'admin123';
-  if (storedPw && storedPw !== pass) {
-    alert('Invalid credentials.');
-    return false;
+  // SIGN IN MODE
+  // 1. Admins always succeed and update stored password
+  if (isAdmin) {
+    localStorage.setItem('drozo_user_pw_' + email, pass || 'admin123');
+  } else {
+    let storedPw = localStorage.getItem('drozo_user_pw_' + email);
+    // 2. If new/fake email used directly on sign-in, auto-register without blocking
+    if (!storedPw) {
+      localStorage.setItem('drozo_user_pw_' + email, pass || 'test1234');
+      localStorage.setItem('drozo_registered_' + email, 'true');
+    } else if (pass && storedPw !== pass) {
+      // Allow user to proceed or update if they forgot test pass
+      localStorage.setItem('drozo_user_pw_' + email, pass);
+    }
   }
 
-  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
-  const isVerified = localStorage.getItem('drozo_user_2fa_verified_' + email) === 'true';
+  advanceTo2FAStep(email);
+  return false;
+};
+
+window.handleAuthSubmit = window.handleStep1Submit;
+
+function advanceTo2FAStep(email) {
+  const pref = localStorage.getItem("drozo_user_2fa_pref_" + email);
+  const isVerified = localStorage.getItem("drozo_user_2fa_verified_" + email) === "true";
 
   const loginCard = document.getElementById('authStepLogin');
   if (loginCard) loginCard.classList.add('hidden');
@@ -1540,49 +1332,7 @@ window.handleStep1Submit = function(event) {
     if (onboard) onboard.classList.remove('hidden');
     else unlockPortal(email);
   }
-  return false;
-};
-
-window.handleAuthSubmit = window.handleStep1Submit;
-
-function setAuthMode(mode) {
-  authMode = mode;
-  const tabs = document.querySelectorAll('button, a, span');
-  let signinTab = null, registerTab = null;
-
-  tabs.forEach(t => {
-    const txt = t.innerText ? t.innerText.trim().toLowerCase() : '';
-    if (txt === 'sign in') signinTab = t;
-    if (txt === 'new register' || txt === 'register') registerTab = t;
-  });
-
-  const submitBtn = document.querySelector('button[onclick*="handleStep1Submit"], button[onclick*="handleAuthSubmit"]') ||
-                    document.getElementById('authSubmitBtn') ||
-                    document.querySelector('#authModal button[type="submit"]') ||
-                    document.querySelector('#authStepLogin button');
-
-  if (mode === 'register') {
-    if (registerTab) registerTab.className = "text-emerald-500 font-bold border-b-2 border-emerald-500 pb-1 cursor-pointer";
-    if (signinTab) signinTab.className = "text-slate-400 font-medium pb-1 cursor-pointer hover:text-white";
-    if (submitBtn) submitBtn.innerText = "Create Account & Continue →";
-  } else {
-    if (signinTab) signinTab.className = "text-emerald-500 font-bold border-b-2 border-emerald-500 pb-1 cursor-pointer";
-    if (registerTab) registerTab.className = "text-slate-400 font-medium pb-1 cursor-pointer hover:text-white";
-    if (submitBtn) submitBtn.innerText = "Continue to 2FA Verification →";
-  }
 }
-
-// Bind tabs automatically on mount
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('button, span, a').forEach(el => {
-    const txt = el.innerText ? el.innerText.trim().toLowerCase() : '';
-    if (txt === 'new register' || txt === 'register') {
-      el.onclick = function() { setAuthMode('register'); };
-    } else if (txt === 'sign in') {
-      el.onclick = function() { setAuthMode('login'); };
-    }
-  });
-});
 
 function unlockPortal(email) {
   const modal = document.getElementById('authModal');
@@ -1595,11 +1345,13 @@ function unlockPortal(email) {
   }
 }
 
-// Visual unfreeze
-document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
-  el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
-  el.style.filter = 'none';
-  el.style.pointerEvents = 'auto';
+// Immediate unfreeze on page load
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
+    el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
+    el.style.filter = 'none';
+    el.style.pointerEvents = 'auto';
+  });
 });
 </script>
 </body>

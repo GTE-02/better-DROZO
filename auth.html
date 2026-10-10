@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Drozo Guard Authenticator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script></script>
+  <script></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #060b11; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
@@ -14,7 +14,7 @@
     #mobileQrReaderArea video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 1.25rem; }
     #mobileQrReaderArea__scan_region { display: flex; align-items: center; justify-content: center; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+  <script></script>
 </head>
 
   <!-- AUTHENTIC BIOMETRIC & ACTIVE LIVENESS VERIFICATION MODAL -->
@@ -585,7 +585,7 @@
         openCustomFaceScanner(purpose);
         return;
       }
-      const bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
+      bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
       const sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
       const msg = document.getElementById('bioStatusMsg');
       if (msg) msg.innerText = `Please touch ${sensorLabel}...`;
