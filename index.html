@@ -1463,21 +1463,58 @@ window.addEventListener('load', clearScreenLocks);
 </script>
 
 <script>
+// ==========================================
+// ROBUST MULTI-SELECTOR AUTH & REGISTER ENGINE
+// ==========================================
+let authMode = "login"; // "login" or "register"
+
+function getAuthEmail() {
+  const el = document.getElementById('authEmail') || 
+             document.querySelector('input[type="email"]') || 
+             document.querySelector('input[placeholder*="email" i]') || 
+             document.querySelector('input[name="email"]');
+  return el ? el.value.trim().toLowerCase() : '';
+}
+
+function getAuthPassword() {
+  const el = document.getElementById('authPassword') || 
+             document.querySelector('input[type="password"]') || 
+             document.querySelector('input[name="password"]');
+  return el ? el.value : '';
+}
+
 window.handleStep1Submit = function(event) {
   if (event && event.preventDefault) event.preventDefault();
-  const emailField = document.getElementById('authEmail');
-  const passField = document.getElementById('authPassword');
-  const email = (emailField ? emailField.value : '').trim().toLowerCase();
-  const pass = passField ? passField.value : '';
   
-  if (!email) {
-    alert('Please enter your email.');
+  const email = getAuthEmail();
+  const pass = getAuthPassword();
+
+  if (!email || !email.includes('@')) {
+    alert('Please enter a valid email address.');
     return false;
   }
-  
+
   window.currentEmail = email;
   localStorage.setItem('drozo_active_session', email);
 
+  if (authMode === "register") {
+    if (!pass || pass.length < 4) {
+      alert('Password must be at least 4 characters.');
+      return false;
+    }
+    // Store new user credentials locally
+    localStorage.setItem('drozo_user_pw_' + email, pass);
+    alert('Account created for ' + email + '! Choose your 2FA security preference.');
+    
+    // Advance to 2FA onboarding choice
+    const loginCard = document.getElementById('authStepLogin');
+    if (loginCard) loginCard.classList.add('hidden');
+    const onboard = document.getElementById('authStepOnboarding');
+    if (onboard) onboard.classList.remove('hidden');
+    return false;
+  }
+
+  // Login Mode
   const storedPw = localStorage.getItem('drozo_user_pw_' + email) || 'admin123';
   if (storedPw && storedPw !== pass) {
     alert('Invalid credentials.');
@@ -1508,6 +1545,45 @@ window.handleStep1Submit = function(event) {
 
 window.handleAuthSubmit = window.handleStep1Submit;
 
+function setAuthMode(mode) {
+  authMode = mode;
+  const tabs = document.querySelectorAll('button, a, span');
+  let signinTab = null, registerTab = null;
+
+  tabs.forEach(t => {
+    const txt = t.innerText ? t.innerText.trim().toLowerCase() : '';
+    if (txt === 'sign in') signinTab = t;
+    if (txt === 'new register' || txt === 'register') registerTab = t;
+  });
+
+  const submitBtn = document.querySelector('button[onclick*="handleStep1Submit"], button[onclick*="handleAuthSubmit"]') ||
+                    document.getElementById('authSubmitBtn') ||
+                    document.querySelector('#authModal button[type="submit"]') ||
+                    document.querySelector('#authStepLogin button');
+
+  if (mode === 'register') {
+    if (registerTab) registerTab.className = "text-emerald-500 font-bold border-b-2 border-emerald-500 pb-1 cursor-pointer";
+    if (signinTab) signinTab.className = "text-slate-400 font-medium pb-1 cursor-pointer hover:text-white";
+    if (submitBtn) submitBtn.innerText = "Create Account & Continue →";
+  } else {
+    if (signinTab) signinTab.className = "text-emerald-500 font-bold border-b-2 border-emerald-500 pb-1 cursor-pointer";
+    if (registerTab) registerTab.className = "text-slate-400 font-medium pb-1 cursor-pointer hover:text-white";
+    if (submitBtn) submitBtn.innerText = "Continue to 2FA Verification →";
+  }
+}
+
+// Bind tabs automatically on mount
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('button, span, a').forEach(el => {
+    const txt = el.innerText ? el.innerText.trim().toLowerCase() : '';
+    if (txt === 'new register' || txt === 'register') {
+      el.onclick = function() { setAuthMode('register'); };
+    } else if (txt === 'sign in') {
+      el.onclick = function() { setAuthMode('login'); };
+    }
+  });
+});
+
 function unlockPortal(email) {
   const modal = document.getElementById('authModal');
   if (modal) modal.classList.add('hidden');
@@ -1519,14 +1595,12 @@ function unlockPortal(email) {
   }
 }
 
-// Immediate unfreeze on page load
-(function() {
-  document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
-    el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
-    el.style.filter = 'none';
-    el.style.pointerEvents = 'auto';
-  });
-})();
+// Visual unfreeze
+document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
+  el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
+  el.style.filter = 'none';
+  el.style.pointerEvents = 'auto';
+});
 </script>
 </body>
 </html>
