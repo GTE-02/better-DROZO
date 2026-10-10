@@ -1450,33 +1450,7 @@ window.addEventListener('load', clearScreenLocks);
       }
     }
 
-        // ==========================================
-    // 5 TB GOOGLE DRIVE VAULT SYNC ENGINE
-    // ==========================================
-    async function syncToGoogleDriveVault(filename, contentOrBase64, isBase64 = false, mimeType = "application/pdf") {
-      try {
-        const payload = {
-          filename: filename,
-          mimeType: mimeType
-        };
-        if (isBase64) {
-          payload.base64Data = contentOrBase64.replace(/^data:.*,/, '');
-        } else {
-          payload.content = (typeof contentOrBase64 === "object") ? JSON.stringify(contentOrBase64, null, 2) : String(contentOrBase64);
-        }
-
-        const res = await fetch(`${RENDER_API_URL}/api/drive/upload`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          console.log(`[GoogleDrive] Successfully vaulted: ${filename}`);
-        }
-      } catch (err) {
-        console.warn("[GoogleDrive] Vault relay notice:", err.message);
-      }
-    }
+        
 
     function renderCustomPDF(patient, type, therapist, notes, actions) {
       const decodedNotes = decodeURIComponent(notes);
@@ -1486,11 +1460,13 @@ window.addEventListener('load', clearScreenLocks);
       win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div>
 
 <script>
-// Core fail-safe auth & UI handler
+// CLEAN CORE AUTHENTICATION PIPELINE
 window.handleStep1Submit = function(e) {
   if (e && e.preventDefault) e.preventDefault();
-  var email = (document.getElementById('authEmail')?.value || '').trim().toLowerCase();
-  var pass = document.getElementById('authPassword')?.value || '';
+  var emailEl = document.getElementById('authEmail');
+  var passEl = document.getElementById('authPassword');
+  var email = (emailEl ? emailEl.value : '').trim().toLowerCase();
+  var pass = passEl ? passEl.value : '';
   window.currentEmail = email;
 
   var storedPw = localStorage.getItem('drozo_user_pw_' + email) || 'admin123';
@@ -1506,7 +1482,7 @@ window.handleStep1Submit = function(e) {
   if (loginStep) loginStep.classList.add('hidden');
 
   if (pref === 'none') {
-    completeLogin(email);
+    finishDirectLogin(email);
   } else if (pref === 'drozo_guard' && verified && typeof startDrozoGuard2FA === 'function') {
     startDrozoGuard2FA();
   } else if (pref === 'totp' && verified) {
@@ -1516,14 +1492,14 @@ window.handleStep1Submit = function(e) {
   } else {
     var onboard = document.getElementById('authStepOnboarding');
     if (onboard) onboard.classList.remove('hidden');
-    else completeLogin(email);
+    else finishDirectLogin(email);
   }
   return false;
 };
 
 window.handleAuthSubmit = window.handleStep1Submit;
 
-function completeLogin(email) {
+function finishDirectLogin(email) {
   localStorage.setItem('drozo_active_session', email);
   var modal = document.getElementById('authModal');
   if (modal) modal.classList.add('hidden');
@@ -1535,11 +1511,13 @@ function completeLogin(email) {
   }
 }
 
-// Immediate unfreeze
-document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
-  el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
-  el.style.filter = 'none';
-  el.style.pointerEvents = 'auto';
+// Immediate unfreeze on page load
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
+    el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
+    el.style.filter = 'none';
+    el.style.pointerEvents = 'auto';
+  });
 });
 </script>
 </body>

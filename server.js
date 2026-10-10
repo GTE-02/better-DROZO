@@ -115,72 +115,10 @@ function startKeepAliveEngine() {
 }
 
 
-// ==========================================
-// GOOGLE DRIVE 5 TB STORAGE RELAY (NO GOOGLE CONSOLE)
-// ==========================================
-const GDRIVE_SCRIPT_URL = process.env.GDRIVE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyTwFaNwNHZBcDFO5GfC2I4K_4ReYVn2KAfJugkgm1V7RVkno7GDk0Kpik7_vBmXNkc8g/exec";
-
-app.post('/api/drive/upload', async (req, res) => {
-  if (!GDRIVE_SCRIPT_URL) {
-    return res.status(503).json({ error: "GDRIVE_SCRIPT_URL environment variable is not configured." });
-  }
-
-  try {
-    const response = await fetch(GDRIVE_SCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-    const result = await response.json();
-    res.json(result);
-  } catch (err) {
-    console.error("[DriveRelay] Upload error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Periodic Database Snapshot to Google Drive
-app.post('/api/drive/backup-database', async (req, res) => {
-  if (!GDRIVE_SCRIPT_URL) return res.status(503).json({ error: "Drive relay not configured" });
-
-  try {
-    const response = await fetch(GDRIVE_SCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filename: `DrozoMind_Backup_${Date.now()}.json`,
-        content: JSON.stringify(memoryStateStore, null, 2)
-      })
-    });
-    const result = await response.json();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 
-// Auto-backup to Google Drive every 30 minutes
-setInterval(async () => {
-  if (!GDRIVE_SCRIPT_URL) return;
-  try {
-    console.log("[GoogleDrive] Running scheduled state backup...");
-    await fetch(GDRIVE_SCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filename: `DrozoMind_AutoBackup_${Date.now()}.json`,
-        content: JSON.stringify(memoryStateStore, null, 2)
-      })
-    });
-    console.log("[GoogleDrive] Periodic backup completed successfully.");
-  } catch (err) {
-    console.warn("[GoogleDrive] Scheduled backup notice:", err.message);
-  }
-}, 30 * 60 * 1000);
+
+
 
 app.listen(PORT, () => {
   console.log(`Better-Drozo backend active on port ${PORT}`);
