@@ -836,12 +836,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode');
     const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div'));
     
-    // View Controller
     const show = (kw) => sections.forEach(s => {
         if (!s.innerText) return;
         if(s.innerText.includes(kw)) { 
             s.style.display = ''; s.classList.remove('hidden'); 
-            // Kickstart camera if Face ID screen
             if (kw === 'Anti-Spoof') {
                 const vid = s.querySelector('video');
                 if (vid && vid.paused) vid.play().catch(e => console.warn(e));
@@ -851,23 +849,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Set initial view
     if (mode === 'verify') show('Anti-Spoof');
     else show('Select Biometric');
 
-    // Button Click Interceptor
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button') || e.target.closest('a');
         if (!btn) return;
         const txt = (btn.innerText || '').trim();
-        
         const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
 
         if (txt.includes('Fingerprint Scanner')) {
             e.preventDefault(); e.stopPropagation();
             localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             alert('Fingerprint Hardware Pass Registered Successfully!');
-            window.location.href = 'index.html'; // Returns to portal unlocked
+            window.location.href = 'index.html'; 
         } 
         else if (txt.includes('Face ID Recognition')) {
             e.preventDefault(); e.stopPropagation();
@@ -876,11 +871,11 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (txt.includes('Authenticate Living User')) {
             e.preventDefault(); e.stopPropagation();
             localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html'; // Manual bypass
+            window.location.href = 'index.html'; 
         }
         else if (txt === 'Cancel' || txt.includes('Go Back')) {
             e.preventDefault(); e.stopPropagation();
-            window.location.href = 'auth.html?mode=enroll'; // Fixes the STANDBY blank screen bug
+            window.location.href = 'auth.html?mode=enroll'; // THIS FIXES THE CANCEL BUG
         }
         else if (txt.includes('Skip Biometric')) {
             e.preventDefault(); e.stopPropagation();

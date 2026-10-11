@@ -1427,17 +1427,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const warn = document.getElementById('authStepWarningModal');
     const modal = document.getElementById('authModal') || document.querySelector('.fixed.inset-0');
 
-    // Auto-unlock if returning from auth.html successfully
+    // THIS FIXES THE FINGERPRINT BUG: Auto-unlocks if you just verified
     const activeEmail = localStorage.getItem('drozo_active_session');
     if (activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true') {
         if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
         document.querySelectorAll('.blur-sm, .filter').forEach(el => {
             el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
         });
-        return; // Stop here, user is in the portal
+        return; 
     }
 
-    // Default View
     if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
     if(totp) { totp.style.display = 'none'; totp.classList.add('hidden'); }
     if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
