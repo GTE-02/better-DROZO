@@ -249,14 +249,14 @@
   </footer>
 
   <script>
-    const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+    var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+    var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
-    let activeSessionToken = null;
-    let pollerTimer = null;
-    let html5QrScannerMobile = null;
+    var activeSessionToken = null;
+    var pollerTimer = null;
+    var html5QrScannerMobile = null;
 
-    const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
+    var guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
     guardSyncChannel.onmessage = (event) => {
       if (event.data && event.data.type === 'NEW_CHALLENGE' && event.data.token) {
         verifyAndShowChallenge(event.data.token, event.data.email);
@@ -275,11 +275,11 @@
     // DISCRETE BIOMETRIC LOGIC & LOCK ENFORCEMENT
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
-      const bioPref = localStorage.getItem("drozo_guard_bio_type"); // "fingerprint", "faceid", "none", or null
-      const statusTag = document.getElementById('bioLockedStatusTag');
+      var bioPref = localStorage.getItem("drozo_guard_bio_type"); // "fingerprint", "faceid", "none", or null
+      var statusTag = document.getElementById('bioLockedStatusTag');
 
-      let activeSessionEmail = "admin@drozominds.com";
-      const isAlreadyEnrolled = localStorage.getItem("drozo_guard_bio_type") || localStorage.getItem("drozo_face_enrolled_" + activeSessionEmail);
+      var activeSessionEmail = "admin@drozominds.com";
+      var isAlreadyEnrolled = localStorage.getItem("drozo_guard_bio_type") || localStorage.getItem("drozo_face_enrolled_" + activeSessionEmail);
 
       // Do NOT ask again if already registered
       if (!bioPref && !isAlreadyEnrolled) {
@@ -294,9 +294,9 @@
         if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const tokenParam = urlParams.get('token');
-      const emailParam = urlParams.get('email');
+      var urlParams = new URLSearchParams(window.location.search);
+      var tokenParam = urlParams.get('token');
+      var emailParam = urlParams.get('email');
       if (tokenParam) {
         verifyAndShowChallenge(tokenParam, emailParam);
       } else {
@@ -308,18 +308,18 @@
     // ==========================================
     // ROTATIONAL FACE CALIBRATION & VERIFICATION
     // ==========================================
-    let faceStream = null;
-    let faceMode = "enroll"; // "enroll" or "verify"
-    let currentStep = 0;
-    let isCalibrating = false;
+    var faceStream = null;
+    var faceMode = "enroll"; // "enroll" or "verify"
+    var currentStep = 0;
+    var isCalibrating = false;
 
     async function openCustomFaceScanner(purpose = "unlock") {
       faceMode = (purpose === "enroll") ? "enroll" : "verify";
-      const modal = document.getElementById('faceIdScannerModal');
-      const title = document.getElementById('faceScannerTitle');
-      const subtitle = document.getElementById('faceScannerSubtitle');
-      const btn = document.getElementById('btnCaptureFaceAction');
-      const prog = document.getElementById('faceEnrollProgress');
+      var modal = document.getElementById('faceIdScannerModal');
+      var title = document.getElementById('faceScannerTitle');
+      var subtitle = document.getElementById('faceScannerSubtitle');
+      var btn = document.getElementById('btnCaptureFaceAction');
+      var prog = document.getElementById('faceEnrollProgress');
 
       currentStep = 0;
       isCalibrating = false;
@@ -339,7 +339,7 @@
       modal.classList.remove('hidden');
 
       try {
-        const video = document.getElementById('faceCameraVideo');
+        var video = document.getElementById('faceCameraVideo');
         faceStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } },
           audio: false
@@ -361,7 +361,7 @@
 
     function handleFaceFallbackChoice() {
       closeFaceScanner();
-      const activeUser = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      var activeUser = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
       // Fallback routes user to Drozo Guard challenge or camera ID scanner
       alert("Redirecting to backup authentication (Drozo Guard QR Challenge).");
       if (typeof startScanner === "function") {
@@ -372,15 +372,15 @@
     // ==========================================
     // SUPABASE PGVECTOR BIOMETRIC INTEGRATION
     // ==========================================
-    const FACE_MODEL_URL = "https://vladmandic.github.io/face-api/model/";
-    let faceModelsReady = false;
+    var FACE_MODEL_URL = "https://vladmandic.github.io/face-api/model/";
+    var faceModelsReady = false;
 
     async function loadFaceBiometricModels() {
       if (faceModelsReady) return;
-      const status = document.getElementById('faceScanStatusText');
+      var status = document.getElementById('faceScanStatusText');
       if (status) status.innerText = "Loading neural model weights...";
       try {
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("CDN Timeout")), 6000));
+        var timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("CDN Timeout")), 6000));
         await Promise.race([
           Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
@@ -399,7 +399,7 @@
 
     async function extractLiveDescriptor(videoEl) {
       if (!faceModelsReady) await loadFaceBiometricModels();
-      const detection = await faceapi
+      var detection = await faceapi
         .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
         .withFaceLandmarks()
         .withFaceDescriptor();
@@ -411,8 +411,8 @@
     }
 
     async function saveFaceVectorToSupabase(email, descriptorArray) {
-      const vectorPayload = JSON.stringify(descriptorArray);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_face_vectors`, {
+      var vectorPayload = JSON.stringify(descriptorArray);
+      var res = await fetch(`${SUPABASE_URL}/rest/v1/user_face_vectors`, {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON,
@@ -428,15 +428,15 @@
       });
 
       if (!res.ok) {
-        const err = await res.text();
+        var err = await res.text();
         throw new Error("Supabase pgvector save failed: " + err);
       }
       return true;
     }
 
     async function verifyFaceVectorWithSupabase(email, probeDescriptorArray) {
-      const vectorPayload = JSON.stringify(probeDescriptorArray);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_user_face`, {
+      var vectorPayload = JSON.stringify(probeDescriptorArray);
+      var res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_user_face`, {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON,
@@ -450,11 +450,11 @@
       });
 
       if (!res.ok) {
-        const err = await res.text();
+        var err = await res.text();
         throw new Error("Supabase RPC error: " + err);
       }
 
-      const rows = await res.json();
+      var rows = await res.json();
       if (rows && rows.length > 0) {
         return rows[0]; // { match_found: true|false, similarity_score: number }
       }
@@ -466,11 +466,11 @@
       if (isCalibrating) return;
       isCalibrating = true;
 
-      const badge = document.getElementById('faceStepBadge');
-      const status = document.getElementById('faceScanStatusText');
-      const prog = document.getElementById('faceEnrollProgress');
-      const video = document.getElementById('faceCameraVideo');
-      const targetEmail = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      var badge = document.getElementById('faceStepBadge');
+      var status = document.getElementById('faceScanStatusText');
+      var prog = document.getElementById('faceEnrollProgress');
+      var video = document.getElementById('faceCameraVideo');
+      var targetEmail = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
 
       try {
         if (!faceModelsReady) {
@@ -493,7 +493,7 @@
           status.innerText = "Generating neural embedding...";
           prog.style.width = "90%";
 
-          const descriptor = await extractLiveDescriptor(video);
+          var descriptor = await extractLiveDescriptor(video);
 
           status.innerText = "Saving vector to Supabase pgvector...";
           await saveFaceVectorToSupabase(targetEmail, descriptor);
@@ -513,10 +513,10 @@
           status.innerText = "Extracting live vector descriptor...";
           prog.style.width = "75%";
 
-          const probeDescriptor = await extractLiveDescriptor(video);
+          var probeDescriptor = await extractLiveDescriptor(video);
 
           status.innerText = "Querying Supabase pgvector match_user_face...";
-          const result = await verifyFaceVectorWithSupabase(targetEmail, probeDescriptor);
+          var result = await verifyFaceVectorWithSupabase(targetEmail, probeDescriptor);
 
           prog.style.width = "100%";
 
@@ -545,9 +545,9 @@
     }
 
     function configureLockScreenUI(type) {
-      const isFinger = (type === "fingerprint");
-      const icon = isFinger ? "👆" : "👤";
-      const name = isFinger ? "Fingerprint" : "Face ID";
+      var isFinger = (type === "fingerprint");
+      var icon = isFinger ? "👆" : "👤";
+      var name = isFinger ? "Fingerprint" : "Face ID";
 
       document.getElementById('lockScreenIcon').innerText = icon;
       document.getElementById('lockScreenSubtitle').innerHTML = `Verify your <strong>${name}</strong> to open Drozo Guard.`;
@@ -583,7 +583,7 @@
       localStorage.setItem("drozo_guard_bio_type", "none");
       document.getElementById('biometricWarningModal').classList.add('hidden');
       document.getElementById('biometricLockModal').classList.add('hidden');
-      const statusTag = document.getElementById('bioLockedStatusTag');
+      var statusTag = document.getElementById('bioLockedStatusTag');
       if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
     }
 
@@ -595,25 +595,25 @@
         return;
       }
       bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
-      const sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
-      const msg = document.getElementById('bioStatusMsg');
+      var sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
+      var msg = document.getElementById('bioStatusMsg');
       if (msg) msg.innerText = `Please touch ${sensorLabel}...`;
 
-      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
-      const storedCred = localStorage.getItem("drozo_bio_cred_" + bioType + "_" + activeUser);
+      var activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      var storedCred = localStorage.getItem("drozo_bio_cred_" + bioType + "_" + activeUser);
 
       if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
         try {
-          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          var available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
           if (available) {
-            const challenge = new Uint8Array(32);
+            var challenge = new Uint8Array(32);
             window.crypto.getRandomValues(challenge);
 
             if (purpose === 'enroll' || !storedCred) {
-              const userId = new Uint8Array(16);
+              var userId = new Uint8Array(16);
               window.crypto.getRandomValues(userId);
 
-              const newCred = await navigator.credentials.create({
+              var newCred = await navigator.credentials.create({
                 publicKey: {
                   challenge: challenge,
                   rp: { name: "Drozo Guard Sanctuary", id: window.location.hostname },
@@ -630,7 +630,7 @@
                 return;
               }
             } else {
-              const assertion = await navigator.credentials.get({
+              var assertion = await navigator.credentials.get({
                 publicKey: {
                   challenge: challenge,
                   rpId: window.location.hostname,
@@ -667,7 +667,7 @@
     }
 
     function handleApproveWithBiometric() {
-      const bioPref = localStorage.getItem("drozo_guard_bio_type");
+      var bioPref = localStorage.getItem("drozo_guard_bio_type");
       if (bioPref === "fingerprint" || bioPref === "faceid") {
         triggerDeviceBiometrics('approve');
       } else {
@@ -683,13 +683,13 @@
       document.getElementById('challengeView').classList.remove('hidden');
 
       document.getElementById('sessionTokenDisplay').innerText = token;
-      const targetEmail = email || "admin@drozominds.com";
+      var targetEmail = email || "admin@drozominds.com";
       document.getElementById('userEmailDisplay').innerText = targetEmail;
 
-      const displayName = (targetEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (targetEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : targetEmail.split('@')[0]);
+      var displayName = (targetEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (targetEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : targetEmail.split('@')[0]);
       document.getElementById('userNameDisplay').innerText = displayName;
 
-      const pill = document.getElementById('guardPill');
+      var pill = document.getElementById('guardPill');
       pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-950/60 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
       pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> CHALLENGE';
     }
@@ -703,14 +703,14 @@
     async function checkPendingSessionsNow() {
       if (activeSessionToken) return;
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
+        var res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
           headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` },
           cache: "no-store"
         });
         if (res.ok) {
-          const rows = await res.json();
+          var rows = await res.json();
           if (rows && rows.length > 0) {
-            const req = rows[0];
+            var req = rows[0];
             if (sessionStorage.getItem("handled_" + req.session_token)) return;
             verifyAndShowChallenge(req.session_token, req.email);
           }
@@ -720,7 +720,7 @@
 
     async function respondChallenge(statusDecision) {
       if (!activeSessionToken) return;
-      const tok = activeSessionToken;
+      var tok = activeSessionToken;
 
       sessionStorage.setItem("handled_" + tok, "true");
       localStorage.setItem("drozo_challenge_result_" + tok, statusDecision);
@@ -734,7 +734,7 @@
       } catch (_) {}
 
       try {
-        const resultChannel = new BroadcastChannel('drozo_sync');
+        var resultChannel = new BroadcastChannel('drozo_sync');
         resultChannel.postMessage({ type: 'GUARD_RESULT', token: tok, status: statusDecision });
       } catch (_) {}
 
@@ -743,7 +743,7 @@
     }
 
     async function startScanner() {
-      let box = document.getElementById('cameraScannerBox');
+      var box = document.getElementById('cameraScannerBox');
       if (!box) {
         box = document.createElement('div');
         box.id = 'cameraScannerBox';
@@ -766,13 +766,13 @@
       }
       box.classList.remove('hidden');
 
-      const onScanSuccess = async (decodedText) => {
+      var onScanSuccess = async (decodedText) => {
         try {
           if (decodedText.includes("token=") || decodedText.includes("SES_")) {
-            let token = "";
-            let email = "admin@drozominds.com";
+            var token = "";
+            var email = "admin@drozominds.com";
             if (decodedText.includes("?")) {
-              const url = new URL(decodedText);
+              var url = new URL(decodedText);
               token = url.searchParams.get("token") || "";
               email = url.searchParams.get("email") || email;
             } else if (decodedText.startsWith("SES_")) {
@@ -789,7 +789,7 @@
       try {
         if (html5QrScannerMobile) { try { await html5QrScannerMobile.stop(); } catch(_) {} }
         html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
-        const config = { fps: 20, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
+        var config = { fps: 20, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
         try {
           await html5QrScannerMobile.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
         } catch (_) {
@@ -805,12 +805,12 @@
         try { await html5QrScannerMobile.stop(); } catch(_) {}
         html5QrScannerMobile = null;
       }
-      const box = document.getElementById('cameraScannerBox');
+      var box = document.getElementById('cameraScannerBox');
       if (box) box.classList.add('hidden');
     }
 
     function promptManualSessionToken() {
-      const code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
+      var code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
       if (code && code.trim().startsWith("SES_")) {
         verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com");
       }
@@ -825,7 +825,7 @@
         el.style.pointerEvents = 'auto';
         el.style.userSelect = 'auto';
       });
-      const portal = document.getElementById('portalContent');
+      var portal = document.getElementById('portalContent');
       if (portal) {
         portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
         portal.style.filter = 'none';
@@ -833,7 +833,7 @@
       }
       // Ensure hidden modals don't hold invisible click blocks
       ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
-        const m = document.getElementById(id);
+        var m = document.getElementById(id);
         if (m && m.classList.contains('hidden')) {
           m.style.pointerEvents = 'none';
         }
@@ -857,7 +857,7 @@
   function setupViewPanels() {
     // Find each distinct view panel by its unique headings
     document.querySelectorAll('main > div, .min-h-screen > div, body > div').forEach(el => {
-      const text = el.innerText || '';
+      var text = el.innerText || '';
       if (text.includes('Select Biometric Protection')) {
         el.classList.add('drozo-view-panel');
         el.setAttribute('id', 'viewPanelBioSelect');
@@ -878,7 +878,7 @@
 
     // Wire up buttons across all panels
     document.querySelectorAll('button, a, div').forEach(btn => {
-      const txt = (btn.innerText || '').trim();
+      var txt = (btn.innerText || '').trim();
       if (btn.hasAttribute('data-bound')) return;
 
       if (txt.includes('Fingerprint Scanner')) {
@@ -898,7 +898,7 @@
         btn.style.cursor = 'pointer';
         btn.onclick = (e) => {
           e.preventDefault();
-          const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
+          var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
           localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
           window.location.href = 'index.html';
         };
@@ -910,7 +910,7 @@
     });
 
     // Determine initial active view from URL params
-    const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+    var mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
     if (mode === 'enroll') {
       showPanel('viewPanelBioSelect');
     } else if (mode === 'verify') {
@@ -924,7 +924,7 @@
 
   window.showPanel = function(panelId) {
     document.querySelectorAll('.drozo-view-panel').forEach(p => p.classList.remove('drozo-view-active'));
-    const target = document.getElementById(panelId);
+    var target = document.getElementById(panelId);
     if (target) {
       target.classList.add('drozo-view-active');
     } else {
@@ -941,12 +941,12 @@
 })();
 </script>
 
-<script id="drozo-auth-view-manager">
+<script>
 // ==========================================
 // AUTH.HTML DETERMINISTIC VIEW CONTROLLER
 // ==========================================
 window.switchView = function(viewName) {
-  const views = {
+  var views = {
     'enroll': ['selectBiometricSection', 'chooseSensorContainer'],
     'liveness': ['livenessSection', 'faceScanContainer'],
     'fingerprint': ['fingerprintSection', 'touchIdContainer'],
@@ -956,7 +956,7 @@ window.switchView = function(viewName) {
 
   // Find and selectively display target sections by text content if IDs vary
   document.querySelectorAll('main > div, .min-h-screen > div, section').forEach(el => {
-    const txt = (el.innerText || '');
+    var txt = (el.innerText || '');
     if (txt.includes('Select Biometric Protection')) {
       el.style.display = (viewName === 'enroll') ? 'block' : 'none';
     } else if (txt.includes('Anti-Spoof Biometric Check') || txt.includes('Align face inside oval frame')) {
@@ -974,7 +974,7 @@ window.switchView = function(viewName) {
 // Wire all auth.html buttons explicitly
 function bindAuthButtons() {
   document.querySelectorAll('button, div, a').forEach(el => {
-    const txt = (el.innerText || '').trim();
+    var txt = (el.innerText || '').trim();
     if (txt.includes('Fingerprint Scanner')) {
       el.onclick = (e) => { e.preventDefault(); window.startFingerprintEnroll(); };
       el.style.cursor = 'pointer';
@@ -995,7 +995,7 @@ function bindAuthButtons() {
 }
 
 window.startFingerprintEnroll = function() {
-  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
   localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
   localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
   alert('Fingerprint hardware pass registered successfully!');
@@ -1003,32 +1003,32 @@ window.startFingerprintEnroll = function() {
 };
 
 window.startFaceIDEnroll = function() {
-  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
   localStorage.setItem('drozo_bio_choice_' + email, 'face');
   window.switchView('liveness');
 };
 
 window.finishBiometricBypass = function() {
-  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
   localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
   window.location.href = 'index.html';
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+  var mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
   window.switchView(mode === 'verify' ? 'liveness' : 'enroll');
   bindAuthButtons();
 });
 </script>
 
 
-<script id="drozo-view-router">
+<script>
 // ==========================================
 // DETERMINISTIC VIEW ROUTER FOR AUTH.HTML
 // ==========================================
 window.setAuthView = function(viewName) {
   document.querySelectorAll('main > div, .min-h-screen > div, section').forEach(el => {
-    const txt = (el.innerText || '');
+    var txt = (el.innerText || '');
     if (txt.includes('Select Biometric Protection') || txt.includes('Choose your device sensor')) {
       el.style.display = (viewName === 'enroll') ? 'block' : 'none';
     } else if (txt.includes('Anti-Spoof Biometric Check') || txt.includes('Align face inside oval frame')) {
@@ -1045,11 +1045,11 @@ window.setAuthView = function(viewName) {
 
 function bindAuthButtons() {
   document.querySelectorAll('button, div, a').forEach(el => {
-    const txt = (el.innerText || '').trim();
+    var txt = (el.innerText || '').trim();
     if (txt.includes('Fingerprint Scanner')) {
       el.onclick = (e) => {
         e.preventDefault();
-        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
         localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
         localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
         alert('Touch ID / Fingerprint sensor configured successfully.');
@@ -1059,7 +1059,7 @@ function bindAuthButtons() {
     } else if (txt.includes('Face ID Recognition')) {
       el.onclick = (e) => {
         e.preventDefault();
-        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
         localStorage.setItem('drozo_bio_choice_' + email, 'face');
         window.setAuthView('liveness');
       };
@@ -1070,7 +1070,7 @@ function bindAuthButtons() {
     } else if (txt.includes('Yes, I Understand the Risk')) {
       el.onclick = (e) => {
         e.preventDefault();
-        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        var email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
         localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
         window.location.href = 'index.html';
       };
@@ -1083,11 +1083,48 @@ function bindAuthButtons() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+  var mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
   window.setAuthView(mode === 'verify' ? 'liveness' : 'enroll');
   bindAuthButtons();
 });
 </script>
 
-</body>
-</html>
+    <script>
+    window.onload = function() {
+      var mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+      var v = (mode === 'verify') ? 'liveness' : 'enroll';
+      
+      document.querySelectorAll('main > div, .min-h-screen > div, section').forEach(function(el) {
+        var t = el.innerText || '';
+        if(t.includes('Select Biometric')) el.style.display = (v==='enroll') ? 'block' : 'none';
+        else if(t.includes('Anti-Spoof')) el.style.display = (v==='liveness') ? 'block' : 'none';
+        else if(t.includes('Scan your fingerprint')) el.style.display = (v==='fingerprint') ? 'block' : 'none';
+        else if(t.includes('Critical Security')) el.style.display = (v==='warning') ? 'block' : 'none';
+        else if(t.includes('Drozo Guard Active')) el.style.display = (v==='dashboard') ? 'block' : 'none';
+      });
+
+      // Bind all auth.html buttons
+      document.querySelectorAll('button, div, a').forEach(function(el) {
+        var t = (el.innerText || '').trim();
+        if(t.includes('Fingerprint Scanner')) {
+           el.onclick = function(e){ e.preventDefault(); localStorage.setItem('drozo_bio_choice_'+localStorage.getItem('drozo_active_session'), 'fingerprint'); window.location.href='index.html'; };
+           el.style.cursor = 'pointer';
+        }
+        if(t.includes('Face ID Recognition')) {
+           el.onclick = function(e){ e.preventDefault(); localStorage.setItem('drozo_bio_choice_'+localStorage.getItem('drozo_active_session'), 'face'); window.location.href='auth.html?mode=verify'; };
+           el.style.cursor = 'pointer';
+        }
+        if(t.includes('Skip Biometric')) {
+           el.onclick = function(e){ e.preventDefault(); document.querySelectorAll('main > div, section').forEach(function(s){ s.style.display = s.innerText.includes('Critical Security') ? 'block' : 'none'; }); };
+           el.style.cursor = 'pointer';
+        }
+        if(t.includes('Yes, I Understand')) {
+           el.onclick = function(e){ e.preventDefault(); localStorage.setItem('drozo_user_2fa_verified_'+localStorage.getItem('drozo_active_session'), 'true'); window.location.href='index.html'; };
+           el.style.cursor = 'pointer';
+        }
+      });
+    };
+    </script>
+    </body>
+    </html>
+    
