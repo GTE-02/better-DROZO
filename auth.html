@@ -830,64 +830,78 @@
     setInterval(forceClearAllBlurs, 1000);
 </script>
 
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode');
-    const sections = document.querySelectorAll('main > div, section, .min-h-screen > div');
     
-    const show = (kw) => sections.forEach(s => {
-        if (!s.innerText) return;
-        if (s.innerText.includes(kw)) {
-            s.style.display = ''; s.classList.remove('hidden');
-        } else {
-            s.style.display = 'none'; s.classList.add('hidden');
+    // 1. Find all screens
+    let enrollScreen, faceScreen, warnScreen, headerScreen;
+    document.querySelectorAll('div, header, nav, section').forEach(el => {
+        const txt = el.innerText || '';
+        const cList = el.classList;
+        if (txt.includes('Choose your device sensor') && (cList.contains('max-w-md') || cList.contains('w-full'))) enrollScreen = el;
+        if (txt.includes('Anti-Spoof Biometric') && (cList.contains('max-w-md') || cList.contains('w-full'))) faceScreen = el;
+        if (txt.includes('Critical Security Alert') && (cList.contains('max-w-md') || cList.contains('w-full'))) warnScreen = el;
+        if (txt.includes('DROZO GUARD') && txt.includes('STANDBY') && (el.tagName === 'HEADER' || cList.contains('border-b'))) headerScreen = el;
+    });
+
+    const stash = { enroll: enrollScreen, face: faceScreen, warn: warnScreen, header: headerScreen };
+    
+    // 2. DETACH all screens from the DOM completely (Makes ghosting impossible)
+    Object.values(stash).forEach(el => {
+        if (el && el.parentElement) {
+            el._parent = el.parentElement;
+            el._placeholder = document.createComment('stashed-view');
+            el.parentElement.replaceChild(el._placeholder, el);
         }
     });
 
-    if (mode === 'verify') {
-        show('Anti-Spoof');
-        // If loaded directly, attempt to play
-        setTimeout(() => {
-            const vid = document.querySelector('video');
-            if(vid) vid.play().catch(e => console.warn(e));
-        }, 500);
-    } else {
-        show('Select Biometric');
+    // 3. Reattach ONLY the active screen
+    let activeScreen = stash.enroll;
+    if (mode === 'verify') activeScreen = stash.face;
+    
+    const renderView = (newScreen) => {
+        if (activeScreen && activeScreen.parentElement) {
+            activeScreen.parentElement.replaceChild(activeScreen._placeholder, activeScreen); // Detach current
+        }
+        activeScreen = newScreen;
+        if (activeScreen && activeScreen._parent) {
+            activeScreen._parent.replaceChild(activeScreen, activeScreen._placeholder); // Attach new
+        }
+    };
+    renderView(activeScreen);
+
+    // 4. Kickstart Safari Camera
+    if (activeScreen === stash.face) {
+        const vid = activeScreen.querySelector('video');
+        if (vid) { vid.muted = true; vid.play().catch(e => console.warn(e)); }
     }
 
+    // 5. Button Click Handlers
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button') || e.target.closest('a');
         if (!btn) return;
-        const txt = (btn.innerText || '').trim();
+        const txt = btn.innerText.trim();
         const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
 
         if (txt.includes('Fingerprint Scanner')) {
-            e.preventDefault(); e.stopPropagation();
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            alert('Fingerprint Hardware Pass Registered Successfully!');
-            window.location.href = 'index.html';
+            e.preventDefault(); localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            alert('Fingerprint Hardware Pass Registered!'); window.location.href = 'index.html';
         } else if (txt.includes('Face ID Recognition')) {
-            e.preventDefault(); e.stopPropagation();
-            show('Anti-Spoof'); 
-            // THIS FIXES SAFARI: Play is called synchronously inside the user's physical click event
-            const vid = document.querySelector('video');
-            if (vid) { vid.muted = true; vid.play(); }
+            e.preventDefault(); window.location.href = 'auth.html?mode=verify';
         } else if (txt.includes('Authenticate Living User')) {
-            e.preventDefault(); e.stopPropagation();
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            e.preventDefault(); localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             window.location.href = 'index.html';
         } else if (txt === 'Cancel' || txt.includes('Go Back')) {
-            e.preventDefault(); e.stopPropagation();
-            window.location.href = 'auth.html?mode=enroll';
+            e.preventDefault(); window.location.href = 'auth.html?mode=enroll';
         } else if (txt.includes('Skip Biometric')) {
-            e.preventDefault(); e.stopPropagation();
-            show('Critical Security');
+            e.preventDefault(); renderView(stash.warn);
         } else if (txt.includes('Yes, I Understand')) {
-            e.preventDefault(); e.stopPropagation();
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            e.preventDefault(); localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             window.location.href = 'index.html';
         }
-    }, true);
+    });
 });
 </script>
 

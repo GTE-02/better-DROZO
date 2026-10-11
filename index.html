@@ -1418,6 +1418,7 @@
     setInterval(forceClearAllBlurs, 1000);
 </script>
 
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const login = document.getElementById('authStepLogin');
@@ -1426,247 +1427,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const warn = document.getElementById('authStepWarningModal');
     const modal = document.getElementById('authModal') || document.querySelector('.fixed.inset-0');
     
-    // Find the green Sign In button in the top right nav bar
-    const topSignInBtn = Array.from(document.querySelectorAll('button, a')).find(b => b.innerText.includes('Sign In') && !b.closest('#authModal'));
-
-    // Reset internal modal display
-    if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
-    if(totp) { totp.style.display = 'none'; totp.classList.add('hidden'); }
-    if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
-    if(login) { login.style.display = 'block'; login.classList.remove('hidden'); }
-
     const activeEmail = localStorage.getItem('drozo_active_session');
     const isVerified = activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true';
 
-    // AUTO-UNLOCK LOGIC
+    // AUTO-UNLOCK: If user is verified, delete the modal so it can't block the screen
     if (isVerified) {
-        if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
+        if(modal) modal.remove(); 
         document.querySelectorAll('.blur-sm, .filter').forEach(el => {
             el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
         });
         
-        // Change the top right button to Sign Out
+        // Turn top right button into 'Sign Out'
+        const topSignInBtn = Array.from(document.querySelectorAll('button, a')).find(b => b.innerText.includes('Sign In'));
         if (topSignInBtn) {
             topSignInBtn.innerText = 'Sign Out';
-            topSignInBtn.style.backgroundColor = '#ef4444'; // Make it red for sign out
+            topSignInBtn.style.backgroundColor = '#ef4444';
             topSignInBtn.onclick = (e) => {
-                e.preventDefault();
-                localStorage.removeItem('drozo_user_2fa_verified_' + activeEmail);
-                window.location.reload(); // Locks the page again
+                e.preventDefault(); localStorage.removeItem('drozo_user_2fa_verified_' + activeEmail); window.location.reload();
             };
         }
-    } else {
-        // Locked State
-        if(modal) { modal.style.display = 'flex'; modal.classList.remove('hidden'); }
-        if (topSignInBtn) {
-            topSignInBtn.onclick = (e) => {
-                e.preventDefault();
-                if(modal) { modal.style.display = 'flex'; modal.classList.remove('hidden'); }
-            };
-        }
-    }
-
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if(!btn) return;
-        const txt = btn.innerText.trim();
-        const emailInput = document.getElementById('authEmail') || document.querySelector('input[type="email"]');
-        
-        if (txt.includes('Continue to 2FA') || txt.includes('Create Account')) {
-            e.preventDefault(); e.stopPropagation();
-            if (emailInput && emailInput.value) localStorage.setItem('drozo_active_session', emailInput.value);
-            if(login) { login.style.display = 'none'; login.classList.add('hidden'); }
-            if(enroll) { enroll.style.display = 'block'; enroll.classList.remove('hidden'); }
-        } else if (txt.includes('Drozo Guard + ID Pass')) {
-            e.preventDefault(); e.stopPropagation();
-            window.location.href = 'auth.html?mode=enroll';
-        } else if (txt.includes('Authenticator + ID Pass')) {
-            e.preventDefault(); e.stopPropagation();
-            if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
-            if(totp) { totp.style.display = 'block'; totp.classList.remove('hidden'); }
-        } else if (txt.includes('Skip All 2FA') || txt.includes('Password Only')) {
-            e.preventDefault(); e.stopPropagation();
-            if(warn) { warn.style.display = 'flex'; warn.classList.remove('hidden'); }
-        } else if (txt.includes('Acknowledge & Sign In') || txt.includes('Verify & Complete')) {
-            e.preventDefault(); e.stopPropagation();
-            if(emailInput && emailInput.value) localStorage.setItem('drozo_user_2fa_verified_' + emailInput.value, 'true');
-            window.location.reload(); // Reload instantly triggers the Auto-Unlock logic above
-        } else if (txt.includes('Return to Recommended')) {
-            e.preventDefault(); e.stopPropagation();
-            if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
-        }
-    }, true);
-});
-</script>
-
-</body></html>`);
-      win.document.close();
-    }
-
-    // CLOUD VAULT STORAGE
-    function loadCloudVaultFiles() {
-      const activeUser = localStorage.getItem("drozo_active_session") || "default_user";
-      const files = JSON.parse(localStorage.getItem("drozo_vault_files_" + activeUser) || "null") || [
-        { id: "doc_init_01", name: "Baseline_Mental_Health_Record_2026.pdf", type: "application/pdf", size: "342 KB", date: "Today, 10:15 AM", owner: "Water_Chugger/Owner" },
-        { id: "doc_init_02", name: "Mindfulness_Grounding_Protocol.pdf", type: "application/pdf", size: "185 KB", date: "Yesterday", owner: "Clinical Sanctuary" }
-      ];
-      renderVaultFileList(files);
-    }
-
-    function renderVaultFileList(files) {
-      const container = document.getElementById('vaultFileList');
-      if (!container) return;
-      if (!files || files.length === 0) {
-        container.innerHTML = `<div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-1.5"><span class="text-2xl block">📁</span><div class="text-xs font-bold text-slate-700">No Cloud Documents Yet</div><p class="text-[11px] text-slate-400">Upload medical documents to sync securely.</p></div>`;
         return;
-      }
-      container.innerHTML = files.map(file => `
-        <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between hover:bg-slate-100/70 transition">
-          <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-9 h-9 rounded-lg bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center text-sm font-bold shrink-0">📄</div>
-            <div class="overflow-hidden">
-              <div class="text-xs font-bold text-slate-800 truncate">${file.name}</div>
-              <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
-                <span>${file.size}</span><span>&bull;</span><span>${file.date}</span><span>&bull;</span><span class="text-emerald-700 font-semibold">${file.owner || 'You'}</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="downloadVaultFile('${file.id}')" class="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 font-bold text-[11px] rounded-lg transition shadow-sm flex items-center gap-1"><span>⬇️</span> Download</button>
-            <button type="button" onclick="deleteVaultFile('${file.id}')" class="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition">🗑️</button>
-          </div>
-        </div>
-      `).join('');
     }
 
-    async function handleVaultUpload(event) {
-      const input = event.target;
-      if (!input.files || input.files.length === 0) return;
-      const activeUser = localStorage.getItem("drozo_active_session") || "client@drozominds.com";
-      const key = "drozo_vault_files_" + activeUser;
-      const currentFiles = JSON.parse(localStorage.getItem(key) || "[]");
-
-      const progressBar = document.getElementById('uploadProgressBar');
-      const progressFill = document.getElementById('uploadProgressFill');
-      if (progressBar && progressFill) { progressBar.classList.remove('hidden'); progressFill.style.width = '40%'; }
-
-      for (let i = 0; i < input.files.length; i++) {
-        const file = input.files[i];
-        const readableSize = (file.size < 1024 * 1024) ? Math.round(file.size / 1024) + " KB" : (file.size / (1024 * 1024)).toFixed(1) + " MB";
-        currentFiles.unshift({
-          id: "vault_" + Math.random().toString(36).substring(2, 9),
-          name: file.name,
-          type: file.type || "application/pdf",
-          size: readableSize,
-          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " Today",
-          owner: activeUser.split('@')[0]
-        });
-      }
-
-      if (progressFill) progressFill.style.width = '100%';
-      setTimeout(() => {
-        if (progressBar) progressBar.classList.add('hidden');
-        if (progressFill) progressFill.style.width = '0%';
-      }, 400);
-
-      localStorage.setItem(key, JSON.stringify(currentFiles));
-      renderVaultFileList(currentFiles);
-      input.value = "";
-    }
-
-    function downloadVaultFile(docId) {
-      const activeUser = localStorage.getItem("drozo_active_session") || "default_user";
-      const files = JSON.parse(localStorage.getItem("drozo_vault_files_" + activeUser) || "[]");
-      const file = files.find(f => f.id === docId);
-      if (!file) return alert("File not found.");
-      renderCustomPDF('Vault File', file.name, file.owner || 'Drozo Sanctuary', 'Confidential File Record: ' + file.name, 'Synced in Zero-Knowledge Vault.');
-    }
-
-    function deleteVaultFile(docId) {
-      if (!confirm("Permanently delete this file from cloud vault?")) return;
-      const activeUser = localStorage.getItem("drozo_active_session") || "default_user";
-      const key = "drozo_vault_files_" + activeUser;
-      let files = JSON.parse(localStorage.getItem(key) || "[]");
-      files = files.filter(f => f.id !== docId);
-      localStorage.setItem(key, JSON.stringify(files));
-      renderVaultFileList(files);
-    }
-  </script>
-<script>
-    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
-    function forceClearAllBlurs() {
-      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
-        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
-        el.style.filter = 'none';
-        el.style.pointerEvents = 'auto';
-        el.style.userSelect = 'auto';
-      });
-      const portal = document.getElementById('portalContent');
-      if (portal) {
-        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
-        portal.style.filter = 'none';
-        portal.style.pointerEvents = 'auto';
-      }
-      // Ensure hidden modals don't hold invisible click blocks
-      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
-        const m = document.getElementById(id);
-        if (m && m.classList.contains('hidden')) {
-          m.style.pointerEvents = 'none';
-        }
-      });
-    }
-    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
-    window.addEventListener('load', forceClearAllBlurs);
-    setInterval(forceClearAllBlurs, 1000);
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const login = document.getElementById('authStepLogin');
-    const enroll = document.getElementById('authStepOnboarding');
-    const totp = document.getElementById('authStepTOTP');
-    const warn = document.getElementById('authStepWarningModal');
-    const modal = document.getElementById('authModal') || document.querySelector('.fixed.inset-0');
-    
-    // Find the green Sign In button in the top right nav bar
-    const topSignInBtn = Array.from(document.querySelectorAll('button, a')).find(b => b.innerText.includes('Sign In') && !b.closest('#authModal'));
-
-    // Reset internal modal display
     if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
     if(totp) { totp.style.display = 'none'; totp.classList.add('hidden'); }
     if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
     if(login) { login.style.display = 'block'; login.classList.remove('hidden'); }
-
-    const activeEmail = localStorage.getItem('drozo_active_session');
-    const isVerified = activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true';
-
-    // AUTO-UNLOCK LOGIC
-    if (isVerified) {
-        if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
-        document.querySelectorAll('.blur-sm, .filter').forEach(el => {
-            el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
-        });
-        
-        // Change the top right button to Sign Out
-        if (topSignInBtn) {
-            topSignInBtn.innerText = 'Sign Out';
-            topSignInBtn.style.backgroundColor = '#ef4444'; // Make it red for sign out
-            topSignInBtn.onclick = (e) => {
-                e.preventDefault();
-                localStorage.removeItem('drozo_user_2fa_verified_' + activeEmail);
-                window.location.reload(); // Locks the page again
-            };
-        }
-    } else {
-        // Locked State
-        if(modal) { modal.style.display = 'flex'; modal.classList.remove('hidden'); }
-        if (topSignInBtn) {
-            topSignInBtn.onclick = (e) => {
-                e.preventDefault();
-                if(modal) { modal.style.display = 'flex'; modal.classList.remove('hidden'); }
-            };
-        }
-    }
 
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
@@ -1692,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (txt.includes('Acknowledge & Sign In') || txt.includes('Verify & Complete')) {
             e.preventDefault(); e.stopPropagation();
             if(emailInput && emailInput.value) localStorage.setItem('drozo_user_2fa_verified_' + emailInput.value, 'true');
-            window.location.reload(); // Reload instantly triggers the Auto-Unlock logic above
+            window.location.reload(); 
         } else if (txt.includes('Return to Recommended')) {
             e.preventDefault(); e.stopPropagation();
             if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
