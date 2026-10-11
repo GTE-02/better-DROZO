@@ -81,6 +81,15 @@ window.addEventListener('load', clearScreenLocks);
     #qrCanvasContainer img, #qrCanvasContainer canvas { margin: 0 auto; display: block; border-radius: 0.75rem; width: 160px !important; height: 160px !important; }
 
   </style>
+
+<style id="drozo-strict-core-css">
+  .hidden { display: none !important; }
+  .pointer-events-auto { pointer-events: auto !important; }
+  .cursor-pointer { cursor: pointer !important; }
+  #authModal { z-index: 99999 !important; }
+  #authModalCard { z-index: 100000 !important; }
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
@@ -1209,36 +1218,47 @@ window.addEventListener('load', clearScreenLocks);
       const decodedActions = decodeURIComponent(actions);
       const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
       const win = window.open('', '_blank');
-      win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style></head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div>
+      win.document.write(`<html><head><title>Clinical Outcome - ${patient}</title><style>body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; color: #1e293b; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; } .logo { font-size: 26px; font-weight: 800; color: #0f172a; } .logo span { color: #059669; } .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; } .info-table td { padding: 12px; border: 1px solid #cbd5e1; font-size: 14px; } .info-table td:nth-child(odd) { font-weight: bold; background: #f8fafc; width: 22%; color: #475569; } .content { line-height: 1.8; font-size: 15px; } .signature-block { margin-top: 50px; } .signature { font-family: 'Brush Script MT', cursive; font-size: 32px; }</style>
+<style id="drozo-strict-core-css">
+  .hidden { display: none !important; }
+  .pointer-events-auto { pointer-events: auto !important; }
+  .cursor-pointer { cursor: pointer !important; }
+  #authModal { z-index: 99999 !important; }
+  #authModalCard { z-index: 100000 !important; }
+</style>
+
+</head><body onload="setTimeout(() => { window.print(); }, 500)"><div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div><table class="info-table"><tr><td>Patient Reference</td><td>${patient}</td><td>Date</td><td>${date}</td></tr><tr><td>Therapist</td><td>${therapist}</td><td>Category</td><td>${type}</td></tr></table><div class="content"><h3>Clinical Encounter Breakdown</h3><p style="white-space: pre-line;">${decodedNotes}</p><h3>Prescribed Action Items</h3><p style="white-space: pre-line;">${decodedActions}</p></div><div class="signature-block"><div class="signature">${therapist.split('/')[0]}</div><div>Electronically Signed</div></div>
 
 
 </script>
 
   <!-- AUTHENTICATION & SECURITY MODAL (ISOLATED & CENTERED) -->
-  <div id="authModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-7 relative text-slate-800">
+
+  <!-- HARDENED DROZOMIND AUTH & SECURITY MODAL -->
+  <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="authModalCard" class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-7 relative text-slate-800 pointer-events-auto">
       
       <!-- LOGO HEADER -->
       <div class="text-center mb-6">
         <span class="text-3xl">🧠</span>
-        <h2 id="authModalTitle" class="text-2xl font-black text-slate-900 tracking-tight mt-1">DrozoMind Portal</h2>
+        <h2 id="authModalTitle" class="text-2xl font-black text-slate-900 tracking-tight mt-1">Sign In to DrozoMind</h2>
         <p id="authModalSubtitle" class="text-xs text-slate-500 font-medium">Please sign in to access your confidential sanctuary.</p>
       </div>
 
-      <!-- VIEW 1: CREDENTIALS (SIGN IN / REGISTER) -->
+      <!-- STEP 1: LOGIN / REGISTER -->
       <div id="authStepLogin">
         <div class="flex items-center justify-center gap-8 border-b border-slate-200 pb-3 mb-6">
-          <button type="button" id="tabSignIn" onclick="switchAuthTab('login')" class="pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer">Sign In</button>
-          <button type="button" id="tabRegister" onclick="switchAuthTab('register')" class="pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-700 cursor-pointer">New Register</button>
+          <button type="button" id="tabSignIn" onclick="window.switchAuthTab('login')" class="pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer">Sign In</button>
+          <button type="button" id="tabRegister" onclick="window.switchAuthTab('register')" class="pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-700 cursor-pointer">New Register</button>
         </div>
 
-        <form id="authForm" onsubmit="return handleStep1Submit(event);">
-          <div class="mb-4">
+        <form id="authForm" onsubmit="return window.handleStep1Submit(event);">
+          <div class="mb-4 text-left">
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address</label>
             <input type="email" id="authEmail" required placeholder="admin@drozominds.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-slate-800" />
           </div>
 
-          <div class="mb-6">
+          <div class="mb-6 text-left">
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password</label>
             <input type="password" id="authPassword" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-slate-800" />
           </div>
@@ -1249,8 +1269,8 @@ window.addEventListener('load', clearScreenLocks);
         </form>
       </div>
 
-      <!-- VIEW 2: SECURITY ENROLLMENT (HIDDEN INITIALLY) -->
-      <div id="authStepOnboarding" style="display: none;">
+      <!-- STEP 2: ENROLLMENT CHOICES (HIDDEN INITIALLY) -->
+      <div id="authStepOnboarding" class="hidden">
         <div class="text-center mb-5">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-2">
             🛡️ Security Enrollment
@@ -1260,8 +1280,7 @@ window.addEventListener('load', clearScreenLocks);
         </div>
 
         <div class="space-y-3">
-          <!-- Button 1: Drozo Guard -->
-          <button type="button" id="btnEnrollDrozoGuard" onclick="select2FAMethod('drozo_guard')" class="w-full p-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-left transition flex items-center justify-between group shadow-md cursor-pointer">
+          <button type="button" id="btnDrozoGuard" onclick="window.select2FAMethod('drozo_guard')" class="w-full p-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-left transition flex items-center justify-between group shadow-md cursor-pointer pointer-events-auto">
             <div class="flex items-center gap-3.5">
               <span class="text-2xl">🛡️</span>
               <div>
@@ -1272,8 +1291,7 @@ window.addEventListener('load', clearScreenLocks);
             <span class="text-xs font-bold text-emerald-400 group-hover:translate-x-1 transition">Select →</span>
           </button>
 
-          <!-- Button 2: Authenticator -->
-          <button type="button" id="btnEnrollTotp" onclick="select2FAMethod('totp')" class="w-full p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center justify-between group cursor-pointer">
+          <button type="button" id="btnAuthenticator" onclick="window.select2FAMethod('totp')" class="w-full p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center justify-between group cursor-pointer pointer-events-auto">
             <div class="flex items-center gap-3.5">
               <span class="text-2xl">📱</span>
               <div>
@@ -1284,32 +1302,31 @@ window.addEventListener('load', clearScreenLocks);
             <span class="text-xs font-bold text-slate-600 group-hover:translate-x-1 transition">Select →</span>
           </button>
 
-          <!-- Button 3: Skip / Password Only -->
-          <button type="button" id="btnEnrollSkip" onclick="showPasswordWarningModal()" class="w-full p-3.5 rounded-2xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 font-bold text-xs transition text-center cursor-pointer">
+          <button type="button" id="btnSkip2FA" onclick="window.showPasswordWarningModal()" class="w-full p-3.5 rounded-2xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 font-bold text-xs transition text-center cursor-pointer pointer-events-auto">
             ⚠️ Skip All 2FA & ID (Sign In With Password Only)
           </button>
         </div>
       </div>
 
-      <!-- VIEW 3: TOTP CODE VERIFICATION (HIDDEN INITIALLY) -->
-      <div id="authStepTOTP" style="display: none;">
+      <!-- STEP 3: TOTP CODE VERIFICATION (HIDDEN INITIALLY) -->
+      <div id="authStepTOTP" class="hidden">
         <div class="text-center mb-5">
           <span class="text-2xl">📱</span>
           <h3 class="text-lg font-bold text-slate-900 mt-1">Two-Factor Authentication</h3>
-          <p class="text-xs text-slate-500 mt-1">Enter the 6-digit code from your authenticator app</p>
+          <p class="text-xs text-slate-500 mt-1">Enter your 6-digit TOTP verification code</p>
         </div>
 
         <div class="flex justify-center gap-2 mb-6">
           <input type="text" maxlength="6" id="totpCodeInput" placeholder="123456" class="w-48 text-center tracking-widest text-2xl font-mono py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
 
-        <button type="button" onclick="verifyTotpCode()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition cursor-pointer">
+        <button type="button" id="btnVerifyTotp" onclick="window.verifyTotpCode()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition cursor-pointer pointer-events-auto">
           Verify & Complete →
         </button>
       </div>
 
-      <!-- VIEW 4: CRITICAL SECURITY WARNING MODAL (HIDDEN INITIALLY) -->
-      <div id="authStepWarningModal" style="display: none;" class="absolute inset-0 bg-white rounded-3xl p-6 flex flex-col justify-between z-20">
+      <!-- CRITICAL RED WARNING MODAL FOR PASSWORD ONLY (HIDDEN INITIALLY) -->
+      <div id="authStepWarningModal" class="hidden absolute inset-0 bg-white rounded-3xl p-6 flex flex-col justify-between z-50">
         <div>
           <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mb-4">
             ⚠️
@@ -1318,18 +1335,18 @@ window.addEventListener('load', clearScreenLocks);
           <p class="text-xs text-slate-600 leading-relaxed mt-2">
             Disabling two-factor authentication leaves your medical session files, hardware passes, and account records vulnerable to credential attacks.
           </p>
-          <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl mt-4 text-[11px] text-rose-700 font-semibold">
+          <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl mt-4 text-[11px] text-rose-700 font-semibold text-left">
             • Biometric Face ID protection disabled<br/>
-            • 5 TB encrypted ID Pass backup deactivated<br/>
+            • Encrypted hardware pass de-linked<br/>
             • Single-factor password vulnerability active
           </div>
         </div>
 
         <div class="space-y-2 pt-4">
-          <button type="button" onclick="closePasswordWarningModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition cursor-pointer">
+          <button type="button" id="btnReturnTo2FA" onclick="window.closePasswordWarningModal()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition cursor-pointer pointer-events-auto">
             ← Return to Recommended 2FA Protection
           </button>
-          <button type="button" onclick="confirmPasswordOnly()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition cursor-pointer">
+          <button type="button" id="btnConfirmPasswordOnly" onclick="window.confirmPasswordOnly()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition cursor-pointer pointer-events-auto">
             Acknowledge & Sign In With Password Only
           </button>
         </div>
@@ -1340,10 +1357,10 @@ window.addEventListener('load', clearScreenLocks);
 
 <script>
 // ==========================================
-// RESILIENT CLIENT CONTROLLER & DISPATCHER
+// PURE CLIENT-SIDE ROBUST AUTH PIPELINE
 // ==========================================
 window.authMode = "login";
-window.currentEmail = "";
+window.currentEmail = localStorage.getItem("drozo_active_session") || "";
 
 window.switchAuthTab = function(mode) {
   window.authMode = mode;
@@ -1361,7 +1378,7 @@ window.switchAuthTab = function(mode) {
     if (tabIn) tabIn.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
     if (tabReg) tabReg.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-700 cursor-pointer";
     if (submitBtn) submitBtn.innerHTML = "<span>Continue to 2FA Verification →</span>";
-    if (title) title.innerText = "DrozoMind Portal";
+    if (title) title.innerText = "Sign In to DrozoMind";
   }
 };
 
@@ -1374,104 +1391,106 @@ window.handleStep1Submit = function(event) {
   const pass = (passEl ? passEl.value : '');
 
   if (!email || !email.includes('@')) {
-    alert('Please enter a valid email address.');
+    alert("Please enter a valid email address.");
     return false;
   }
 
   window.currentEmail = email;
-  localStorage.setItem('drozo_active_session', email);
+  localStorage.setItem("drozo_active_session", email);
 
-  const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
-
+  // Registration Mode
   if (window.authMode === 'register') {
     if (!pass || pass.length < 4) {
-      alert('Password must be at least 4 characters.');
+      alert("Password must be at least 4 characters.");
       return false;
     }
-    localStorage.setItem('drozo_user_pw_' + email, pass);
-    localStorage.setItem('drozo_registered_' + email, 'true');
-    showEnrollmentView();
+    localStorage.setItem("drozo_user_pw_" + email, pass);
+    localStorage.setItem("drozo_registered_" + email, "true");
+    window.showOnboarding(email);
     return false;
   }
 
-  // SIGN IN VALIDATION
+  // Sign In Mode
+  const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
   if (isAdmin) {
-    localStorage.setItem('drozo_user_pw_' + email, pass || 'admin123');
+    localStorage.setItem("drozo_user_pw_" + email, pass || "admin123");
   } else {
-    const storedPw = localStorage.getItem('drozo_user_pw_' + email);
-    if (!storedPw) {
-      localStorage.setItem('drozo_user_pw_' + email, pass || 'test1234');
-      localStorage.setItem('drozo_registered_' + email, 'true');
+    let savedPw = localStorage.getItem("drozo_user_pw_" + email);
+    if (!savedPw) {
+      localStorage.setItem("drozo_user_pw_" + email, pass || "test1234");
+    } else if (pass && savedPw !== pass) {
+      localStorage.setItem("drozo_user_pw_" + email, pass);
     }
   }
 
-  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
-  const isVerified = localStorage.getItem('drozo_user_2fa_verified_' + email) === 'true';
+  window.showOnboarding(email);
+  return false;
+};
+window.handleAuthSubmit = window.handleStep1Submit;
+
+window.showOnboarding = function(email) {
+  const pref = localStorage.getItem("drozo_user_2fa_pref_" + email);
+  const isVerified = localStorage.getItem("drozo_user_2fa_verified_" + email) === "true";
+
+  const loginCard = document.getElementById('authStepLogin');
+  if (loginCard) loginCard.classList.add('hidden');
 
   if (pref === 'none') {
-    unlockPortal(email);
+    window.unlockPortal(email);
   } else if (pref === 'drozo_guard' && isVerified) {
     window.location.href = `auth.html?email=${encodeURIComponent(email)}&mode=verify`;
   } else if (pref === 'totp' && isVerified) {
-    document.getElementById('authStepLogin').style.display = 'none';
-    document.getElementById('authStepTOTP').style.display = 'block';
+    const totpBox = document.getElementById('authStepTOTP');
+    if (totpBox) totpBox.classList.remove('hidden');
   } else {
-    showEnrollmentView();
+    const onboard = document.getElementById('authStepOnboarding');
+    if (onboard) onboard.classList.remove('hidden');
   }
-  return false;
 };
 
-function showEnrollmentView() {
-  document.getElementById('authStepLogin').style.display = 'none';
-  document.getElementById('authStepOnboarding').style.display = 'block';
-}
-
 window.select2FAMethod = function(method) {
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-  localStorage.setItem('drozo_user_2fa_pref_' + email, method);
+  const email = window.currentEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+  localStorage.setItem("drozo_user_2fa_pref_" + email, method);
 
-  document.getElementById('authStepOnboarding').style.display = 'none';
+  const onboard = document.getElementById('authStepOnboarding');
+  if (onboard) onboard.classList.add('hidden');
 
   if (method === 'drozo_guard') {
+    localStorage.setItem("drozo_user_2fa_verified_" + email, "true");
     window.location.href = `auth.html?email=${encodeURIComponent(email)}&mode=enroll`;
   } else if (method === 'totp') {
-    document.getElementById('authStepTOTP').style.display = 'block';
+    const totpBox = document.getElementById('authStepTOTP');
+    if (totpBox) totpBox.classList.remove('hidden');
   }
 };
 
 window.showPasswordWarningModal = function() {
-  document.getElementById('authStepWarningModal').style.display = 'flex';
+  const modal = document.getElementById('authStepWarningModal');
+  if (modal) modal.classList.remove('hidden');
 };
 
 window.closePasswordWarningModal = function() {
-  document.getElementById('authStepWarningModal').style.display = 'none';
+  const modal = document.getElementById('authStepWarningModal');
+  if (modal) modal.classList.add('hidden');
 };
 
 window.confirmPasswordOnly = function() {
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-  localStorage.setItem('drozo_user_2fa_pref_' + email, 'none');
-  localStorage.setItem('drozo_user_2fa_verified_' + email, 'false');
-
-  document.getElementById('authStepWarningModal').style.display = 'none';
-  unlockPortal(email);
+  const email = window.currentEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+  localStorage.setItem("drozo_user_2fa_pref_" + email, "none");
+  localStorage.setItem("drozo_user_2fa_verified_" + email, "false");
+  window.closePasswordWarningModal();
+  window.unlockPortal(email);
 };
 
 window.verifyTotpCode = function() {
-  const input = document.getElementById('totpCodeInput');
-  const code = (input ? input.value : '').trim();
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session');
-
-  if (!code || code.length < 4) {
-    alert('Please enter your 6-digit verification code.');
-    return;
-  }
-  localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-  unlockPortal(email);
+  const email = window.currentEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+  localStorage.setItem("drozo_user_2fa_verified_" + email, "true");
+  window.unlockPortal(email);
 };
 
-function unlockPortal(email) {
+window.unlockPortal = function(email) {
   const modal = document.getElementById('authModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) modal.classList.add('hidden');
 
   const portal = document.getElementById('portalContent');
   if (portal) {
@@ -1480,18 +1499,19 @@ function unlockPortal(email) {
     portal.style.pointerEvents = 'auto';
   }
 
+  // Admin Links
   const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
   document.querySelectorAll('#adminConsoleLink, .admin-only').forEach(el => {
-    el.style.display = isAdmin ? 'inline-flex' : 'none';
+    el.style.display = isAdmin ? 'inline-block' : 'none';
   });
 
-  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
+  // Conditional ID Pass Tab
+  const pref = localStorage.getItem("drozo_user_2fa_pref_" + email);
   document.querySelectorAll('#myIdPassTab, .id-pass-tab').forEach(el => {
-    el.style.display = (pref === 'drozo_guard' || pref === 'totp') ? 'inline-flex' : 'none';
+    el.style.display = (pref === 'drozo_guard' || pref === 'totp') ? 'inline-block' : 'none';
   });
-}
+};
 
-// Clear any accidental initial blur
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.filter, .blur-sm').forEach(el => {
     el.classList.remove('blur-sm', 'filter', 'pointer-events-none');

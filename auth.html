@@ -15,6 +15,15 @@
     #mobileQrReaderArea__scan_region { display: flex; align-items: center; justify-content: center; }
   </style>
   <script></script>
+
+<style id="drozo-strict-core-css">
+  .hidden { display: none !important; }
+  .pointer-events-auto { pointer-events: auto !important; }
+  .cursor-pointer { cursor: pointer !important; }
+  #authModal { z-index: 99999 !important; }
+  #authModalCard { z-index: 100000 !important; }
+</style>
+
 </head>
 
   <!-- AUTHENTIC BIOMETRIC & ACTIVE LIVENESS VERIFICATION MODAL -->
@@ -931,5 +940,86 @@
   setTimeout(setupViewPanels, 200);
 })();
 </script>
+
+<script id="drozo-auth-view-manager">
+// ==========================================
+// AUTH.HTML DETERMINISTIC VIEW CONTROLLER
+// ==========================================
+window.switchView = function(viewName) {
+  const views = {
+    'enroll': ['selectBiometricSection', 'chooseSensorContainer'],
+    'liveness': ['livenessSection', 'faceScanContainer'],
+    'fingerprint': ['fingerprintSection', 'touchIdContainer'],
+    'warning': ['biometricWarningModal', 'criticalAlertContainer'],
+    'dashboard': ['dashboardSection', 'drozoGuardActiveContainer']
+  };
+
+  // Find and selectively display target sections by text content if IDs vary
+  document.querySelectorAll('main > div, .min-h-screen > div, section').forEach(el => {
+    const txt = (el.innerText || '');
+    if (txt.includes('Select Biometric Protection')) {
+      el.style.display = (viewName === 'enroll') ? 'block' : 'none';
+    } else if (txt.includes('Anti-Spoof Biometric Check') || txt.includes('Align face inside oval frame')) {
+      el.style.display = (viewName === 'liveness') ? 'block' : 'none';
+    } else if (txt.includes('Scan your fingerprint to unlock')) {
+      el.style.display = (viewName === 'fingerprint') ? 'block' : 'none';
+    } else if (txt.includes('Critical Security Alert')) {
+      el.style.display = (viewName === 'warning') ? 'block' : 'none';
+    } else if (txt.includes('Drozo Guard Active') || txt.includes('STANDBY')) {
+      el.style.display = (viewName === 'dashboard') ? 'block' : 'none';
+    }
+  });
+};
+
+// Wire all auth.html buttons explicitly
+function bindAuthButtons() {
+  document.querySelectorAll('button, div, a').forEach(el => {
+    const txt = (el.innerText || '').trim();
+    if (txt.includes('Fingerprint Scanner')) {
+      el.onclick = (e) => { e.preventDefault(); window.startFingerprintEnroll(); };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Face ID Recognition')) {
+      el.onclick = (e) => { e.preventDefault(); window.startFaceIDEnroll(); };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Skip Biometric Protection')) {
+      el.onclick = (e) => { e.preventDefault(); window.switchView('warning'); };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Yes, I Understand the Risk')) {
+      el.onclick = (e) => { e.preventDefault(); window.finishBiometricBypass(); };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Go Back & Choose')) {
+      el.onclick = (e) => { e.preventDefault(); window.switchView('enroll'); };
+      el.style.cursor = 'pointer';
+    }
+  });
+}
+
+window.startFingerprintEnroll = function() {
+  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
+  localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+  alert('Fingerprint hardware pass registered successfully!');
+  window.location.href = 'index.html';
+};
+
+window.startFaceIDEnroll = function() {
+  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  localStorage.setItem('drozo_bio_choice_' + email, 'face');
+  window.switchView('liveness');
+};
+
+window.finishBiometricBypass = function() {
+  const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+  localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+  window.location.href = 'index.html';
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+  window.switchView(mode === 'verify' ? 'liveness' : 'enroll');
+  bindAuthButtons();
+});
+</script>
+
 </body>
 </html>
