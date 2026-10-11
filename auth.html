@@ -835,96 +835,87 @@
 document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
     const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-    const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav'));
+    
+    // 1. Map every screen to a distinct state
+    const views = { enroll: null, lockFace: null, lockFinger: null, camera: null, warn: null, standby: null };
+    document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav').forEach(el => {
+        const t = el.innerText || '';
+        if (t.includes('Choose your device sensor')) views.enroll = el;
+        if (t.includes('Scan Face ID to Unlock')) views.lockFace = el;
+        if (t.includes('Scan Fingerprint to Unlock')) views.lockFinger = el;
+        if (t.includes('Anti-Spoof Biometric Check')) views.camera = el;
+        if (t.includes('Critical Security Alert')) views.warn = el;
+        if (t.includes('STANDBY') && t.includes('DROZO GUARD')) views.standby = el;
+    });
 
-    // Intelligent View Hider
-    const show = (kw1, kw2) => {
-        sections.forEach(s => {
-            const txt = s.innerText || '';
-            if (txt.includes(kw1) || (kw2 && txt.includes(kw2))) {
-                s.style.cssText = 'display: flex !important; flex-direction: column;';
-                s.classList.remove('hidden', 'force-hide');
-            } else if (
-                txt.includes('Select Biometric') || 
-                txt.includes('Anti-Spoof') || 
-                txt.includes('Drozo Guard Locked') ||
-                txt.includes('Scan Face ID') ||
-                txt.includes('Scan Fingerprint') ||
-                txt.includes('Critical Security Alert') ||
-                txt.includes('STANDBY')
-            ) {
-                s.style.cssText = 'display: none !important;';
-                s.classList.add('hidden', 'force-hide');
+    // 2. Strict State Switcher
+    function show(viewName) {
+        Object.keys(views).forEach(k => {
+            if(views[k]) {
+                if(k === viewName) {
+                    views[k].style.cssText = 'display: flex !important; flex-direction: column;';
+                    views[k].classList.remove('hidden', 'force-hide');
+                } else {
+                    views[k].style.cssText = 'display: none !important;';
+                    views[k].classList.add('hidden', 'force-hide');
+                }
             }
         });
-    };
-
-    // Initialize View based on URL mode
-    if (mode === 'verify') {
-        const choice = localStorage.getItem('drozo_bio_choice_' + email) || 'face';
-        if (choice === 'fingerprint') {
-            show('Scan Fingerprint to Unlock', 'Scan your fingerprint');
-        } else {
-            show('Scan Face ID to Unlock', 'Verify your Face ID'); // Shows the screen from your screenshot
-        }
-    } else {
-        show('Select Biometric Protection', 'Choose your device sensor');
     }
 
-    // Global Click Handler
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button') || e.target.closest('a') || e.target.closest('.cursor-pointer');
-        if (!btn) return;
-        const txt = (btn.innerText || '').trim();
+    // 3. Initialize Route
+    if (mode === 'verify') {
+        const pref = localStorage.getItem('drozo_bio_choice_' + email) || 'face';
+        if (pref === 'fingerprint') show('lockFinger');
+        else show('lockFace');
+    } else {
+        show('enroll');
+    }
 
-        // 1. ENROLLMENT
-        if (txt.includes('Fingerprint Scanner')) {
-            e.preventDefault(); e.stopPropagation();
+    // 4. Global Interceptor
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('button') || e.target.closest('a') || e.target.closest('.cursor-pointer');
+        if(!btn) return;
+        const t = btn.innerText.trim();
+        
+        if (t.includes('Fingerprint Scanner')) { // Enroll Fingerprint
+            e.preventDefault(); 
             localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
             localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            alert('Fingerprint Hardware Pass Registered!');
+            alert('Fingerprint Hardware Pass Registered!'); 
             window.location.href = 'index.html';
-        }
-        else if (txt.includes('Face ID Recognition')) {
-            e.preventDefault(); e.stopPropagation();
+        } 
+        else if (t.includes('Face ID Recognition')) { // Enroll Face ID
+            e.preventDefault(); 
             localStorage.setItem('drozo_bio_choice_' + email, 'face');
             window.location.href = 'auth.html?mode=verify';
-        }
-        
-        // 2. VERIFICATION (FIX FOR YOUR SCREENSHOT)
-        else if (txt.includes('Scan Face ID to Unlock')) {
-            e.preventDefault(); e.stopPropagation();
-            show('Anti-Spoof Biometric Check'); // Transitions from locked screen to camera
-            const vid = document.querySelector('video');
-            if (vid) { vid.muted = true; vid.play().catch(err => console.warn(err)); }
-        }
-        else if (txt.includes('Scan Fingerprint to Unlock')) {
-            e.preventDefault(); e.stopPropagation();
+        } 
+        else if (t.includes('Scan Face ID')) { // Unlock via Face ID
+            e.preventDefault(); 
+            show('camera');
+            const v = document.querySelector('video');
+            if(v) { v.muted = true; v.play().catch(console.error); }
+        } 
+        else if (t.includes('Scan Fingerprint') || t.includes('Authenticate Living User')) { // Unlock Success
+            e.preventDefault(); 
             localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             window.location.href = 'index.html';
-        }
-        else if (txt.includes('Authenticate Living User')) {
-            e.preventDefault(); e.stopPropagation();
+        } 
+        else if (t.includes('Skip Biometric')) { // Warning Request
+            e.preventDefault(); 
+            show('warn');
+        } 
+        else if (t.includes('Yes, I Understand')) { // Warning Acknowledged
+            e.preventDefault(); 
             localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             window.location.href = 'index.html';
+        } 
+        else if (t === 'Cancel' || t.includes('Go Back')) { // Routing Fallback
+            e.preventDefault();
+            if (mode === 'verify') window.location.href = 'index.html';
+            else show('enroll');
         }
-        
-        // 3. NAVIGATION & BYPASS
-        else if (txt === 'Cancel' || txt.includes('Go Back')) {
-            e.preventDefault(); e.stopPropagation();
-            if (mode === 'verify') window.location.href = 'index.html'; 
-            else show('Select Biometric Protection');
-        }
-        else if (txt.includes('Skip Biometric')) {
-            e.preventDefault(); e.stopPropagation();
-            show('Critical Security Alert');
-        }
-        else if (txt.includes('Yes, I Understand')) {
-            e.preventDefault(); e.stopPropagation();
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html';
-        }
-    }, true);
+    });
 });
 </script>
 
