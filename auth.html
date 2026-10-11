@@ -835,69 +835,101 @@
     setInterval(forceClearAllBlurs, 1000);
 </script>
 
-    <script>
-    // UNIVERSAL AUTH.HTML BINDER
-    function attachAuthListeners() {
-        document.querySelectorAll('button, a, div').forEach(el => {
-            if (!el.innerText) return;
-            const txt = el.innerText.trim();
-            
-            if (txt.includes('Fingerprint Scanner') && !el.hasAttribute('data-bound')) {
-                el.setAttribute('data-bound', 'true');
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => { e.preventDefault(); startFingerprintSetup(); });
-            }
-            if (txt.includes('Face ID Recognition') && !el.hasAttribute('data-bound')) {
-                el.setAttribute('data-bound', 'true');
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => { e.preventDefault(); startFaceIDSetup(); });
-            }
-            if (txt.includes('Skip Biometric') && !el.hasAttribute('data-bound')) {
-                el.setAttribute('data-bound', 'true');
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('biometricWarningModal')?.classList.remove('hidden'); });
-            }
-            if (txt.includes('Yes, I Understand') && !el.hasAttribute('data-bound')) {
-                el.setAttribute('data-bound', 'true');
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => { e.preventDefault(); completeAuthAndRedirect(); });
-            }
-        });
-    }
+<style id="auth-panel-isolation-styles">
+  .drozo-view-panel { display: none !important; }
+  .drozo-view-panel.drozo-view-active { display: block !important; }
+</style>
 
-    if (typeof startFingerprintSetup !== 'function') {
-        window.startFingerprintSetup = function() { completeAuthAndRedirect(); };
-    }
-    if (typeof startFaceIDSetup !== 'function') {
-        window.startFaceIDSetup = function() { completeAuthAndRedirect(); };
-    }
-    if (typeof completeAuthAndRedirect !== 'function') {
-        window.completeAuthAndRedirect = function() {
-            const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html';
-        };
-    }
-
-    // Force hide irrelevant sections so they don't pile up on screen
-    function enforceRouting() {
-        const mode = new URLSearchParams(window.location.search).get('mode');
-        document.querySelectorAll('main > div, .min-h-screen > div').forEach(c => {
-            if (c.innerText.includes('Select Biometric Protection')) {
-                c.style.display = (mode === 'enroll') ? 'block' : 'none';
-            }
-            if (c.innerText.includes('Drozo Guard Active')) {
-                c.style.display = (mode === 'dashboard') ? 'block' : 'none';
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        attachAuthListeners();
-        setInterval(attachAuthListeners, 1000);
-        setTimeout(enforceRouting, 100);
+<script>
+// ==========================================
+// AUTH.HTML VIEW STATE CONTROLLER
+// ==========================================
+(function() {
+  function setupViewPanels() {
+    // Find each distinct view panel by its unique headings
+    document.querySelectorAll('main > div, .min-h-screen > div, body > div').forEach(el => {
+      const text = el.innerText || '';
+      if (text.includes('Select Biometric Protection')) {
+        el.classList.add('drozo-view-panel');
+        el.setAttribute('id', 'viewPanelBioSelect');
+      } else if (text.includes('Anti-Spoof Biometric Check') || text.includes('Align face inside oval frame')) {
+        el.classList.add('drozo-view-panel');
+        el.setAttribute('id', 'viewPanelFaceID');
+      } else if (text.includes('Drozo Guard Locked') || text.includes('Scan your fingerprint')) {
+        el.classList.add('drozo-view-panel');
+        el.setAttribute('id', 'viewPanelFingerprint');
+      } else if (text.includes('Critical Security Alert') || text.includes('Anyone who accesses this device')) {
+        el.classList.add('drozo-view-panel');
+        el.setAttribute('id', 'viewPanelBioWarning');
+      } else if (text.includes('Drozo Guard Active') || text.includes('STANDBY')) {
+        el.classList.add('drozo-view-panel');
+        el.setAttribute('id', 'viewPanelDashboard');
+      }
     });
-    </script>
-    </body>
-    </html>
-    
+
+    // Wire up buttons across all panels
+    document.querySelectorAll('button, a, div').forEach(btn => {
+      const txt = (btn.innerText || '').trim();
+      if (btn.hasAttribute('data-bound')) return;
+
+      if (txt.includes('Fingerprint Scanner')) {
+        btn.setAttribute('data-bound', 'true');
+        btn.style.cursor = 'pointer';
+        btn.onclick = (e) => { e.preventDefault(); showPanel('viewPanelFingerprint'); };
+      } else if (txt.includes('Face ID Recognition')) {
+        btn.setAttribute('data-bound', 'true');
+        btn.style.cursor = 'pointer';
+        btn.onclick = (e) => { e.preventDefault(); showPanel('viewPanelFaceID'); };
+      } else if (txt.includes('Skip Biometric Protection')) {
+        btn.setAttribute('data-bound', 'true');
+        btn.style.cursor = 'pointer';
+        btn.onclick = (e) => { e.preventDefault(); showPanel('viewPanelBioWarning'); };
+      } else if (txt.includes('Yes, I Understand the Risk') || txt.includes('Authenticate Living User') || txt.includes('Scan & Match Face') || txt.includes('Scan Fingerprint to Unlock')) {
+        btn.setAttribute('data-bound', 'true');
+        btn.style.cursor = 'pointer';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
+          localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+          window.location.href = 'index.html';
+        };
+      } else if (txt.includes('Go Back & Choose')) {
+        btn.setAttribute('data-bound', 'true');
+        btn.style.cursor = 'pointer';
+        btn.onclick = (e) => { e.preventDefault(); showPanel('viewPanelBioSelect'); };
+      }
+    });
+
+    // Determine initial active view from URL params
+    const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+    if (mode === 'enroll') {
+      showPanel('viewPanelBioSelect');
+    } else if (mode === 'verify') {
+      showPanel('viewPanelFaceID');
+    } else if (mode === 'dashboard') {
+      showPanel('viewPanelDashboard');
+    } else {
+      showPanel('viewPanelBioSelect');
+    }
+  }
+
+  window.showPanel = function(panelId) {
+    document.querySelectorAll('.drozo-view-panel').forEach(p => p.classList.remove('drozo-view-active'));
+    const target = document.getElementById(panelId);
+    if (target) {
+      target.classList.add('drozo-view-active');
+    } else {
+      // Fallback: If panels are not separate divs, unhide containers matching target text
+      document.querySelectorAll('div').forEach(d => {
+        if (panelId === 'viewPanelBioSelect' && (d.innerText || '').includes('Select Biometric Protection')) d.style.display = 'block';
+        if (panelId === 'viewPanelFaceID' && (d.innerText || '').includes('Align face inside oval frame')) d.style.display = 'block';
+      });
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', setupViewPanels);
+  setTimeout(setupViewPanels, 200);
+})();
+</script>
+</body>
+</html>
