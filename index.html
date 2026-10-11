@@ -1427,7 +1427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const warn = document.getElementById('authStepWarningModal');
     const modal = document.getElementById('authModal') || document.querySelector('.fixed.inset-0');
 
-    // THIS FIXES THE FINGERPRINT BUG: Auto-unlocks if you just verified
+    // AUTO-UNLOCK: If returning from Face ID or Fingerprint success
     const activeEmail = localStorage.getItem('drozo_active_session');
     if (activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true') {
         if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
@@ -1437,6 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return; 
     }
 
+    // Default View initialization
     if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
     if(totp) { totp.style.display = 'none'; totp.classList.add('hidden'); }
     if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }

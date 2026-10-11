@@ -15,7 +15,16 @@
     #mobileQrReaderArea__scan_region { display: flex; align-items: center; justify-content: center; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+
+<style>
+    video { object-fit: cover; pointer-events: none !important; }
+    video::-webkit-media-controls { display: none !important; opacity: 0 !important; }
+    video::-webkit-media-controls-enclosure { display: none !important; }
+    video::-webkit-media-controls-start-playback-button { display: none !important; }
+    .force-hide { display: none !important; }
+</style>
 </head>
+
 
   <!-- AUTHENTIC BIOMETRIC & ACTIVE LIVENESS VERIFICATION MODAL -->
   <div id="faceIdScannerModal" class="fixed inset-0 bg-[#060b11]/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 hidden">
@@ -29,7 +38,7 @@
 
     <!-- VIEWFINDER WITH ACTIVE SCAN RING -->
     <div class="relative w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
-      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover" playsinline autoplay muted></video>
+      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover" playsinline autoplay muted disablepictureinpicture controls="false"></video>
       <canvas id="faceCaptureCanvas" class="hidden"></canvas>
       <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] "></div>
       <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce "></div>
@@ -834,24 +843,38 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode');
-    const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div'));
+    // Grab every major container block
+    const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav'));
     
+    // Strict isolation view controller
     const show = (kw) => sections.forEach(s => {
         if (!s.innerText) return;
-        if(s.innerText.includes(kw)) { 
-            s.style.display = ''; s.classList.remove('hidden'); 
+        const txt = s.innerText;
+        // Check if this block contains our target keyword
+        if (txt.includes(kw)) { 
+            s.style.cssText = 'display: flex !important; flex-direction: column;'; 
+            s.classList.remove('hidden', 'force-hide'); 
+            
+            // Kickstart Safari Camera natively
             if (kw === 'Anti-Spoof') {
                 const vid = s.querySelector('video');
-                if (vid && vid.paused) vid.play().catch(e => console.warn(e));
+                if (vid) {
+                    vid.muted = true;
+                    vid.play().catch(e => console.warn("Safari Autoplay Policy:", e));
+                }
             }
         } else { 
-            s.style.display = 'none'; s.classList.add('hidden'); 
+            // Forcefully hide everything else to prevent ghosting
+            s.style.cssText = 'display: none !important;'; 
+            s.classList.add('hidden', 'force-hide'); 
         }
     });
     
+    // Default Routing
     if (mode === 'verify') show('Anti-Spoof');
     else show('Select Biometric');
 
+    // Button Click Interceptor (Event Delegation)
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button') || e.target.closest('a');
         if (!btn) return;
@@ -875,11 +898,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (txt === 'Cancel' || txt.includes('Go Back')) {
             e.preventDefault(); e.stopPropagation();
-            window.location.href = 'auth.html?mode=enroll'; // THIS FIXES THE CANCEL BUG
+            window.location.href = 'auth.html?mode=enroll'; 
         }
         else if (txt.includes('Skip Biometric')) {
             e.preventDefault(); e.stopPropagation();
-            show('Critical Security');
+            show('Critical Security Alert');
         } 
         else if (txt.includes('Yes, I Understand')) {
             e.preventDefault(); e.stopPropagation();
