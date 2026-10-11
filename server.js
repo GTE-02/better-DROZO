@@ -114,12 +114,6 @@ function startKeepAliveEngine() {
   }, PING_INTERVAL_MS);
 }
 
-
-
-
-
-
-
 app.listen(PORT, () => {
   console.log(`Better-Drozo backend active on port ${PORT}`);
   startKeepAliveEngine();

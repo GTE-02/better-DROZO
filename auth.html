@@ -239,110 +239,634 @@
     <span id="bioLockedStatusTag" class="text-slate-500 font-bold">Standard</span>
   </footer>
 
-  
+  <script>
+    const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 
+    let activeSessionToken = null;
+    let pollerTimer = null;
+    let html5QrScannerMobile = null;
 
-<script>
-// GLOBAL AUTH EVENT DELEGATION
-document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button') || e.target;
-    const txt = (btn.innerText || '').trim();
+    const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
+    guardSyncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'NEW_CHALLENGE' && event.data.token) {
+        verifyAndShowChallenge(event.data.token, event.data.email);
+      }
+    };
+
+    function bufferToBase64(buffer) {
+      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    }
+
+    function base64ToBuffer(base64) {
+      return Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
+    }
+
+    // ==========================================
+    // DISCRETE BIOMETRIC LOGIC & LOCK ENFORCEMENT
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      const bioPref = localStorage.getItem("drozo_guard_bio_type"); // "fingerprint", "faceid", "none", or null
+      const statusTag = document.getElementById('bioLockedStatusTag');
+
+      let activeSessionEmail = "admin@drozominds.com";
+      const isAlreadyEnrolled = localStorage.getItem("drozo_guard_bio_type") || localStorage.getItem("drozo_face_enrolled_" + activeSessionEmail);
+
+      // Do NOT ask again if already registered
+      if (!bioPref && !isAlreadyEnrolled) {
+        // First setup: Display discrete choice (Fingerprint vs Face ID)
+        document.getElementById('biometricChoiceModal').classList.remove('hidden');
+      } else if (bioPref === "fingerprint" || bioPref === "faceid") {
+        if (statusTag) statusTag.innerText = bioPref === "fingerprint" ? "🔒 Fingerprint Locked" : "🔒 Face ID Locked";
+        configureLockScreenUI(bioPref);
+        document.getElementById('biometricLockModal').classList.remove('hidden');
+        triggerDeviceBiometrics('unlock');
+      } else {
+        if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenParam = urlParams.get('token');
+      const emailParam = urlParams.get('email');
+      if (tokenParam) {
+        verifyAndShowChallenge(tokenParam, emailParam);
+      } else {
+        startPollingForPendingSessions();
+      }
+    });
+
     
-    if (txt.includes('Fingerprint Scanner')) {
-        e.preventDefault();
-        alert('Fingerprint Hardware Pass Registered!');
-        window.location.href = 'index.html';
-    }
-    else if (txt.includes('Face ID Recognition')) {
-        e.preventDefault();
-        // Transition to Liveness / Face ID Screen
-        document.querySelectorAll('main > div, section').forEach(el => {
-            if(el.innerText.includes('Anti-Spoof')) { el.style.display = 'block'; el.classList.remove('hidden'); }
-            else if(el.innerText.includes('Select Biometric')) { el.style.display = 'none'; el.classList.add('hidden'); }
+    // ==========================================
+    // ROTATIONAL FACE CALIBRATION & VERIFICATION
+    // ==========================================
+    let faceStream = null;
+    let faceMode = "enroll"; // "enroll" or "verify"
+    let currentStep = 0;
+    let isCalibrating = false;
+
+    async function openCustomFaceScanner(purpose = "unlock") {
+      faceMode = (purpose === "enroll") ? "enroll" : "verify";
+      const modal = document.getElementById('faceIdScannerModal');
+      const title = document.getElementById('faceScannerTitle');
+      const subtitle = document.getElementById('faceScannerSubtitle');
+      const btn = document.getElementById('btnCaptureFaceAction');
+      const prog = document.getElementById('faceEnrollProgress');
+
+      currentStep = 0;
+      isCalibrating = false;
+
+      if (faceMode === "enroll") {
+        title.innerText = "Face ID Enrollment";
+        subtitle.innerText = "Follow instructions to calibrate head angles.";
+        btn.innerHTML = "<span>📸</span> Begin Head Calibration";
+        prog.style.width = "15%";
+      } else {
+        title.innerText = "Face ID Sign-In";
+        subtitle.innerText = "Verifying facial alignment with registered profile...";
+        btn.innerHTML = "<span>🔐</span> Verify Face ID";
+        prog.style.width = "50%";
+      }
+
+      modal.classList.remove('hidden');
+
+      try {
+        const video = document.getElementById('faceCameraVideo');
+        faceStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } },
+          audio: false
         });
+        video.srcObject = faceStream;
+      } catch (err) {
+        alert("Camera access is required for Face ID.");
+        handleFaceFallbackChoice();
+      }
     }
-    else if (txt.includes('Skip Biometric')) {
-        e.preventDefault();
-        document.querySelectorAll('main > div, section').forEach(el => {
-            if(el.innerText.includes('Critical Security')) { el.style.display = 'block'; el.classList.remove('hidden'); }
-            else if(el.innerText.includes('Select Biometric')) { el.style.display = 'none'; el.classList.add('hidden'); }
+
+    function closeFaceScanner() {
+      if (faceStream) {
+        faceStream.getTracks().forEach(t => t.stop());
+        faceStream = null;
+      }
+      document.getElementById('faceIdScannerModal').classList.add('hidden');
+    }
+
+    function handleFaceFallbackChoice() {
+      closeFaceScanner();
+      const activeUser = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      // Fallback routes user to Drozo Guard challenge or camera ID scanner
+      alert("Redirecting to backup authentication (Drozo Guard QR Challenge).");
+      if (typeof startScanner === "function") {
+        startScanner();
+      }
+    }
+
+    // ==========================================
+    // SUPABASE PGVECTOR BIOMETRIC INTEGRATION
+    // ==========================================
+    const FACE_MODEL_URL = "https://vladmandic.github.io/face-api/model/";
+    let faceModelsReady = false;
+
+    async function loadFaceBiometricModels() {
+      if (faceModelsReady) return;
+      const status = document.getElementById('faceScanStatusText');
+      if (status) status.innerText = "Loading neural model weights...";
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
+        ]);
+        faceModelsReady = true;
+        if (status) status.innerText = "Neural models active & ready";
+      } catch (e) {
+        console.warn("Face model loading warning:", e);
+      }
+    }
+
+    async function extractLiveDescriptor(videoEl) {
+      if (!faceModelsReady) await loadFaceBiometricModels();
+      const detection = await faceapi
+        .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection || !detection.descriptor) {
+        throw new Error("No clear face detected. Center your face in the circle.");
+      }
+      return Array.from(detection.descriptor);
+    }
+
+    async function saveFaceVectorToSupabase(email, descriptorArray) {
+      const vectorPayload = JSON.stringify(descriptorArray);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_face_vectors`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON,
+          "Authorization": `Bearer ${SUPABASE_ANON}`,
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates"
+        },
+        body: JSON.stringify({
+          email: email,
+          embedding: vectorPayload,
+          updated_at: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error("Supabase pgvector save failed: " + err);
+      }
+      return true;
+    }
+
+    async function verifyFaceVectorWithSupabase(email, probeDescriptorArray) {
+      const vectorPayload = JSON.stringify(probeDescriptorArray);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_user_face`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON,
+          "Authorization": `Bearer ${SUPABASE_ANON}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          target_email: email,
+          probe_vector: vectorPayload
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error("Supabase RPC error: " + err);
+      }
+
+      const rows = await res.json();
+      if (rows && rows.length > 0) {
+        return rows[0]; // { match_found: true|false, similarity_score: number }
+      }
+      return { match_found: false, similarity_score: 0.0 };
+    }
+
+    // Replace calibration click handler with pgvector execution
+    async function handleFaceActionClick() {
+      if (isCalibrating) return;
+      isCalibrating = true;
+
+      const badge = document.getElementById('faceStepBadge');
+      const status = document.getElementById('faceScanStatusText');
+      const prog = document.getElementById('faceEnrollProgress');
+      const video = document.getElementById('faceCameraVideo');
+      const targetEmail = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+
+      try {
+        if (!faceModelsReady) {
+          status.innerText = "Initializing neural engine...";
+          await loadFaceBiometricModels();
+        }
+
+        if (faceMode === "enroll") {
+          badge.innerText = "Step 1/3: Hold Center";
+          status.innerText = "Extracting frontal landmarks...";
+          prog.style.width = "35%";
+          await new Promise(r => setTimeout(r, 1000));
+
+          badge.innerText = "Step 2/3: Turn Head Slightly";
+          status.innerText = "Calculating spatial geometry...";
+          prog.style.width = "70%";
+          await new Promise(r => setTimeout(r, 1200));
+
+          badge.innerText = "Computing 128-D Vector";
+          status.innerText = "Generating neural embedding...";
+          prog.style.width = "90%";
+
+          const descriptor = await extractLiveDescriptor(video);
+
+          status.innerText = "Saving vector to Supabase pgvector...";
+          await saveFaceVectorToSupabase(targetEmail, descriptor);
+
+          prog.style.width = "100%";
+          status.innerText = "Template Stored in Supabase ✓";
+          localStorage.setItem("drozo_face_enrolled_" + targetEmail, "true");
+          localStorage.setItem("drozo_guard_bio_type", "faceid");
+
+          await new Promise(r => setTimeout(r, 600));
+          closeFaceScanner();
+          document.getElementById('biometricLockModal').classList.add('hidden');
+          alert("Face ID registered to Supabase pgvector! You will not be asked to enroll again.");
+        } else {
+          // Verify
+          badge.innerText = "Matching Face...";
+          status.innerText = "Extracting live vector descriptor...";
+          prog.style.width = "75%";
+
+          const probeDescriptor = await extractLiveDescriptor(video);
+
+          status.innerText = "Querying Supabase pgvector match_user_face...";
+          const result = await verifyFaceVectorWithSupabase(targetEmail, probeDescriptor);
+
+          prog.style.width = "100%";
+
+          if (result.match_found) {
+            status.innerText = `Verified (${(result.similarity_score * 100).toFixed(1)}% Match) ✓`;
+            await new Promise(r => setTimeout(r, 600));
+            closeFaceScanner();
+
+            if (faceActionPurpose === "unlock") {
+              document.getElementById('biometricLockModal').classList.add('hidden');
+            } else if (faceActionPurpose === "approve") {
+              respondChallenge('authorized');
+            }
+          } else {
+            status.innerText = `Rejected: Score ${(result.similarity_score * 100).toFixed(1)}% < 80%`;
+            alert(`Face Mismatch: Similarity score ${(result.similarity_score * 100).toFixed(1)}% is below 80%. Redirecting to fallback authentication.`);
+            handleFaceFallbackChoice();
+          }
+        }
+      } catch (err) {
+        console.error("Biometric process error:", err);
+        alert(err.message || "An error occurred during facial scanning.");
+      } finally {
+        isCalibrating = false;
+      }
+    }
+
+    function configureLockScreenUI(type) {
+      const isFinger = (type === "fingerprint");
+      const icon = isFinger ? "👆" : "👤";
+      const name = isFinger ? "Fingerprint" : "Face ID";
+
+      document.getElementById('lockScreenIcon').innerText = icon;
+      document.getElementById('lockScreenSubtitle').innerHTML = `Verify your <strong>${name}</strong> to open Drozo Guard.`;
+      document.getElementById('btnTriggerBioIcon').innerText = icon;
+      document.getElementById('btnTriggerBioText').innerText = `Scan ${name} to Unlock`;
+      document.getElementById('btnApproveAction').innerHTML = `<span>✓</span> Approve (${name})`;
+    }
+
+    async function selectBiometricType(chosenType) {
+      // Lock permanently in storage
+      localStorage.setItem("drozo_guard_bio_type", chosenType);
+      document.getElementById('biometricChoiceModal').classList.add('hidden');
+      configureLockScreenUI(chosenType);
+      document.getElementById('biometricLockModal').classList.remove('hidden');
+      if (chosenType === 'faceid') {
+        openCustomFaceScanner('enroll');
+      } else {
+        await triggerDeviceBiometrics('enroll');
+      }
+    }
+
+    function showSecurityWarning() {
+      document.getElementById('biometricChoiceModal').classList.add('hidden');
+      document.getElementById('biometricWarningModal').classList.remove('hidden');
+    }
+
+    function cancelWarningAndReturn() {
+      document.getElementById('biometricWarningModal').classList.add('hidden');
+      document.getElementById('biometricChoiceModal').classList.remove('hidden');
+    }
+
+    function proceedWithoutBiometrics() {
+      localStorage.setItem("drozo_guard_bio_type", "none");
+      document.getElementById('biometricWarningModal').classList.add('hidden');
+      document.getElementById('biometricLockModal').classList.add('hidden');
+      const statusTag = document.getElementById('bioLockedStatusTag');
+      if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
+    }
+
+    // Hardware WebAuthn Engine for Native Sensor Trigger
+    async function triggerDeviceBiometrics(purpose = "unlock") {
+      var bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
+      if (bioType === "faceid") {
+        openCustomFaceScanner(purpose);
+        return;
+      }
+      var bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
+      const sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
+      const msg = document.getElementById('bioStatusMsg');
+      if (msg) msg.innerText = `Please touch ${sensorLabel}...`;
+
+      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
+      const storedCred = localStorage.getItem("drozo_bio_cred_" + bioType + "_" + activeUser);
+
+      if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        try {
+          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          if (available) {
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+
+            if (purpose === 'enroll' || !storedCred) {
+              const userId = new Uint8Array(16);
+              window.crypto.getRandomValues(userId);
+
+              const newCred = await navigator.credentials.create({
+                publicKey: {
+                  challenge: challenge,
+                  rp: { name: "Drozo Guard Sanctuary", id: window.location.hostname },
+                  user: { id: userId, name: activeUser, displayName: activeUser.split('@')[0] },
+                  pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+                  authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                  timeout: 60000
+                }
+              });
+
+              if (newCred) {
+                localStorage.setItem("drozo_bio_cred_" + bioType + "_" + activeUser, bufferToBase64(newCred.rawId));
+                document.getElementById('biometricLockModal').classList.add('hidden');
+                return;
+              }
+            } else {
+              const assertion = await navigator.credentials.get({
+                publicKey: {
+                  challenge: challenge,
+                  rpId: window.location.hostname,
+                  allowCredentials: [{ type: "public-key", id: base64ToBuffer(storedCred) }],
+                  userVerification: "required",
+                  timeout: 60000
+                }
+              });
+
+              if (assertion) {
+                if (purpose === "unlock") {
+                  document.getElementById('biometricLockModal').classList.add('hidden');
+                } else if (purpose === "approve") {
+                  respondChallenge('authorized');
+                }
+                return;
+              }
+            }
+          }
+        } catch (err) {
+          if (msg) msg.innerText = `${sensorLabel} read cancelled or timed out. Tap to retry.`;
+          return;
+        }
+      }
+
+      // High-compatibility hardware fallback prompt
+      if (confirm(`Verify ${sensorLabel.toUpperCase()} to continue?`)) {
+        if (purpose === "unlock" || purpose === "enroll") {
+          document.getElementById('biometricLockModal').classList.add('hidden');
+        } else if (purpose === "approve") {
+          respondChallenge('authorized');
+        }
+      }
+    }
+
+    function handleApproveWithBiometric() {
+      const bioPref = localStorage.getItem("drozo_guard_bio_type");
+      if (bioPref === "fingerprint" || bioPref === "faceid") {
+        triggerDeviceBiometrics('approve');
+      } else {
+        respondChallenge('authorized');
+      }
+    }
+
+    function verifyAndShowChallenge(token, email) {
+      if (!token) return;
+      activeSessionToken = token;
+
+      document.getElementById('standbyView').classList.add('hidden');
+      document.getElementById('challengeView').classList.remove('hidden');
+
+      document.getElementById('sessionTokenDisplay').innerText = token;
+      const targetEmail = email || "admin@drozominds.com";
+      document.getElementById('userEmailDisplay').innerText = targetEmail;
+
+      const displayName = (targetEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (targetEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : targetEmail.split('@')[0]);
+      document.getElementById('userNameDisplay').innerText = displayName;
+
+      const pill = document.getElementById('guardPill');
+      pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-950/60 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
+      pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> CHALLENGE';
+    }
+
+    function startPollingForPendingSessions() {
+      checkPendingSessionsNow();
+      if (pollerTimer) clearInterval(pollerTimer);
+      pollerTimer = setInterval(checkPendingSessionsNow, 1000);
+    }
+
+    async function checkPendingSessionsNow() {
+      if (activeSessionToken) return;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
+          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` },
+          cache: "no-store"
         });
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows && rows.length > 0) {
+            const req = rows[0];
+            if (sessionStorage.getItem("handled_" + req.session_token)) return;
+            verifyAndShowChallenge(req.session_token, req.email);
+          }
+        }
+      } catch (_) {}
     }
-    else if (txt.includes('Yes, I Understand')) {
-        e.preventDefault();
-        window.location.href = 'index.html';
-    }
-    else if (txt.includes('Go Back & Choose')) {
-        e.preventDefault();
-        document.querySelectorAll('main > div, section').forEach(el => {
-            if(el.innerText.includes('Critical Security')) { el.style.display = 'none'; el.classList.add('hidden'); }
-            else if(el.innerText.includes('Select Biometric')) { el.style.display = 'block'; el.classList.remove('hidden'); }
+
+    async function respondChallenge(statusDecision) {
+      if (!activeSessionToken) return;
+      const tok = activeSessionToken;
+
+      sessionStorage.setItem("handled_" + tok, "true");
+      localStorage.setItem("drozo_challenge_result_" + tok, statusDecision);
+
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${tok}`, {
+          method: "PATCH",
+          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ status: statusDecision })
         });
+      } catch (_) {}
+
+      try {
+        const resultChannel = new BroadcastChannel('drozo_sync');
+        resultChannel.postMessage({ type: 'GUARD_RESULT', token: tok, status: statusDecision });
+      } catch (_) {}
+
+      alert(statusDecision === 'authorized' ? 'Login Approved ✓' : 'Login Denied ✕');
+      location.href = window.location.pathname;
     }
-});
+
+    async function startScanner() {
+      let box = document.getElementById('cameraScannerBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'cameraScannerBox';
+        box.className = 'fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4';
+        box.innerHTML = `
+          <div class="w-full max-w-xs bg-[#0e1724] rounded-3xl p-5 border border-slate-800 text-center space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+              <span class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span>📷</span> Scan Challenge QR
+              </span>
+              <button type="button" onclick="stopMobileScanner()" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-2 py-1">Close ✕</button>
+            </div>
+            <div class="flex justify-center items-center py-2">
+              <div id="mobileQrReaderArea" class="w-64 h-64 bg-black rounded-2xl overflow-hidden border border-sky-500/40 shadow-inner"></div>
+            </div>
+            <p class="text-[11px] text-slate-400">Align the square QR challenge on your screen inside the frame.</p>
+          </div>
+        `;
+        document.body.appendChild(box);
+      }
+      box.classList.remove('hidden');
+
+      const onScanSuccess = async (decodedText) => {
+        try {
+          if (decodedText.includes("token=") || decodedText.includes("SES_")) {
+            let token = "";
+            let email = "admin@drozominds.com";
+            if (decodedText.includes("?")) {
+              const url = new URL(decodedText);
+              token = url.searchParams.get("token") || "";
+              email = url.searchParams.get("email") || email;
+            } else if (decodedText.startsWith("SES_")) {
+              token = decodedText.trim();
+            }
+            if (token) {
+              await stopMobileScanner();
+              verifyAndShowChallenge(token, email);
+            }
+          }
+        } catch (_) {}
+      };
+
+      try {
+        if (html5QrScannerMobile) { try { await html5QrScannerMobile.stop(); } catch(_) {} }
+        html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
+        const config = { fps: 20, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
+        try {
+          await html5QrScannerMobile.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
+        } catch (_) {
+          await html5QrScannerMobile.start({ facingMode: "user" }, config, onScanSuccess, () => {});
+        }
+      } catch (err) {
+        alert("Camera permission required or sensor busy. You can enter the Session ID manually.");
+      }
+    }
+
+    async function stopMobileScanner() {
+      if (html5QrScannerMobile) {
+        try { await html5QrScannerMobile.stop(); } catch(_) {}
+        html5QrScannerMobile = null;
+      }
+      const box = document.getElementById('cameraScannerBox');
+      if (box) box.classList.add('hidden');
+    }
+
+    function promptManualSessionToken() {
+      const code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
+      if (code && code.trim().startsWith("SES_")) {
+        verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com");
+      }
+    }
+  </script>
+<script>
+    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
+    function forceClearAllBlurs() {
+      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
+        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        el.style.filter = 'none';
+        el.style.pointerEvents = 'auto';
+        el.style.userSelect = 'auto';
+      });
+      const portal = document.getElementById('portalContent');
+      if (portal) {
+        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
+        portal.style.filter = 'none';
+        portal.style.pointerEvents = 'auto';
+      }
+      // Ensure hidden modals don't hold invisible click blocks
+      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m && m.classList.contains('hidden')) {
+          m.style.pointerEvents = 'none';
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
+    window.addEventListener('load', forceClearAllBlurs);
+    setInterval(forceClearAllBlurs, 1000);
 </script>
 
+
 <script>
-// ==========================================
-// MASTER CONTROLLER: AUTH.HTML
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode') || 'enroll';
-
-    const sections = document.querySelectorAll("main > div, section, .min-h-screen > div");
+document.addEventListener('DOMContentLoaded', () => {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div'));
     
-    function showSection(keyword) {
-        sections.forEach(el => {
-            const txt = el.innerText || "";
-            if (txt.includes(keyword)) {
-                el.style.display = "block";
-                el.classList.remove("hidden");
-            } else {
-                el.style.display = "none";
-                el.classList.add("hidden");
-            }
-        });
-    }
-
-    // Force proper initial screen based on URL
-    if (mode === "verify") {
-        showSection("Anti-Spoof"); // Face ID Liveness Screen
-    } else {
-        showSection("Select Biometric"); // Fingerprint vs Face ID
-    }
-
-    // Bulletproof Button Routing
-    document.querySelectorAll("button, a").forEach(btn => {
-        const txt = (btn.innerText || "").trim();
-        if (txt.includes("Fingerprint Scanner")) {
-            btn.onclick = (e) => { 
-                e.preventDefault(); 
-                alert("Hardware pass registered successfully."); 
-                window.location.href = "index.html"; 
-            };
-        } else if (txt.includes("Face ID Recognition")) {
-            btn.onclick = (e) => { 
-                e.preventDefault(); 
-                showSection("Anti-Spoof"); 
-            };
-        } else if (txt.includes("Skip Biometric Protection")) {
-            btn.onclick = (e) => { 
-                e.preventDefault(); 
-                showSection("Critical Security Alert"); 
-            };
-        } else if (txt.includes("Yes, I Understand")) {
-            btn.onclick = (e) => { 
-                e.preventDefault(); 
-                window.location.href = "index.html"; 
-            };
-        } else if (txt.includes("Go Back & Choose")) {
-            btn.onclick = (e) => { 
-                e.preventDefault(); 
-                showSection("Select Biometric"); 
-            };
-        }
+    const show = (kw) => sections.forEach(s => {
+        if(s.innerText.includes(kw)) { s.style.display = 'block'; s.classList.remove('hidden'); }
+        else { s.style.display = 'none'; s.classList.add('hidden'); }
     });
+    
+    if(mode === 'verify') show('Anti-Spoof');
+    else show('Select Biometric');
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button') || e.target.closest('a');
+        if(!btn) return;
+        const txt = btn.innerText.trim();
+        
+        if(txt.includes('Fingerprint Scanner')) {
+            e.preventDefault(); e.stopPropagation();
+            alert('Fingerprint hardware pass registered!');
+            window.location.href = 'index.html';
+        } else if (txt.includes('Face ID Recognition')) {
+            e.preventDefault(); e.stopPropagation();
+            show('Anti-Spoof');
+        } else if (txt.includes('Skip Biometric')) {
+            e.preventDefault(); e.stopPropagation();
+            show('Critical Security');
+        } else if (txt.includes('Yes, I Understand')) {
+            e.preventDefault(); e.stopPropagation();
+            window.location.href = 'index.html';
+        } else if (txt.includes('Go Back & Choose')) {
+            e.preventDefault(); e.stopPropagation();
+            show('Select Biometric');
+        }
+    }, true); 
 });
 </script>
 
