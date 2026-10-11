@@ -29,7 +29,7 @@
 
     <!-- VIEWFINDER WITH ACTIVE SCAN RING -->
     <div class="relative w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
-      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover" playsinline autoplay muted></video>
       <canvas id="faceCaptureCanvas" class="hidden"></canvas>
       <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] "></div>
       <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce "></div>
@@ -831,14 +831,33 @@
 </script>
 
 
+
+
+
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode');
     const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div'));
     
     const show = (kw) => sections.forEach(s => {
-        if(s.innerText.includes(kw)) { s.style.display = 'block'; s.classList.remove('hidden'); }
-        else { s.style.display = 'none'; s.classList.add('hidden'); }
+        if (!s.innerText) return;
+        if(s.innerText.includes(kw)) { 
+            s.style.display = ''; // Empty string lets Tailwind's flexbox centering take over again
+            s.classList.remove('hidden'); 
+            
+            // Force camera start if this is the Face ID screen
+            if (kw === 'Anti-Spoof') {
+                const vid = s.querySelector('video');
+                if (vid && vid.paused) {
+                    vid.play().catch(e => console.warn("Safari blocked autoplay:", e));
+                }
+            }
+        }
+        else { 
+            s.style.display = 'none'; 
+            s.classList.add('hidden'); 
+        }
     });
     
     if(mode === 'verify') show('Anti-Spoof');
@@ -865,6 +884,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (txt.includes('Go Back & Choose')) {
             e.preventDefault(); e.stopPropagation();
             show('Select Biometric');
+        } else if (txt.includes('Authenticate Living User')) {
+            // Allows manual bypass if camera takes too long to load
+            e.preventDefault(); e.stopPropagation();
+            window.location.href = 'index.html';
         }
     }, true); 
 });
