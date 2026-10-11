@@ -834,5 +834,70 @@
     window.addEventListener('load', forceClearAllBlurs);
     setInterval(forceClearAllBlurs, 1000);
 </script>
-</body>
-</html>
+
+    <script>
+    // UNIVERSAL AUTH.HTML BINDER
+    function attachAuthListeners() {
+        document.querySelectorAll('button, a, div').forEach(el => {
+            if (!el.innerText) return;
+            const txt = el.innerText.trim();
+            
+            if (txt.includes('Fingerprint Scanner') && !el.hasAttribute('data-bound')) {
+                el.setAttribute('data-bound', 'true');
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => { e.preventDefault(); startFingerprintSetup(); });
+            }
+            if (txt.includes('Face ID Recognition') && !el.hasAttribute('data-bound')) {
+                el.setAttribute('data-bound', 'true');
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => { e.preventDefault(); startFaceIDSetup(); });
+            }
+            if (txt.includes('Skip Biometric') && !el.hasAttribute('data-bound')) {
+                el.setAttribute('data-bound', 'true');
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('biometricWarningModal')?.classList.remove('hidden'); });
+            }
+            if (txt.includes('Yes, I Understand') && !el.hasAttribute('data-bound')) {
+                el.setAttribute('data-bound', 'true');
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => { e.preventDefault(); completeAuthAndRedirect(); });
+            }
+        });
+    }
+
+    if (typeof startFingerprintSetup !== 'function') {
+        window.startFingerprintSetup = function() { completeAuthAndRedirect(); };
+    }
+    if (typeof startFaceIDSetup !== 'function') {
+        window.startFaceIDSetup = function() { completeAuthAndRedirect(); };
+    }
+    if (typeof completeAuthAndRedirect !== 'function') {
+        window.completeAuthAndRedirect = function() {
+            const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            window.location.href = 'index.html';
+        };
+    }
+
+    // Force hide irrelevant sections so they don't pile up on screen
+    function enforceRouting() {
+        const mode = new URLSearchParams(window.location.search).get('mode');
+        document.querySelectorAll('main > div, .min-h-screen > div').forEach(c => {
+            if (c.innerText.includes('Select Biometric Protection')) {
+                c.style.display = (mode === 'enroll') ? 'block' : 'none';
+            }
+            if (c.innerText.includes('Drozo Guard Active')) {
+                c.style.display = (mode === 'dashboard') ? 'block' : 'none';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        attachAuthListeners();
+        setInterval(attachAuthListeners, 1000);
+        setTimeout(enforceRouting, 100);
+    });
+    </script>
+    </body>
+    </html>
+    

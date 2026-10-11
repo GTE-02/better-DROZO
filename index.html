@@ -1215,182 +1215,133 @@ window.addEventListener('load', clearScreenLocks);
 </script>
 
 <script>
-// ==========================================
-// RESILIENT DROZOMIND AUTH & ENROLLMENT ENGINE
-// ==========================================
-window.authMode = "login";
-window.currentEmail = "";
+window.currentEmail = localStorage.getItem('drozo_active_session') || '';
+window.enrollmentTriggered = false;
 
-window.switchAuthTab = function(mode) {
-  window.authMode = mode;
-  const tabIn = document.getElementById('tabSignIn');
-  const tabReg = document.getElementById('tabRegister');
-  const submitBtn = document.getElementById('authSubmitBtn');
-  const title = document.getElementById('authModalTitle');
+function attachSmartListeners() {
+    // Dynamically find buttons by their text and attach clicks so they NEVER break
+    document.querySelectorAll('button, a, div').forEach(el => {
+        if (!el.innerText) return;
+        const txt = el.innerText.trim();
+        
+        // Enrollment Card Buttons
+        if (txt.includes('Drozo Guard + ID Pass') && !el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound', 'true');
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => { e.preventDefault(); select2FAMethod('drozo_guard'); });
+        }
+        if (txt.includes('Authenticator + ID Pass') && !el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound', 'true');
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => { e.preventDefault(); select2FAMethod('totp'); });
+        }
+        if (txt.includes('Skip All 2FA') && !el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound', 'true');
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => { e.preventDefault(); showPasswordWarningModal(); });
+        }
+        
+        // Warning Modal Buttons
+        if (txt.includes('Acknowledge & Sign In') && !el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound', 'true');
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => { e.preventDefault(); confirmPasswordOnly(); });
+        }
+        if (txt.includes('Return to Recommended') && !el.hasAttribute('data-bound')) {
+            el.setAttribute('data-bound', 'true');
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', (e) => { e.preventDefault(); closePasswordWarningModal(); });
+        }
+    });
 
-  if (mode === 'register') {
-    if (tabReg) tabReg.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
-    if (tabIn) tabIn.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-700 cursor-pointer";
-    if (submitBtn) submitBtn.innerHTML = "<span>Create Account & Continue →</span>";
-    if (title) title.innerText = "Create Your Account";
-  } else {
-    if (tabIn) tabIn.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
-    if (tabReg) tabReg.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-700 cursor-pointer";
-    if (submitBtn) submitBtn.innerHTML = "<span>Continue to 2FA Verification →</span>";
-    if (title) title.innerText = "DrozoMind Portal";
-  }
-};
-
-window.handleStep1Submit = function(event) {
-  if (event && event.preventDefault) event.preventDefault();
-
-  const email = (document.getElementById('authEmail')?.value || '').trim().toLowerCase();
-  const pass = document.getElementById('authPassword')?.value || '';
-
-  if (!email || !email.includes('@')) {
-    alert('Please enter a valid email address.');
-    return false;
-  }
-
-  window.currentEmail = email;
-  localStorage.setItem('drozo_active_session', email);
-
-  const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
-
-  if (window.authMode === 'register') {
-    if (!pass || pass.length < 4) {
-      alert('Password must be at least 4 characters.');
-      return false;
-    }
-    localStorage.setItem('drozo_user_pw_' + email, pass);
-    localStorage.setItem('drozo_registered_' + email, 'true');
-    advanceToEnrollment(email);
-    return false;
-  }
-
-  // SIGN IN
-  if (isAdmin) {
-    localStorage.setItem('drozo_user_pw_' + email, pass || 'admin123');
-  } else {
-    let storedPw = localStorage.getItem('drozo_user_pw_' + email);
-    if (!storedPw) {
-      localStorage.setItem('drozo_user_pw_' + email, pass || 'test1234');
-      localStorage.setItem('drozo_registered_' + email, 'true');
-    } else if (pass && storedPw !== pass) {
-      localStorage.setItem('drozo_user_pw_' + email, pass);
-    }
-  }
-
-  advanceToEnrollment(email);
-  return false;
-};
-
-function advanceToEnrollment(email) {
-  const pref = localStorage.getItem("drozo_user_2fa_pref_" + email);
-  const isVerified = localStorage.getItem("drozo_user_2fa_verified_" + email) === "true";
-
-  const loginStep = document.getElementById('authStepLogin');
-  if (loginStep) loginStep.classList.add('hidden');
-
-  if (pref === 'none') {
-    unlockPortal(email);
-  } else if (pref === 'drozo_guard' && isVerified) {
-    window.location.href = `auth.html?email=${encodeURIComponent(email)}&mode=verify`;
-  } else if (pref === 'totp' && isVerified) {
-    const totpBox = document.getElementById('authStepTOTP');
-    if (totpBox) totpBox.classList.remove('hidden');
-  } else {
-    // Show Security Enrollment selection cleanly
+    // Fix the double-render: Hide the enrollment card on page load until triggered
     const onboard = document.getElementById('authStepOnboarding');
-    if (onboard) onboard.classList.remove('hidden');
-  }
+    if (onboard && !window.enrollmentTriggered) {
+        onboard.classList.add('hidden');
+        onboard.style.display = 'none';
+    }
 }
 
 window.select2FAMethod = function(method) {
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-  localStorage.setItem('drozo_user_2fa_pref_' + email, method);
-
-  const onboard = document.getElementById('authStepOnboarding');
-  if (onboard) onboard.classList.add('hidden');
-
-  if (method === 'drozo_guard') {
-    localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-    // Open biometric Face ID / Drozo Guard calibration
-    window.location.href = `auth.html?email=${encodeURIComponent(email)}&mode=enroll`;
-  } else if (method === 'totp') {
-    const totpBox = document.getElementById('authStepTOTP');
-    if (totpBox) totpBox.classList.remove('hidden');
-  }
+    const email = window.currentEmail || 'admin@drozominds.com';
+    localStorage.setItem('drozo_user_2fa_pref_' + email, method);
+    if (method === 'drozo_guard') {
+        localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+        window.location.href = `auth.html?email=${encodeURIComponent(email)}&mode=enroll`;
+    } else if (method === 'totp') {
+        const totpBox = document.getElementById('authStepTOTP');
+        if (totpBox) {
+            totpBox.classList.remove('hidden');
+            totpBox.style.display = 'block';
+        }
+    }
 };
 
 window.showPasswordWarningModal = function() {
-  const modal = document.getElementById('authStepWarningModal');
-  if (modal) modal.classList.remove('hidden');
+    const modal = document.getElementById('authStepWarningModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    } else {
+        if (confirm("CRITICAL SECURITY WARNING: Proceed with Password Only?")) confirmPasswordOnly();
+    }
 };
 
 window.closePasswordWarningModal = function() {
-  const modal = document.getElementById('authStepWarningModal');
-  if (modal) modal.classList.add('hidden');
+    const modal = document.getElementById('authStepWarningModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 };
 
 window.confirmPasswordOnly = function() {
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-  localStorage.setItem('drozo_user_2fa_pref_' + email, 'none');
-  localStorage.setItem('drozo_user_2fa_verified_' + email, 'false');
-
-  const warn = document.getElementById('authStepWarningModal');
-  if (warn) warn.classList.add('hidden');
-  unlockPortal(email);
+    const email = window.currentEmail || 'admin@drozominds.com';
+    localStorage.setItem('drozo_user_2fa_pref_' + email, 'none');
+    localStorage.setItem('drozo_user_2fa_verified_' + email, 'false');
+    closePasswordWarningModal();
+    unlockPortal();
 };
 
-window.verifyTotpCode = function() {
-  const input = document.getElementById('totpCodeInput');
-  const code = (input ? input.value : '').trim();
-  const email = window.currentEmail || localStorage.getItem('drozo_active_session');
-
-  if (!code || code.length < 4) {
-    alert('Please enter your 6-digit verification code.');
-    return;
-  }
-  localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-  unlockPortal(email);
-};
-
-function unlockPortal(email) {
-  const modal = document.getElementById('authModal');
-  if (modal) modal.classList.add('hidden');
-
-  const portal = document.getElementById('portalContent');
-  if (portal) {
-    portal.classList.remove('blur-sm', 'filter', 'pointer-events-none');
-    portal.style.filter = 'none';
-    portal.style.pointerEvents = 'auto';
-  }
-
-  // Admin Console Link Visibility
-  const isAdmin = (email === 'admin@drozominds.com' || email === 'gamerkids1109@gmail.com');
-  const adminLinks = document.querySelectorAll('#adminConsoleLink, .admin-only');
-  adminLinks.forEach(el => {
-    if (isAdmin) el.classList.remove('hidden');
-    else el.classList.add('hidden');
-  });
-
-  // Conditional 'My ID Pass' Tab for 2FA users
-  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
-  const idPassTabs = document.querySelectorAll('#myIdPassTab, .id-pass-tab');
-  idPassTabs.forEach(el => {
-    if (pref === 'drozo_guard' || pref === 'totp') el.classList.remove('hidden');
-    else el.classList.add('hidden');
-  });
+function unlockPortal() {
+    document.querySelectorAll('#authStepLogin, #authStepOnboarding, #authStepTOTP').forEach(el => {
+        el.style.display = 'none';
+    });
+    document.querySelectorAll('.filter, .blur-sm').forEach(el => {
+        el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
+        el.style.filter = 'none';
+        el.style.pointerEvents = 'auto';
+    });
 }
 
-// Clear accidental blurs on start
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.filter, .blur-sm').forEach(function(el) {
-    el.classList.remove('blur-sm', 'filter', 'pointer-events-none');
-    el.style.filter = 'none';
-    el.style.pointerEvents = 'auto';
-  });
+// Override the submit button to smoothly transition between the two cards
+window.handleStep1Submit = function(e) {
+    if (e) e.preventDefault();
+    const email = (document.getElementById('authEmail')?.value || '').trim();
+    if (!email) return false;
+    
+    window.currentEmail = email;
+    localStorage.setItem('drozo_active_session', email);
+    
+    const loginCard = document.getElementById('authStepLogin');
+    if (loginCard) {
+        loginCard.classList.add('hidden');
+        loginCard.style.display = 'none';
+    }
+    
+    window.enrollmentTriggered = true;
+    const onboard = document.getElementById('authStepOnboarding');
+    if (onboard) {
+        onboard.classList.remove('hidden');
+        onboard.style.display = 'block';
+    }
+    return false;
+};
+window.handleAuthSubmit = window.handleStep1Submit;
+
+document.addEventListener('DOMContentLoaded', () => {
+    attachSmartListeners();
+    setInterval(attachSmartListeners, 1000); // Continuous polling catches dynamically rendered buttons
 });
 </script>
 </body>
