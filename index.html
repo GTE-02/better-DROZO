@@ -1430,22 +1430,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeEmail = localStorage.getItem('drozo_active_session');
     const isVerified = activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true';
 
-    // AUTO-UNLOCK: If user is verified, delete the modal so it can't block the screen
+    // AUTO-UNLOCK
     if (isVerified) {
         if(modal) modal.remove(); 
         document.querySelectorAll('.blur-sm, .filter').forEach(el => {
             el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
         });
         
-        // Turn top right button into 'Sign Out'
-        const topSignInBtn = Array.from(document.querySelectorAll('button, a')).find(b => b.innerText.includes('Sign In'));
-        if (topSignInBtn) {
-            topSignInBtn.innerText = 'Sign Out';
-            topSignInBtn.style.backgroundColor = '#ef4444';
-            topSignInBtn.onclick = (e) => {
+        const topSignInBtns = Array.from(document.querySelectorAll('button, a')).filter(b => b.innerText.includes('Sign In'));
+        topSignInBtns.forEach(btn => {
+            btn.innerText = 'Sign Out';
+            btn.style.backgroundColor = '#ef4444';
+            btn.onclick = (e) => {
                 e.preventDefault(); localStorage.removeItem('drozo_user_2fa_verified_' + activeEmail); window.location.reload();
             };
-        }
+        });
         return;
     }
 
@@ -1455,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(login) { login.style.display = 'block'; login.classList.remove('hidden'); }
 
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
+        const btn = e.target.closest('button') || e.target.closest('.cursor-pointer');
         if(!btn) return;
         const txt = btn.innerText.trim();
         const emailInput = document.getElementById('authEmail') || document.querySelector('input[type="email"]');
@@ -1482,6 +1481,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (txt.includes('Return to Recommended')) {
             e.preventDefault(); e.stopPropagation();
             if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
+        } else if (txt.includes('New Register')) {
+            e.preventDefault(); e.stopPropagation();
+            const tr = document.getElementById('tabRegister'); const ti = document.getElementById('tabSignIn'); const sb = document.getElementById('authSubmitBtn');
+            if(tr) tr.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
+            if(ti) ti.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
+            if(sb) sb.innerText = "Create Account & Continue →";
+        } else if (txt === 'Sign In' && btn.closest('#authStepLogin')) {
+            e.preventDefault(); e.stopPropagation();
+            const tr = document.getElementById('tabRegister'); const ti = document.getElementById('tabSignIn'); const sb = document.getElementById('authSubmitBtn');
+            if(ti) ti.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
+            if(tr) tr.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
+            if(sb) sb.innerText = "Continue to 2FA Verification →";
         }
     }, true);
 });
