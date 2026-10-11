@@ -831,62 +831,64 @@
 </script>
 
 
-
-
-
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const mode = new URLSearchParams(window.location.search).get('mode');
     const sections = Array.from(document.querySelectorAll('main > div, section, .min-h-screen > div'));
     
+    // View Controller
     const show = (kw) => sections.forEach(s => {
         if (!s.innerText) return;
         if(s.innerText.includes(kw)) { 
-            s.style.display = ''; // Empty string lets Tailwind's flexbox centering take over again
-            s.classList.remove('hidden'); 
-            
-            // Force camera start if this is the Face ID screen
+            s.style.display = ''; s.classList.remove('hidden'); 
+            // Kickstart camera if Face ID screen
             if (kw === 'Anti-Spoof') {
                 const vid = s.querySelector('video');
-                if (vid && vid.paused) {
-                    vid.play().catch(e => console.warn("Safari blocked autoplay:", e));
-                }
+                if (vid && vid.paused) vid.play().catch(e => console.warn(e));
             }
-        }
-        else { 
-            s.style.display = 'none'; 
-            s.classList.add('hidden'); 
+        } else { 
+            s.style.display = 'none'; s.classList.add('hidden'); 
         }
     });
     
-    if(mode === 'verify') show('Anti-Spoof');
+    // Set initial view
+    if (mode === 'verify') show('Anti-Spoof');
     else show('Select Biometric');
 
+    // Button Click Interceptor
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button') || e.target.closest('a');
-        if(!btn) return;
-        const txt = btn.innerText.trim();
+        if (!btn) return;
+        const txt = (btn.innerText || '').trim();
         
-        if(txt.includes('Fingerprint Scanner')) {
+        const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
+
+        if (txt.includes('Fingerprint Scanner')) {
             e.preventDefault(); e.stopPropagation();
-            alert('Fingerprint hardware pass registered!');
-            window.location.href = 'index.html';
-        } else if (txt.includes('Face ID Recognition')) {
+            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            alert('Fingerprint Hardware Pass Registered Successfully!');
+            window.location.href = 'index.html'; // Returns to portal unlocked
+        } 
+        else if (txt.includes('Face ID Recognition')) {
             e.preventDefault(); e.stopPropagation();
-            show('Anti-Spoof');
-        } else if (txt.includes('Skip Biometric')) {
+            window.location.href = 'auth.html?mode=verify';
+        } 
+        else if (txt.includes('Authenticate Living User')) {
+            e.preventDefault(); e.stopPropagation();
+            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            window.location.href = 'index.html'; // Manual bypass
+        }
+        else if (txt === 'Cancel' || txt.includes('Go Back')) {
+            e.preventDefault(); e.stopPropagation();
+            window.location.href = 'auth.html?mode=enroll'; // Fixes the STANDBY blank screen bug
+        }
+        else if (txt.includes('Skip Biometric')) {
             e.preventDefault(); e.stopPropagation();
             show('Critical Security');
-        } else if (txt.includes('Yes, I Understand')) {
+        } 
+        else if (txt.includes('Yes, I Understand')) {
             e.preventDefault(); e.stopPropagation();
-            window.location.href = 'index.html';
-        } else if (txt.includes('Go Back & Choose')) {
-            e.preventDefault(); e.stopPropagation();
-            show('Select Biometric');
-        } else if (txt.includes('Authenticate Living User')) {
-            // Allows manual bypass if camera takes too long to load
-            e.preventDefault(); e.stopPropagation();
+            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
             window.location.href = 'index.html';
         }
     }, true); 

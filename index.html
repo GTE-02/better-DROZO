@@ -1427,17 +1427,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const warn = document.getElementById('authStepWarningModal');
     const modal = document.getElementById('authModal') || document.querySelector('.fixed.inset-0');
 
-    // Force perfect initial view
+    // Auto-unlock if returning from auth.html successfully
+    const activeEmail = localStorage.getItem('drozo_active_session');
+    if (activeEmail && localStorage.getItem('drozo_user_2fa_verified_' + activeEmail) === 'true') {
+        if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
+        document.querySelectorAll('.blur-sm, .filter').forEach(el => {
+            el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
+        });
+        return; // Stop here, user is in the portal
+    }
+
+    // Default View
     if(enroll) { enroll.style.display = 'none'; enroll.classList.add('hidden'); }
     if(totp) { totp.style.display = 'none'; totp.classList.add('hidden'); }
     if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
     if(login) { login.style.display = 'block'; login.classList.remove('hidden'); }
 
-    // Intercept clicks BEFORE the broken scripts can process them
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if(!btn) return;
         const txt = btn.innerText.trim();
+        const emailInput = document.getElementById('authEmail') || document.querySelector('input[type="email"]');
+        if (emailInput && emailInput.value) localStorage.setItem('drozo_active_session', emailInput.value);
 
         if (txt.includes('Continue to 2FA') || txt.includes('Create Account')) {
             e.preventDefault(); e.stopPropagation();
@@ -1455,30 +1466,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if(warn) { warn.style.display = 'flex'; warn.classList.remove('hidden'); }
         } else if (txt.includes('Acknowledge & Sign In') || txt.includes('Verify & Complete')) {
             e.preventDefault(); e.stopPropagation();
+            if(emailInput && emailInput.value) localStorage.setItem('drozo_user_2fa_verified_' + emailInput.value, 'true');
             if(modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
             document.querySelectorAll('.blur-sm, .filter').forEach(el => {
-                el.style.filter = 'none';
-                el.classList.remove('blur-sm', 'pointer-events-none');
+                el.style.filter = 'none'; el.classList.remove('blur-sm', 'pointer-events-none');
             });
         } else if (txt.includes('Return to Recommended')) {
             e.preventDefault(); e.stopPropagation();
             if(warn) { warn.style.display = 'none'; warn.classList.add('hidden'); }
-        } else if (txt.includes('New Register')) {
-            e.preventDefault(); e.stopPropagation();
-            const tabReg = document.getElementById('tabRegister');
-            const tabIn = document.getElementById('tabSignIn');
-            const subBtn = document.getElementById('authSubmitBtn');
-            if(tabReg) tabReg.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
-            if(tabIn) tabIn.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
-            if(subBtn) subBtn.innerText = "Create Account & Continue →";
-        } else if (txt === 'Sign In') {
-            e.preventDefault(); e.stopPropagation();
-            const tabReg = document.getElementById('tabRegister');
-            const tabIn = document.getElementById('tabSignIn');
-            const subBtn = document.getElementById('authSubmitBtn');
-            if(tabIn) tabIn.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
-            if(tabReg) tabReg.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
-            if(subBtn) subBtn.innerText = "Continue to 2FA Verification →";
         }
     }, true); 
 });
