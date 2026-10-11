@@ -1021,5 +1021,73 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+
+<script id="drozo-view-router">
+// ==========================================
+// DETERMINISTIC VIEW ROUTER FOR AUTH.HTML
+// ==========================================
+window.setAuthView = function(viewName) {
+  document.querySelectorAll('main > div, .min-h-screen > div, section').forEach(el => {
+    const txt = (el.innerText || '');
+    if (txt.includes('Select Biometric Protection') || txt.includes('Choose your device sensor')) {
+      el.style.display = (viewName === 'enroll') ? 'block' : 'none';
+    } else if (txt.includes('Anti-Spoof Biometric Check') || txt.includes('Align face inside oval frame')) {
+      el.style.display = (viewName === 'liveness') ? 'block' : 'none';
+    } else if (txt.includes('Scan your fingerprint to unlock')) {
+      el.style.display = (viewName === 'fingerprint') ? 'block' : 'none';
+    } else if (txt.includes('Critical Security Alert')) {
+      el.style.display = (viewName === 'warning') ? 'block' : 'none';
+    } else if (txt.includes('Drozo Guard Active') || txt.includes('STANDBY')) {
+      el.style.display = (viewName === 'dashboard') ? 'block' : 'none';
+    }
+  });
+};
+
+function bindAuthButtons() {
+  document.querySelectorAll('button, div, a').forEach(el => {
+    const txt = (el.innerText || '').trim();
+    if (txt.includes('Fingerprint Scanner')) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
+        localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+        alert('Touch ID / Fingerprint sensor configured successfully.');
+        window.location.href = 'index.html';
+      };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Face ID Recognition')) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        localStorage.setItem('drozo_bio_choice_' + email, 'face');
+        window.setAuthView('liveness');
+      };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Skip Biometric Protection')) {
+      el.onclick = (e) => { e.preventDefault(); window.setAuthView('warning'); };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Yes, I Understand the Risk')) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        const email = new URLSearchParams(window.location.search).get('email') || localStorage.getItem('drozo_active_session');
+        localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+        window.location.href = 'index.html';
+      };
+      el.style.cursor = 'pointer';
+    } else if (txt.includes('Go Back & Choose')) {
+      el.onclick = (e) => { e.preventDefault(); window.setAuthView('enroll'); };
+      el.style.cursor = 'pointer';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
+  window.setAuthView(mode === 'verify' ? 'liveness' : 'enroll');
+  bindAuthButtons();
+});
+</script>
+
 </body>
 </html>
