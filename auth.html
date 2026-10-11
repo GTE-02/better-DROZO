@@ -29,7 +29,7 @@
 
     <!-- VIEWFINDER WITH ACTIVE SCAN RING -->
     <div class="relative w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
-      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover" playsinline autoplay muted disablePictureInPicture></video>
+      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
       <canvas id="faceCaptureCanvas" class="hidden"></canvas>
       <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] "></div>
       <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce "></div>
@@ -833,89 +833,34 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const mode = new URLSearchParams(window.location.search).get('mode') || 'enroll';
-    const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-    
-    // 1. Map every screen to a distinct state
-    const views = { enroll: null, lockFace: null, lockFinger: null, camera: null, warn: null, standby: null };
-    document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav').forEach(el => {
-        const t = el.innerText || '';
-        if (t.includes('Choose your device sensor')) views.enroll = el;
-        if (t.includes('Scan Face ID to Unlock')) views.lockFace = el;
-        if (t.includes('Scan Fingerprint to Unlock')) views.lockFinger = el;
-        if (t.includes('Anti-Spoof Biometric Check')) views.camera = el;
-        if (t.includes('Critical Security Alert')) views.warn = el;
-        if (t.includes('STANDBY') && t.includes('DROZO GUARD')) views.standby = el;
-    });
-
-    // 2. Strict State Switcher
-    function show(viewName) {
-        Object.keys(views).forEach(k => {
-            if(views[k]) {
-                if(k === viewName) {
-                    views[k].style.cssText = 'display: flex !important; flex-direction: column;';
-                    views[k].classList.remove('hidden', 'force-hide');
-                } else {
-                    views[k].style.cssText = 'display: none !important;';
-                    views[k].classList.add('hidden', 'force-hide');
-                }
-            }
-        });
-    }
-
-    // 3. Initialize Route
-    if (mode === 'verify') {
-        const pref = localStorage.getItem('drozo_bio_choice_' + email) || 'face';
-        if (pref === 'fingerprint') show('lockFinger');
-        else show('lockFace');
-    } else {
-        show('enroll');
-    }
-
-    // 4. Global Interceptor
-    document.addEventListener('click', e => {
-        const btn = e.target.closest('button') || e.target.closest('a') || e.target.closest('.cursor-pointer');
-        if(!btn) return;
-        const t = btn.innerText.trim();
-        
-        if (t.includes('Fingerprint Scanner')) { // Enroll Fingerprint
-            e.preventDefault(); 
-            localStorage.setItem('drozo_bio_choice_' + email, 'fingerprint');
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            alert('Fingerprint Hardware Pass Registered!'); 
-            window.location.href = 'index.html';
-        } 
-        else if (t.includes('Face ID Recognition')) { // Enroll Face ID
-            e.preventDefault(); 
-            localStorage.setItem('drozo_bio_choice_' + email, 'face');
-            window.location.href = 'auth.html?mode=verify';
-        } 
-        else if (t.includes('Scan Face ID')) { // Unlock via Face ID
-            e.preventDefault(); 
-            show('camera');
-            const v = document.querySelector('video');
-            if(v) { v.muted = true; v.play().catch(console.error); }
-        } 
-        else if (t.includes('Scan Fingerprint') || t.includes('Authenticate Living User')) { // Unlock Success
-            e.preventDefault(); 
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html';
-        } 
-        else if (t.includes('Skip Biometric')) { // Warning Request
-            e.preventDefault(); 
-            show('warn');
-        } 
-        else if (t.includes('Yes, I Understand')) { // Warning Acknowledged
-            e.preventDefault(); 
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html';
-        } 
-        else if (t === 'Cancel' || t.includes('Go Back')) { // Routing Fallback
-            e.preventDefault();
-            if (mode === 'verify') window.location.href = 'index.html';
-            else show('enroll');
+    // 1. Physically hide everything except the Fingerprint screen
+    document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav').forEach(s => {
+        if (!s.innerText) return;
+        if (s.innerText.includes('Scan your fingerprint to unlock')) {
+            s.style.cssText = 'display: flex !important; flex-direction: column;';
+            s.classList.remove('hidden', 'force-hide');
+        } else {
+            s.style.cssText = 'display: none !important;';
+            s.classList.add('hidden', 'force-hide');
         }
     });
+
+    // 2. Wire the Fingerprint Button
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button') || e.target.closest('a');
+        if(!btn) return;
+        const txt = btn.innerText.trim();
+        const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
+
+        if (txt.includes('Scan Fingerprint')) {
+            e.preventDefault(); 
+            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
+            window.location.href = 'index.html';
+        } else if (txt === 'Cancel' || txt.includes('Go Back')) {
+            e.preventDefault(); 
+            window.location.href = 'index.html'; 
+        }
+    }, true);
 });
 </script>
 

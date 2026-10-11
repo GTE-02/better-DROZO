@@ -84,7 +84,7 @@
             <p class="text-xs text-slate-500">Take 5 minutes to ground your thoughts and track stress indicators.</p>
           </div>
           <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <div class="text-2xl">🛡️</div>
+            <div class="text-2xl">👆</div>
             <div class="font-bold text-slate-800 text-sm">End-to-End Privacy</div>
             <p class="text-xs text-slate-500">Every dialogue and record is secured with zero-knowledge encryption.</p>
           </div>
@@ -331,8 +331,8 @@
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">🛡️</span>
             <div>
-              <div class="text-xs font-bold text-white">Drozo Guard + ID Pass</div>
-              <div class="text-[10px] text-sky-400">Mobile Handshake + Mandatory ID Pass</div>
+              <div class="text-xs font-bold text-white">Fingerprint Passkey</div>
+              <div class="text-[10px] text-sky-400">Touch ID / WebAuthn Hardware Key</div>
             </div>
           </div>
           <span class="text-xs font-bold text-sky-400">Select →</span>
@@ -1497,7 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('drozo_active_session', em);
                 const pref = localStorage.getItem('drozo_user_2fa_pref_' + em);
                 
-                if (pref === 'drozo_guard') window.location.href = 'auth.html?mode=verify';
+                if (pref === 'fingerprint') window.location.href = 'auth.html';
                 else if (pref === 'totp') show('totp');
                 else if (pref === 'none') {
                     localStorage.setItem('drozo_user_2fa_verified_' + em, 'true');
@@ -1508,11 +1508,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Please enter a valid email address.');
             }
         } 
-        else if (t.includes('Drozo Guard + ID Pass')) {
+        else if (t.includes('Fingerprint Passkey')) {
             e.preventDefault();
             const em = localStorage.getItem('drozo_active_session');
-            localStorage.setItem('drozo_user_2fa_pref_' + em, 'drozo_guard');
-            window.location.href = 'auth.html?mode=enroll';
+            localStorage.setItem('drozo_user_2fa_pref_' + em, 'fingerprint');
+            window.location.href = 'auth.html';
         } 
         else if (t.includes('Authenticator + ID Pass')) {
             e.preventDefault();
@@ -1532,6 +1532,20 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
         else if (t.includes('Return to Recommended')) {
             e.preventDefault(); show('enroll');
+        }
+        else if (t === 'Sign In' && btn.closest('#authStepLogin')) {
+            e.preventDefault();
+            const tr = document.getElementById('tabRegister'); const ti = document.getElementById('tabSignIn'); const sb = document.getElementById('authSubmitBtn');
+            if(ti) ti.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
+            if(tr) tr.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
+            if(sb) sb.innerText = "Continue to 2FA Verification →";
+        }
+        else if (t.includes('New Register')) {
+            e.preventDefault();
+            const tr = document.getElementById('tabRegister'); const ti = document.getElementById('tabSignIn'); const sb = document.getElementById('authSubmitBtn');
+            if(tr) tr.className = "pb-1 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 cursor-pointer";
+            if(ti) ti.className = "pb-1 text-sm font-semibold text-slate-400 border-b-2 border-transparent cursor-pointer";
+            if(sb) sb.innerText = "Create Account & Continue →";
         }
     }, true);
 });
