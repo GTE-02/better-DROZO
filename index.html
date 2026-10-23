@@ -885,7 +885,7 @@
       setCloudState("drozo_user_2fa_pref_" + currentEmail, "drozo_guard");
       setCloudState("drozo_user_2fa_verified_" + currentEmail, "true");
       document.getElementById('wizardDrozoGuard').classList.add('hidden');
-      executeFinalLogin(chosen);
+      executeFinalLogin("drozo_guard");
     }
 
     function startAuthenticatorEnrollment() {
@@ -1002,7 +1002,7 @@
         setCloudState("drozo_user_2fa_verified_" + currentEmail, "true");
         alert("Verification Successful! Your Authenticator app is now linked.");
         document.getElementById('wizardAuthenticator').classList.add('hidden');
-        executeFinalLogin(chosen);
+        executeFinalLogin("drozo_guard");
       } else {
         alert("Linking Failed: Invalid test code. Please check your Authenticator app and try again.");
         inputEl.value = "";

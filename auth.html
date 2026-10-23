@@ -1,868 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Drozo Guard Authenticator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #060b11; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
-    #mobileQrReaderArea { width: 100% !important; max-width: 260px; aspect-ratio: 1 / 1; margin: 0 auto; overflow: hidden; border-radius: 1.25rem; }
-    #mobileQrReaderArea video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 1.25rem; }
-    #mobileQrReaderArea__scan_region { display: flex; align-items: center; justify-content: center; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Drozo Guard Authenticator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<style>
+body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background:#060b11; color:#f1f5f9; -webkit-tap-highlight-color:transparent; }
+.mono { font-family: ui-monospace, Menlo, monospace; }
+#qrArea { width:100%; max-width:260px; aspect-ratio:1/1; margin:0 auto; overflow:hidden; border-radius:1rem; }
+#qrArea video { width:100% !important; height:100% !important; object-fit:cover !important; }
+</style>
 </head>
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
 
-  <!-- AUTHENTIC BIOMETRIC & ACTIVE LIVENESS VERIFICATION MODAL -->
-  <div id="faceIdScannerModal" class="fixed inset-0 bg-[#060b11]/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 hidden">
-    <div class="space-y-1">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold mono">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> HARDWARE & LIVENESS ENGINE
+<header class="flex items-center justify-between py-3 border-b border-slate-800">
+  <div class="flex items-center gap-2"><span class="text-xl">🛡️</span><span class="text-xs font-black tracking-widest uppercase">Drozo Guard</span></div>
+  <div id="guardPill" class="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">STANDBY</div>
+</header>
+
+<main class="my-auto py-8">
+  <!-- Standby -->
+  <section id="standbyView" class="flex flex-col items-center text-center space-y-5">
+    <div class="w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-5xl">🛡️</div>
+    <div>
+      <h2 class="text-base font-extrabold">Drozo Guard Active</h2>
+      <p class="text-xs text-slate-400 mt-1">Listening for sign-in requests from DrozoMind…</p>
+    </div>
+    <button type="button" id="btnScan" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs">📷 Scan Website Challenge QR</button>
+    <button type="button" id="btnManual" class="w-full py-2.5 bg-slate-900 text-slate-300 rounded-xl text-xs font-semibold border border-slate-800">Enter Session ID Manually</button>
+  </section>
+
+  <!-- Challenge -->
+  <section id="challengeView" class="hidden space-y-4">
+    <div class="p-4 rounded-3xl bg-slate-900 border border-sky-500/30 space-y-4">
+      <div class="text-xs font-extrabold uppercase tracking-wide">🔐 Sign-In Request</div>
+      <div class="p-3 rounded-2xl bg-black/40 border border-slate-800">
+        <div class="text-xs font-bold truncate" id="userNameDisplay"></div>
+        <div class="text-[11px] text-sky-400 mono truncate" id="userEmailDisplay"></div>
       </div>
-      <h3 class="text-base font-extrabold text-white" id="faceScannerTitle">Anti-Spoof Biometric Check</h3>
-      <p class="text-xs text-slate-400" id="faceScannerSubtitle">Follow the live prompt to verify living presence.</p>
-    </div>
-
-    <!-- VIEWFINDER WITH ACTIVE SCAN RING -->
-    <div class="relative w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.3)] bg-black flex items-center justify-center">
-      <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-      <canvas id="faceCaptureCanvas" class="hidden"></canvas>
-      <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-[44px] "></div>
-      <div id="faceScanBeam" class="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_15px_#34d399] animate-bounce "></div>
-      <div id="livenessInstructionOverlay" class="min-h-screen">
-        Align face inside oval frame
-      </div>
-    </div>
-
-    <div id="faceScanStatusText" class="text-xs text-emerald-300 font-semibold mono">Ready for physical verification</div>
-
-    <div class="w-full max-w-xs space-y-2 pt-1">
-      <button type="button" id="btnCaptureFaceAction" onclick="runCompleteBiometricSequence()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
-        <span>🛡️</span> Authenticate Living User
-      </button>
-      <button type="button" onclick="closeFaceScanner()" class="w-full py-2 bg-slate-900 text-slate-400 hover:text-white rounded-xl text-xs font-semibold border border-slate-800 transition">
-        Cancel
-      </button>
-    </div>
-  </div>
-
-    <div id="faceScanStatusText" class="text-xs text-indigo-300 font-semibold mono">Detecting facial features...</div>
-
-    <div class="w-full max-w-xs space-y-2 pt-2">
-      <button type="button" id="btnCaptureFaceAction" onclick="captureAndProcessFace()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white font-extrabold rounded-2xl text-xs shadow-lg transition">
-        Scan & Match Face
-      </button>
-      <button type="button" onclick="closeFaceScanner()" class="w-full py-2 bg-slate-900 text-slate-400 hover:text-white rounded-xl text-xs font-semibold border border-slate-800 transition">
-        Cancel
-      </button>
-    </div>
-  </div>
-
-<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto relative select-none">
-
-  <!-- ================= 1. DISCRETE BIOMETRIC ENROLLMENT MODAL ================= -->
-  <div id="biometricChoiceModal" class="fixed inset-0 bg-[#060b11]/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center space-y-5 hidden">
-    <div class="relative w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl">
-      <span class="text-4xl" id="enrollModalIcon">🛡️</span>
-    </div>
-
-    <div class="space-y-1.5">
-      <h2 class="text-base font-extrabold text-white tracking-wide">Select Biometric Protection</h2>
-      <p class="text-xs text-slate-400 max-w-[280px] leading-relaxed">
-        Choose your device sensor to lock Drozo Guard. <strong>Once selected, this choice is permanent</strong> and can only be revoked by the sanctuary owner.
-      </p>
-    </div>
-
-    <div class="w-full max-w-xs space-y-2.5 pt-2">
-      <!-- Option 1: Fingerprint Sensor -->
-      <button type="button" onclick="selectBiometricType('fingerprint')" class="w-full py-3 px-4 bg-[#0e1724] hover:bg-[#152336] border border-sky-500/40 text-sky-300 font-bold rounded-2xl text-xs shadow-lg transition flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="text-xl">👆</span>
-          <div class="text-left">
-            <div class="text-white font-extrabold">Fingerprint Scanner</div>
-            <div class="text-[10px] text-slate-400">Touch ID or in-display sensor</div>
-          </div>
-        </div>
-        <span class="text-sky-400 text-xs font-bold">Select →</span>
-      </button>
-
-      <!-- Option 2: Face ID -->
-      <button type="button" onclick="selectBiometricType('faceid')" class="w-full py-3 px-4 bg-[#0e1724] hover:bg-[#152336] border border-indigo-500/40 text-indigo-300 font-bold rounded-2xl text-xs shadow-lg transition flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="text-xl">👤</span>
-          <div class="text-left">
-            <div class="text-white font-extrabold">Face ID Recognition</div>
-            <div class="text-[10px] text-slate-400">Facial geometry sensor</div>
-          </div>
-        </div>
-        <span class="text-indigo-400 text-xs font-bold">Select →</span>
-      </button>
-
-      <!-- Option 3: Skip with Red Warning -->
-      <button type="button" onclick="showSecurityWarning()" class="w-full py-2.5 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-semibold rounded-xl border border-slate-800 transition">
-        Skip Biometric Protection
-      </button>
-    </div>
-  </div>
-
-  <!-- ================= 2. CRITICAL RED SECURITY WARNING ================= -->
-  <div id="biometricWarningModal" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 hidden">
-    <div class="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-500/50 flex items-center justify-center text-rose-400 text-3xl shadow-xl">
-      ⚠️
-    </div>
-
-    <div class="space-y-2">
-      <h3 class="text-base font-black text-rose-500 tracking-wide uppercase">Critical Security Alert</h3>
-      <div class="p-3 bg-rose-950/40 border border-rose-500/50 rounded-2xl text-rose-300 text-xs leading-relaxed max-w-[290px] font-semibold text-center">
-        Anyone who accesses this device can approve sign-ins to your account without authorization.
-      </div>
-      <p class="text-[11px] text-slate-400 max-w-[280px]">
-        Are you strictly willing to continue with <strong class="text-rose-400">NO Biometric verification</strong>?
-      </p>
-    </div>
-
-    <div class="w-full max-w-xs space-y-2 pt-2">
-      <button type="button" onclick="proceedWithoutBiometrics()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-2xl text-xs transition shadow-lg">
-        Yes, I Understand the Risk & Continue
-      </button>
-      <button type="button" onclick="cancelWarningAndReturn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-800 transition">
-        ← Go Back & Choose Fingerprint or Face ID
-      </button>
-    </div>
-  </div>
-
-  <!-- ================= 3. ACTIVE BIOMETRIC LOCK SCREEN ================= -->
-  <div id="biometricLockModal" class="fixed inset-0 bg-[#060b11] z-50 flex flex-col items-center justify-center p-6 text-center space-y-6 hidden">
-    <div class="relative w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl">
-      <div class="absolute inset-0 rounded-3xl bg-sky-500/10 blur-xl animate-pulse"></div>
-      <span class="text-5xl" id="lockScreenIcon">👆</span>
-    </div>
-
-    <div class="space-y-2">
-      <h2 class="text-lg font-black text-white tracking-wide" id="lockScreenTitle">Drozo Guard Locked</h2>
-      <p class="text-xs text-slate-400 max-w-[260px] leading-relaxed" id="lockScreenSubtitle">
-        Scan your fingerprint to unlock Drozo Guard on this device.
-      </p>
-    </div>
-
-    <div class="w-full max-w-xs space-y-3 pt-2">
-      <button type="button" onclick="triggerDeviceBiometrics('unlock')" id="btnTriggerBioAction" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center justify-center gap-2">
-        <span id="btnTriggerBioIcon">👆</span> <span id="btnTriggerBioText">Scan Fingerprint to Unlock</span>
-      </button>
-      <div id="bioStatusMsg" class="text-[11px] text-slate-500">Hardware WebAuthn FIDO2 Key &bull; Locked</div>
-    </div>
-  </div>
-
-  <!-- TOP APP BAR -->
-  <header class="flex items-center justify-between py-3 border-b border-slate-800/80">
-    <div class="flex items-center gap-2.5">
-      <span class="text-xl">🛡️</span>
-      <span class="text-xs font-black tracking-widest uppercase text-slate-200">DROZO GUARD</span>
-    </div>
-    <div id="guardPill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-      STANDBY
-    </div>
-  </header>
-
-  <!-- STATE A: STANDBY VIEW -->
-  <div id="standbyView" class="my-auto py-12 flex flex-col items-center text-center space-y-6">
-    <div class="relative w-28 h-28 rounded-3xl bg-slate-900/80 border border-slate-800 flex items-center justify-center shadow-2xl">
-      <div class="absolute inset-0 rounded-3xl bg-emerald-500/10 blur-xl animate-pulse"></div>
-      <span class="text-5xl">🛡️</span>
-    </div>
-    <div class="space-y-2">
-      <h2 class="text-base font-extrabold text-white tracking-wide">Drozo Guard Active</h2>
-      <p class="text-xs text-slate-400 max-w-[240px] leading-relaxed">
-        Listening for incoming sanctuary sign-in requests from DrozoMind...
-      </p>
-    </div>
-    <div class="w-full pt-4 space-y-3">
-      <button type="button" onclick="startScanner()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-extrabold rounded-2xl text-xs transition shadow-lg flex items-center justify-center gap-2">
-        <span>📷</span> Scan Website Challenge QR
-      </button>
-      <button type="button" onclick="promptManualSessionToken()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-semibold border border-slate-800 transition">
-        Enter Session ID Manually
-      </button>
-    </div>
-  </div>
-
-  <!-- STATE B: CHALLENGE APPROVAL PROMPT -->
-  <div id="challengeView" class="my-auto py-6 space-y-5 hidden">
-    <div class="p-4 rounded-3xl bg-gradient-to-b from-slate-900 to-[#0e1724] border border-sky-500/30 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-        <div class="flex items-center gap-2">
-          <span class="text-base">🔐</span>
-          <span class="text-xs font-extrabold text-white tracking-wide uppercase">Sign-In Request</span>
-        </div>
-        <span class="text-[10px] mono px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 font-bold">
-          CONFIRM
-        </span>
-      </div>
-
-      <div class="p-3.5 rounded-2xl bg-[#090f17] border border-slate-800 flex items-center gap-3">
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow">
-          DG
-        </div>
-        <div class="overflow-hidden">
-          <div class="text-xs font-bold text-white truncate" id="userNameDisplay">Water_Chugger/Owner</div>
-          <div class="text-[11px] text-sky-400 mono truncate" id="userEmailDisplay">admin@drozominds.com</div>
-        </div>
-      </div>
-
-      <div class="p-3 rounded-xl bg-black/40 border border-slate-800/80 flex items-center justify-between text-xs">
-        <span class="text-slate-400">Session ID:</span>
-        <span class="mono font-bold text-sky-300" id="sessionTokenDisplay">SES_XXXX</span>
-      </div>
-
-      <p class="text-[11px] text-slate-400 text-center leading-relaxed">
-        Are you attempting to sign in to your DrozoMind therapy portal right now?
-      </p>
-
-      <div class="grid grid-cols-2 gap-3 pt-1">
-        <button type="button" onclick="respondChallenge('denied')" class="py-3 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs transition active:scale-[0.98]">
-          ✕ Deny
-        </button>
-        <button type="button" onclick="handleApproveWithBiometric()" id="btnApproveAction" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition shadow-lg active:scale-[0.98] flex items-center justify-center gap-1.5">
-          <span>✓</span> Approve
-        </button>
+      <div class="flex justify-between text-xs"><span class="text-slate-400">Session ID</span><span class="mono font-bold text-sky-300" id="sessionTokenDisplay"></span></div>
+      <p class="text-[11px] text-slate-400 text-center">Are you trying to sign in to DrozoMind right now?</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btnDeny" class="py-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs">✕ Deny</button>
+        <button type="button" id="btnApprove" class="py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">✓ Approve</button>
       </div>
     </div>
+  </section>
+</main>
+
+<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono">
+  <span>Drozo Guard</span><span id="bioTag">Standard</span>
+</footer>
+
+<!-- Fingerprint enrollment -->
+<div id="enrollModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+  <div class="text-5xl">👆</div>
+  <h2 class="text-base font-extrabold">Protect Drozo Guard</h2>
+  <p class="text-xs text-slate-400 max-w-[280px]">Choose how you approve sign-ins. Face ID stores a numeric face template (not a photo) in Supabase, linked to your email.</p>
+  <div class="w-full max-w-xs space-y-2">
+    <button type="button" id="btnEnroll" class="w-full py-3 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">👆 Set Up Fingerprint</button>
+    <button type="button" id="btnEnrollFace" class="w-full py-3 bg-indigo-600 text-white font-extrabold rounded-2xl text-xs">👤 Set Up Face ID</button>
+    <button type="button" id="btnSkip" class="w-full py-2.5 bg-slate-900 text-slate-400 rounded-xl text-xs font-semibold border border-slate-800">Skip (not recommended)</button>
   </div>
+  <div id="enrollMsg" class="text-[11px] text-slate-500"></div>
+</div>
 
-  <footer class="py-3 text-center text-[10px] text-slate-600 mono flex items-center justify-between px-2">
-    <span>Drozo Guard Protection Engine</span>
-    <span id="bioLockedStatusTag" class="text-slate-500 font-bold">Standard</span>
-  </footer>
+<!-- Lock screen -->
+<div id="lockModal" class="hidden fixed inset-0 z-50 bg-[#060b11] flex flex-col items-center justify-center p-6 text-center space-y-4">
+  <div class="text-5xl">👆</div>
+  <h2 class="text-lg font-black">Drozo Guard Locked</h2>
+  <p class="text-xs text-slate-400">Scan your fingerprint to unlock.</p>
+  <button type="button" id="btnUnlock" class="w-full max-w-xs py-3.5 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">Scan Fingerprint to Unlock</button>
+  <div id="lockMsg" class="text-[11px] text-slate-500"></div>
+</div>
 
-  <script>
-    const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+<!-- Face scanner -->
+<div id="faceModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+  <h3 class="text-base font-extrabold" id="faceTitle">Face ID</h3>
+  <div class="w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 bg-black">
+    <video id="faceVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+  </div>
+  <div id="faceMsg" class="text-xs text-emerald-300 mono"></div>
+  <div class="w-full max-w-xs space-y-2">
+    <button type="button" id="btnFaceCapture" class="w-full py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">Scan Face</button>
+    <button type="button" id="btnFaceCancel" class="w-full py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
+  </div>
+</div>
 
-    let activeSessionToken = null;
-    let pollerTimer = null;
-    let html5QrScannerMobile = null;
+<!-- QR scanner -->
+<div id="scanModal" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
+  <div class="w-full max-w-xs bg-slate-900 rounded-3xl p-5 border border-slate-800 text-center space-y-3">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <span class="text-xs font-bold uppercase">📷 Scan Challenge QR</span>
+      <button type="button" id="btnCloseScan" class="text-rose-400 text-xs font-bold">Close ✕</button>
+    </div>
+    <div id="qrArea" class="bg-black"></div>
+  </div>
+</div>
 
-    const guardSyncChannel = new BroadcastChannel('drozo_guard_sync');
-    guardSyncChannel.onmessage = (event) => {
-      if (event.data && event.data.type === 'NEW_CHALLENGE' && event.data.token) {
-        verifyAndShowChallenge(event.data.token, event.data.email);
+<script>
+(function () {
+  "use strict";
+  var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+  var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "none" | null
+  var CRED_KEY = "drozo_guard_passkey_id";
+  var activeToken = null, activeEmail = "", scanner = null, pollTimer = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var show = function (id) { $(id).classList.remove("hidden"); };
+  var hide = function (id) { $(id).classList.add("hidden"); };
+  var sbHeaders = function (extra) {
+    var h = { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON };
+    for (var k in (extra || {})) h[k] = extra[k];
+    return h;
+  };
+
+  function b64(buf) { return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); }
+  function unb64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }).buffer; }
+
+  // ---------- WebAuthn (device fingerprint / screen lock) ----------
+  async function passkeyAvailable() {
+    return !!(window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
+      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+  }
+  async function enrollPasskey() {
+    var challenge = crypto.getRandomValues(new Uint8Array(32));
+    var uid = crypto.getRandomValues(new Uint8Array(16));
+    var cred = await navigator.credentials.create({ publicKey: {
+      challenge: challenge,
+      rp: { name: "Drozo Guard", id: location.hostname },
+      user: { id: uid, name: "drozo-guard-device", displayName: "Drozo Guard" },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+      timeout: 60000
+    }});
+    localStorage.setItem(CRED_KEY, b64(cred.rawId));
+  }
+  async function verifyPasskey() {
+    var id = localStorage.getItem(CRED_KEY);
+    if (!id) throw new Error("No passkey registered on this device.");
+    var challenge = crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({ publicKey: {
+      challenge: challenge,
+      rpId: location.hostname,
+      allowCredentials: [{ type: "public-key", id: unb64(id) }],
+      userVerification: "required",
+      timeout: 60000
+    }});
+  }
+
+  // ---------- Face ID (face-api descriptor + Supabase pgvector) ----------
+  var FACE_URL = "https://vladmandic.github.io/face-api/model/";
+  var modelsReady = false, faceStream = null, faceOk = null, faceFail = null;
+
+  async function loadModels() {
+    if (modelsReady) return;
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(FACE_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(FACE_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(FACE_URL)
+    ]);
+    modelsReady = true;
+  }
+  function closeFace() {
+    if (faceStream) { faceStream.getTracks().forEach(function (t) { t.stop(); }); faceStream = null; }
+    hide("faceModal");
+  }
+  function getFaceDescriptor(title) {
+    return new Promise(async function (resolve, reject) {
+      if (typeof faceapi === "undefined") return reject(new Error("Face library failed to load. Check your connection."));
+      faceOk = resolve; faceFail = reject;
+      $("faceTitle").textContent = title; $("faceMsg").textContent = "Loading face models…"; show("faceModal");
+      try {
+        faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+        $("faceVideo").srcObject = faceStream;
+        await loadModels();
+        $("faceMsg").textContent = "Center your face, then tap Scan Face.";
+      } catch (e) { closeFace(); reject(new Error("Camera or model loading failed: " + (e.message || e))); }
+    });
+  }
+  async function faceCaptureClick() {
+    if (!faceOk || !modelsReady) return;
+    $("faceMsg").textContent = "Scanning…";
+    var det = await faceapi.detectSingleFace($("faceVideo"), new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+      .withFaceLandmarks().withFaceDescriptor();
+    if (!det) { $("faceMsg").textContent = "No clear face found. Try again."; return; }
+    var d = Array.from(det.descriptor), ok = faceOk; faceOk = null;
+    closeFace(); ok(d);
+  }
+  function faceCancelClick() { closeFace(); if (faceFail) { var f = faceFail; faceFail = null; faceOk = null; f(new Error("Cancelled")); } }
+
+  async function rpc(name, body) {
+    var r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + name, {
+      method: "POST", headers: sbHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error("Supabase error: " + (await r.text()));
+    return r.json();
+  }
+  async function enrollFace(email) {
+    var d = await getFaceDescriptor("Face ID Enrollment");
+    var saved = await rpc("enroll_face", { target_email: email, probe: JSON.stringify(d) });
+    if (!saved) throw new Error("A face is already registered for this email. Ask the owner to reset it.");
+  }
+  async function verifyFace(email) {
+    var d = await getFaceDescriptor("Face ID Check");
+    var rows = await rpc("match_user_face", { target_email: email, probe: JSON.stringify(d) });
+    return !!(rows && rows.length && rows[0].match_found);
+  }
+
+  // ---------- Lock / enroll flow ----------
+  async function unlock() {
+    $("lockMsg").textContent = "Touch the fingerprint sensor…";
+    try { await verifyPasskey(); hide("lockModal"); }
+    catch (e) { $("lockMsg").textContent = "Cancelled or failed. Tap to retry."; }
+  }
+  async function enroll() {
+    $("enrollMsg").textContent = "";
+    try {
+      if (!(await passkeyAvailable())) throw new Error("This device has no fingerprint / screen-lock passkey support.");
+      await enrollPasskey();
+      localStorage.setItem(BIO_KEY, "fingerprint");
+      $("bioTag").textContent = "🔒 Fingerprint Locked";
+      hide("enrollModal");
+    } catch (e) { $("enrollMsg").textContent = e.message || "Enrollment failed."; }
+  }
+  async function enrollWithFace() {
+    $("enrollMsg").textContent = "";
+    var email = (prompt("Enter the account email to link this face to:") || "").trim().toLowerCase();
+    if (!email) return;
+    try {
+      await enrollFace(email);
+      localStorage.setItem(BIO_KEY, "face");
+      $("bioTag").textContent = "🔒 Face ID";
+      hide("enrollModal");
+      alert("Face ID registered for " + email + " ✓");
+    } catch (e) { $("enrollMsg").textContent = e.message || "Face enrollment failed."; }
+  }
+  function skip() {
+    if (!confirm("Anyone with this phone could approve sign-ins. Continue without fingerprint protection?")) return;
+    localStorage.setItem(BIO_KEY, "none");
+    $("bioTag").textContent = "⚠️ No Biometrics";
+    hide("enrollModal");
+  }
+
+  // ---------- Challenge handling ----------
+  function showChallenge(token, email) {
+    if (!token) return;
+    activeToken = token; activeEmail = (email || "").trim().toLowerCase();
+    hide("standbyView"); show("challengeView");
+    $("sessionTokenDisplay").textContent = token;
+    $("userEmailDisplay").textContent = email || "";
+    $("userNameDisplay").textContent = email ? email.split("@")[0] : "Unknown user";
+    var pill = $("guardPill");
+    pill.textContent = "CHALLENGE";
+    pill.className = "px-2.5 py-1 rounded-full bg-sky-950 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
+  }
+
+  async function respond(decision) {
+    if (!activeToken) return;
+    var tok = activeToken;
+    sessionStorage.setItem("handled_" + tok, "1");
+    localStorage.setItem("drozo_challenge_result_" + tok, decision);
+    try {
+      await fetch(SUPABASE_URL + "/rest/v1/drozo_guard_sessions?session_token=eq." + encodeURIComponent(tok), {
+        method: "PATCH",
+        headers: sbHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ status: decision })
+      });
+    } catch (_) {}
+    try { new BroadcastChannel("drozo_sync").postMessage({ type: "GUARD_RESULT", token: tok, status: decision }); } catch (_) {}
+    alert(decision === "authorized" ? "Login Approved ✓" : "Login Denied ✕");
+    location.href = location.pathname;
+  }
+
+  async function approve() {
+    var bio = localStorage.getItem(BIO_KEY);
+    if (bio === "fingerprint") {
+      try { await verifyPasskey(); } catch (e) { alert("Fingerprint check failed. Approval cancelled."); return; }
+    } else if (bio === "face") {
+      var em = activeEmail || (prompt("Account email to verify:") || "").trim().toLowerCase();
+      if (!em) return;
+      try {
+        if (!(await verifyFace(em))) { alert("Face does not match this account. Approval cancelled."); return; }
+      } catch (e) { alert(e.message || "Face check failed."); return; }
+    }
+    respond("authorized");
+  }
+
+  // ---------- Polling ----------
+  async function checkPending() {
+    if (activeToken) return;
+    try {
+      var res = await fetch(SUPABASE_URL + "/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=" + Date.now(),
+        { headers: sbHeaders(), cache: "no-store" });
+      if (!res.ok) return;
+      var rows = await res.json();
+      if (rows && rows.length && !sessionStorage.getItem("handled_" + rows[0].session_token)) {
+        showChallenge(rows[0].session_token, rows[0].email);
       }
+    } catch (_) {}
+  }
+
+  // ---------- QR scanner ----------
+  function parseScan(text) {
+    text = String(text || "").trim();
+    if (text.indexOf("SES_") === 0) return { token: text, email: "" };
+    try { var u = new URL(text); var t = u.searchParams.get("token"); if (t) return { token: t, email: u.searchParams.get("email") || "" }; } catch (_) {}
+    return null;
+  }
+  async function stopScan() {
+    if (scanner) { try { await scanner.stop(); } catch (_) {} scanner = null; }
+    hide("scanModal");
+  }
+  async function startScan() {
+    show("scanModal");
+    if (typeof Html5Qrcode === "undefined") { alert("QR scanner library failed to load. Use the manual Session ID."); hide("scanModal"); return; }
+    var onOk = async function (txt) {
+      var r = parseScan(txt);
+      if (r) { await stopScan(); showChallenge(r.token, r.email); }
     };
+    var cfg = { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
+    try {
+      scanner = new Html5Qrcode("qrArea");
+      try { await scanner.start({ facingMode: "environment" }, cfg, onOk, function () {}); }
+      catch (_) { await scanner.start({ facingMode: "user" }, cfg, onOk, function () {}); }
+    } catch (e) { alert("Camera permission is required. You can enter the Session ID manually."); await stopScan(); }
+  }
+  function manualToken() {
+    var code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
+    if (code && code.trim().toUpperCase().indexOf("SES_") === 0) showChallenge(code.trim().toUpperCase(), "");
+  }
 
-    function bufferToBase64(buffer) {
-      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  // ---------- Init ----------
+  document.addEventListener("DOMContentLoaded", function () {
+    $("btnScan").addEventListener("click", startScan);
+    $("btnManual").addEventListener("click", manualToken);
+    $("btnCloseScan").addEventListener("click", stopScan);
+    $("btnApprove").addEventListener("click", approve);
+    $("btnDeny").addEventListener("click", function () { respond("denied"); });
+    $("btnEnroll").addEventListener("click", enroll);
+    $("btnSkip").addEventListener("click", skip);
+    $("btnEnrollFace").addEventListener("click", enrollWithFace);
+    $("btnFaceCapture").addEventListener("click", faceCaptureClick);
+    $("btnFaceCancel").addEventListener("click", faceCancelClick);
+    $("btnUnlock").addEventListener("click", unlock);
+
+    var bio = localStorage.getItem(BIO_KEY);
+    if (bio === "fingerprint") {
+      $("bioTag").textContent = "🔒 Fingerprint Locked";
+      show("lockModal"); unlock();
+    } else if (bio === "face") {
+      $("bioTag").textContent = "🔒 Face ID";
+    } else if (bio === "none") {
+      $("bioTag").textContent = "⚠️ No Biometrics";
+    } else {
+      show("enrollModal");   // first run, or old "faceid" setting: choose a method
     }
 
-    function base64ToBuffer(base64) {
-      return Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer;
-    }
-
-    // ==========================================
-    // DISCRETE BIOMETRIC LOGIC & LOCK ENFORCEMENT
-    // ==========================================
-    window.addEventListener('DOMContentLoaded', () => {
-      const bioPref = localStorage.getItem("drozo_guard_bio_type"); // "fingerprint", "faceid", "none", or null
-      const statusTag = document.getElementById('bioLockedStatusTag');
-
-      let activeSessionEmail = "admin@drozominds.com";
-      const isAlreadyEnrolled = localStorage.getItem("drozo_guard_bio_type") || localStorage.getItem("drozo_face_enrolled_" + activeSessionEmail);
-
-      // Do NOT ask again if already registered
-      if (!bioPref && !isAlreadyEnrolled) {
-        // First setup: Display discrete choice (Fingerprint vs Face ID)
-        document.getElementById('biometricChoiceModal').classList.remove('hidden');
-      } else if (bioPref === "fingerprint" || bioPref === "faceid") {
-        if (statusTag) statusTag.innerText = bioPref === "fingerprint" ? "🔒 Fingerprint Locked" : "🔒 Face ID Locked";
-        configureLockScreenUI(bioPref);
-        document.getElementById('biometricLockModal').classList.remove('hidden');
-        triggerDeviceBiometrics('unlock');
-      } else {
-        if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
-      }
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const tokenParam = urlParams.get('token');
-      const emailParam = urlParams.get('email');
-      if (tokenParam) {
-        verifyAndShowChallenge(tokenParam, emailParam);
-      } else {
-        startPollingForPendingSessions();
-      }
-    });
-
-    
-    // ==========================================
-    // ROTATIONAL FACE CALIBRATION & VERIFICATION
-    // ==========================================
-    let faceStream = null;
-    let faceMode = "enroll"; // "enroll" or "verify"
-    let currentStep = 0;
-    let isCalibrating = false;
-
-    async function openCustomFaceScanner(purpose = "unlock") {
-      faceMode = (purpose === "enroll") ? "enroll" : "verify";
-      const modal = document.getElementById('faceIdScannerModal');
-      const title = document.getElementById('faceScannerTitle');
-      const subtitle = document.getElementById('faceScannerSubtitle');
-      const btn = document.getElementById('btnCaptureFaceAction');
-      const prog = document.getElementById('faceEnrollProgress');
-
-      currentStep = 0;
-      isCalibrating = false;
-
-      if (faceMode === "enroll") {
-        title.innerText = "Face ID Enrollment";
-        subtitle.innerText = "Follow instructions to calibrate head angles.";
-        btn.innerHTML = "<span>📸</span> Begin Head Calibration";
-        prog.style.width = "15%";
-      } else {
-        title.innerText = "Face ID Sign-In";
-        subtitle.innerText = "Verifying facial alignment with registered profile...";
-        btn.innerHTML = "<span>🔐</span> Verify Face ID";
-        prog.style.width = "50%";
-      }
-
-      modal.classList.remove('hidden');
-
-      try {
-        const video = document.getElementById('faceCameraVideo');
-        faceStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } },
-          audio: false
-        });
-        video.srcObject = faceStream;
-      } catch (err) {
-        alert("Camera access is required for Face ID.");
-        handleFaceFallbackChoice();
-      }
-    }
-
-    function closeFaceScanner() {
-      if (faceStream) {
-        faceStream.getTracks().forEach(t => t.stop());
-        faceStream = null;
-      }
-      document.getElementById('faceIdScannerModal').classList.add('hidden');
-    }
-
-    function handleFaceFallbackChoice() {
-      closeFaceScanner();
-      const activeUser = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
-      // Fallback routes user to Drozo Guard challenge or camera ID scanner
-      alert("Redirecting to backup authentication (Drozo Guard QR Challenge).");
-      if (typeof startScanner === "function") {
-        startScanner();
-      }
-    }
-
-    // ==========================================
-    // SUPABASE PGVECTOR BIOMETRIC INTEGRATION
-    // ==========================================
-    const FACE_MODEL_URL = "https://vladmandic.github.io/face-api/model/";
-    let faceModelsReady = false;
-
-    async function loadFaceBiometricModels() {
-      if (faceModelsReady) return;
-      const status = document.getElementById('faceScanStatusText');
-      if (status) status.innerText = "Loading neural model weights...";
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
-        ]);
-        faceModelsReady = true;
-        if (status) status.innerText = "Neural models active & ready";
-      } catch (e) {
-        console.warn("Face model loading warning:", e);
-      }
-    }
-
-    async function extractLiveDescriptor(videoEl) {
-      if (!faceModelsReady) await loadFaceBiometricModels();
-      const detection = await faceapi
-        .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-      if (!detection || !detection.descriptor) {
-        throw new Error("No clear face detected. Center your face in the circle.");
-      }
-      return Array.from(detection.descriptor);
-    }
-
-    async function saveFaceVectorToSupabase(email, descriptorArray) {
-      const vectorPayload = JSON.stringify(descriptorArray);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_face_vectors`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON,
-          "Authorization": `Bearer ${SUPABASE_ANON}`,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({
-          email: email,
-          embedding: vectorPayload,
-          updated_at: new Date().toISOString()
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error("Supabase pgvector save failed: " + err);
-      }
-      return true;
-    }
-
-    async function verifyFaceVectorWithSupabase(email, probeDescriptorArray) {
-      const vectorPayload = JSON.stringify(probeDescriptorArray);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_user_face`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON,
-          "Authorization": `Bearer ${SUPABASE_ANON}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          target_email: email,
-          probe_vector: vectorPayload
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error("Supabase RPC error: " + err);
-      }
-
-      const rows = await res.json();
-      if (rows && rows.length > 0) {
-        return rows[0]; // { match_found: true|false, similarity_score: number }
-      }
-      return { match_found: false, similarity_score: 0.0 };
-    }
-
-    // Replace calibration click handler with pgvector execution
-    async function handleFaceActionClick() {
-      if (isCalibrating) return;
-      isCalibrating = true;
-
-      const badge = document.getElementById('faceStepBadge');
-      const status = document.getElementById('faceScanStatusText');
-      const prog = document.getElementById('faceEnrollProgress');
-      const video = document.getElementById('faceCameraVideo');
-      const targetEmail = activeSessionEmail || localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
-
-      try {
-        if (!faceModelsReady) {
-          status.innerText = "Initializing neural engine...";
-          await loadFaceBiometricModels();
-        }
-
-        if (faceMode === "enroll") {
-          badge.innerText = "Step 1/3: Hold Center";
-          status.innerText = "Extracting frontal landmarks...";
-          prog.style.width = "35%";
-          await new Promise(r => setTimeout(r, 1000));
-
-          badge.innerText = "Step 2/3: Turn Head Slightly";
-          status.innerText = "Calculating spatial geometry...";
-          prog.style.width = "70%";
-          await new Promise(r => setTimeout(r, 1200));
-
-          badge.innerText = "Computing 128-D Vector";
-          status.innerText = "Generating neural embedding...";
-          prog.style.width = "90%";
-
-          const descriptor = await extractLiveDescriptor(video);
-
-          status.innerText = "Saving vector to Supabase pgvector...";
-          await saveFaceVectorToSupabase(targetEmail, descriptor);
-
-          prog.style.width = "100%";
-          status.innerText = "Template Stored in Supabase ✓";
-          localStorage.setItem("drozo_face_enrolled_" + targetEmail, "true");
-          localStorage.setItem("drozo_guard_bio_type", "faceid");
-
-          await new Promise(r => setTimeout(r, 600));
-          closeFaceScanner();
-          document.getElementById('biometricLockModal').classList.add('hidden');
-          alert("Face ID registered to Supabase pgvector! You will not be asked to enroll again.");
-        } else {
-          // Verify
-          badge.innerText = "Matching Face...";
-          status.innerText = "Extracting live vector descriptor...";
-          prog.style.width = "75%";
-
-          const probeDescriptor = await extractLiveDescriptor(video);
-
-          status.innerText = "Querying Supabase pgvector match_user_face...";
-          const result = await verifyFaceVectorWithSupabase(targetEmail, probeDescriptor);
-
-          prog.style.width = "100%";
-
-          if (result.match_found) {
-            status.innerText = `Verified (${(result.similarity_score * 100).toFixed(1)}% Match) ✓`;
-            await new Promise(r => setTimeout(r, 600));
-            closeFaceScanner();
-
-            if (faceActionPurpose === "unlock") {
-              document.getElementById('biometricLockModal').classList.add('hidden');
-            } else if (faceActionPurpose === "approve") {
-              respondChallenge('authorized');
-            }
-          } else {
-            status.innerText = `Rejected: Score ${(result.similarity_score * 100).toFixed(1)}% < 80%`;
-            alert(`Face Mismatch: Similarity score ${(result.similarity_score * 100).toFixed(1)}% is below 80%. Redirecting to fallback authentication.`);
-            handleFaceFallbackChoice();
-          }
-        }
-      } catch (err) {
-        console.error("Biometric process error:", err);
-        alert(err.message || "An error occurred during facial scanning.");
-      } finally {
-        isCalibrating = false;
-      }
-    }
-
-    function configureLockScreenUI(type) {
-      const isFinger = (type === "fingerprint");
-      const icon = isFinger ? "👆" : "👤";
-      const name = isFinger ? "Fingerprint" : "Face ID";
-
-      document.getElementById('lockScreenIcon').innerText = icon;
-      document.getElementById('lockScreenSubtitle').innerHTML = `Verify your <strong>${name}</strong> to open Drozo Guard.`;
-      document.getElementById('btnTriggerBioIcon').innerText = icon;
-      document.getElementById('btnTriggerBioText').innerText = `Scan ${name} to Unlock`;
-      document.getElementById('btnApproveAction').innerHTML = `<span>✓</span> Approve (${name})`;
-    }
-
-    async function selectBiometricType(chosenType) {
-      // Lock permanently in storage
-      localStorage.setItem("drozo_guard_bio_type", chosenType);
-      document.getElementById('biometricChoiceModal').classList.add('hidden');
-      configureLockScreenUI(chosenType);
-      document.getElementById('biometricLockModal').classList.remove('hidden');
-      if (chosenType === 'faceid') {
-        openCustomFaceScanner('enroll');
-      } else {
-        await triggerDeviceBiometrics('enroll');
-      }
-    }
-
-    function showSecurityWarning() {
-      document.getElementById('biometricChoiceModal').classList.add('hidden');
-      document.getElementById('biometricWarningModal').classList.remove('hidden');
-    }
-
-    function cancelWarningAndReturn() {
-      document.getElementById('biometricWarningModal').classList.add('hidden');
-      document.getElementById('biometricChoiceModal').classList.remove('hidden');
-    }
-
-    function proceedWithoutBiometrics() {
-      localStorage.setItem("drozo_guard_bio_type", "none");
-      document.getElementById('biometricWarningModal').classList.add('hidden');
-      document.getElementById('biometricLockModal').classList.add('hidden');
-      const statusTag = document.getElementById('bioLockedStatusTag');
-      if (statusTag) statusTag.innerText = "⚠️ No Biometrics";
-    }
-
-    // Hardware WebAuthn Engine for Native Sensor Trigger
-    async function triggerDeviceBiometrics(purpose = "unlock") {
-      var bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
-      if (bioType === "faceid") {
-        openCustomFaceScanner(purpose);
-        return;
-      }
-      var bioType = localStorage.getItem("drozo_guard_bio_type") || "fingerprint";
-      const sensorLabel = (bioType === "faceid") ? "Face ID scanner" : "fingerprint sensor";
-      const msg = document.getElementById('bioStatusMsg');
-      if (msg) msg.innerText = `Please touch ${sensorLabel}...`;
-
-      const activeUser = localStorage.getItem("drozo_active_session") || "admin@drozominds.com";
-      const storedCred = localStorage.getItem("drozo_bio_cred_" + bioType + "_" + activeUser);
-
-      if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
-        try {
-          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-          if (available) {
-            const challenge = new Uint8Array(32);
-            window.crypto.getRandomValues(challenge);
-
-            if (purpose === 'enroll' || !storedCred) {
-              const userId = new Uint8Array(16);
-              window.crypto.getRandomValues(userId);
-
-              const newCred = await navigator.credentials.create({
-                publicKey: {
-                  challenge: challenge,
-                  rp: { name: "Drozo Guard Sanctuary", id: window.location.hostname },
-                  user: { id: userId, name: activeUser, displayName: activeUser.split('@')[0] },
-                  pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-                  authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-                  timeout: 60000
-                }
-              });
-
-              if (newCred) {
-                localStorage.setItem("drozo_bio_cred_" + bioType + "_" + activeUser, bufferToBase64(newCred.rawId));
-                document.getElementById('biometricLockModal').classList.add('hidden');
-                return;
-              }
-            } else {
-              const assertion = await navigator.credentials.get({
-                publicKey: {
-                  challenge: challenge,
-                  rpId: window.location.hostname,
-                  allowCredentials: [{ type: "public-key", id: base64ToBuffer(storedCred) }],
-                  userVerification: "required",
-                  timeout: 60000
-                }
-              });
-
-              if (assertion) {
-                if (purpose === "unlock") {
-                  document.getElementById('biometricLockModal').classList.add('hidden');
-                } else if (purpose === "approve") {
-                  respondChallenge('authorized');
-                }
-                return;
-              }
-            }
-          }
-        } catch (err) {
-          if (msg) msg.innerText = `${sensorLabel} read cancelled or timed out. Tap to retry.`;
-          return;
-        }
-      }
-
-      // High-compatibility hardware fallback prompt
-      if (confirm(`Verify ${sensorLabel.toUpperCase()} to continue?`)) {
-        if (purpose === "unlock" || purpose === "enroll") {
-          document.getElementById('biometricLockModal').classList.add('hidden');
-        } else if (purpose === "approve") {
-          respondChallenge('authorized');
-        }
-      }
-    }
-
-    function handleApproveWithBiometric() {
-      const bioPref = localStorage.getItem("drozo_guard_bio_type");
-      if (bioPref === "fingerprint" || bioPref === "faceid") {
-        triggerDeviceBiometrics('approve');
-      } else {
-        respondChallenge('authorized');
-      }
-    }
-
-    function verifyAndShowChallenge(token, email) {
-      if (!token) return;
-      activeSessionToken = token;
-
-      document.getElementById('standbyView').classList.add('hidden');
-      document.getElementById('challengeView').classList.remove('hidden');
-
-      document.getElementById('sessionTokenDisplay').innerText = token;
-      const targetEmail = email || "admin@drozominds.com";
-      document.getElementById('userEmailDisplay').innerText = targetEmail;
-
-      const displayName = (targetEmail === "admin@drozominds.com") ? "Water_Chugger/Owner" : (targetEmail === "gamerkids1109@gmail.com" ? "Drozo YT" : targetEmail.split('@')[0]);
-      document.getElementById('userNameDisplay').innerText = displayName;
-
-      const pill = document.getElementById('guardPill');
-      pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-950/60 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
-      pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> CHALLENGE';
-    }
-
-    function startPollingForPendingSessions() {
-      checkPendingSessionsNow();
-      if (pollerTimer) clearInterval(pollerTimer);
-      pollerTimer = setInterval(checkPendingSessionsNow, 1000);
-    }
-
-    async function checkPendingSessionsNow() {
-      if (activeSessionToken) return;
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=${Date.now()}`, {
-          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}` },
-          cache: "no-store"
-        });
-        if (res.ok) {
-          const rows = await res.json();
-          if (rows && rows.length > 0) {
-            const req = rows[0];
-            if (sessionStorage.getItem("handled_" + req.session_token)) return;
-            verifyAndShowChallenge(req.session_token, req.email);
-          }
-        }
-      } catch (_) {}
-    }
-
-    async function respondChallenge(statusDecision) {
-      if (!activeSessionToken) return;
-      const tok = activeSessionToken;
-
-      sessionStorage.setItem("handled_" + tok, "true");
-      localStorage.setItem("drozo_challenge_result_" + tok, statusDecision);
-
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/drozo_guard_sessions?session_token=eq.${tok}`, {
-          method: "PATCH",
-          headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${SUPABASE_ANON}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ status: statusDecision })
-        });
-      } catch (_) {}
-
-      try {
-        const resultChannel = new BroadcastChannel('drozo_sync');
-        resultChannel.postMessage({ type: 'GUARD_RESULT', token: tok, status: statusDecision });
-      } catch (_) {}
-
-      alert(statusDecision === 'authorized' ? 'Login Approved ✓' : 'Login Denied ✕');
-      location.href = window.location.pathname;
-    }
-
-    async function startScanner() {
-      let box = document.getElementById('cameraScannerBox');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'cameraScannerBox';
-        box.className = 'fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4';
-        box.innerHTML = `
-          <div class="w-full max-w-xs bg-[#0e1724] rounded-3xl p-5 border border-slate-800 text-center space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <span class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span>📷</span> Scan Challenge QR
-              </span>
-              <button type="button" onclick="stopMobileScanner()" class="text-rose-400 hover:text-rose-300 text-xs font-bold px-2 py-1">Close ✕</button>
-            </div>
-            <div class="flex justify-center items-center py-2">
-              <div id="mobileQrReaderArea" class="w-64 h-64 bg-black rounded-2xl overflow-hidden border border-sky-500/40 shadow-inner"></div>
-            </div>
-            <p class="text-[11px] text-slate-400">Align the square QR challenge on your screen inside the frame.</p>
-          </div>
-        `;
-        document.body.appendChild(box);
-      }
-      box.classList.remove('hidden');
-
-      const onScanSuccess = async (decodedText) => {
-        try {
-          if (decodedText.includes("token=") || decodedText.includes("SES_")) {
-            let token = "";
-            let email = "admin@drozominds.com";
-            if (decodedText.includes("?")) {
-              const url = new URL(decodedText);
-              token = url.searchParams.get("token") || "";
-              email = url.searchParams.get("email") || email;
-            } else if (decodedText.startsWith("SES_")) {
-              token = decodedText.trim();
-            }
-            if (token) {
-              await stopMobileScanner();
-              verifyAndShowChallenge(token, email);
-            }
-          }
-        } catch (_) {}
-      };
-
-      try {
-        if (html5QrScannerMobile) { try { await html5QrScannerMobile.stop(); } catch(_) {} }
-        html5QrScannerMobile = new Html5Qrcode("mobileQrReaderArea");
-        const config = { fps: 20, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
-        try {
-          await html5QrScannerMobile.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
-        } catch (_) {
-          await html5QrScannerMobile.start({ facingMode: "user" }, config, onScanSuccess, () => {});
-        }
-      } catch (err) {
-        alert("Camera permission required or sensor busy. You can enter the Session ID manually.");
-      }
-    }
-
-    async function stopMobileScanner() {
-      if (html5QrScannerMobile) {
-        try { await html5QrScannerMobile.stop(); } catch(_) {}
-        html5QrScannerMobile = null;
-      }
-      const box = document.getElementById('cameraScannerBox');
-      if (box) box.classList.add('hidden');
-    }
-
-    function promptManualSessionToken() {
-      const code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
-      if (code && code.trim().startsWith("SES_")) {
-        verifyAndShowChallenge(code.trim().toUpperCase(), "admin@drozominds.com");
-      }
-    }
-  </script>
-<script>
-    // FAIL-SAFE UNFREEZE: Strips any stray overlays and forces full interactivity
-    function forceClearAllBlurs() {
-      document.querySelectorAll('.filter, .blur-sm').forEach(el => {
-        el.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
-        el.style.filter = 'none';
-        el.style.pointerEvents = 'auto';
-        el.style.userSelect = 'auto';
-      });
-      const portal = document.getElementById('portalContent');
-      if (portal) {
-        portal.classList.remove('blur-sm', 'filter', 'pointer-events-none', 'select-none');
-        portal.style.filter = 'none';
-        portal.style.pointerEvents = 'auto';
-      }
-      // Ensure hidden modals don't hold invisible click blocks
-      ['authModal', 'skipWarningModal', 'myIdPassModal', 'sessionSchedulerModal'].forEach(id => {
-        const m = document.getElementById(id);
-        if (m && m.classList.contains('hidden')) {
-          m.style.pointerEvents = 'none';
-        }
-      });
-    }
-    window.addEventListener('DOMContentLoaded', forceClearAllBlurs);
-    window.addEventListener('load', forceClearAllBlurs);
-    setInterval(forceClearAllBlurs, 1000);
+    var p = new URLSearchParams(location.search);
+    if (p.get("token")) showChallenge(p.get("token"), p.get("email") || "");
+    else { checkPending(); pollTimer = setInterval(checkPending, 2000); }
+  });
+})();
 </script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Physically hide everything except the Fingerprint screen
-    document.querySelectorAll('main > div, section, .min-h-screen > div, header, nav').forEach(s => {
-        if (!s.innerText) return;
-        if (s.innerText.includes('Scan your fingerprint to unlock')) {
-            s.style.cssText = 'display: flex !important; flex-direction: column;';
-            s.classList.remove('hidden', 'force-hide');
-        } else {
-            s.style.cssText = 'display: none !important;';
-            s.classList.add('hidden', 'force-hide');
-        }
-    });
-
-    // 2. Wire the Fingerprint Button
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button') || e.target.closest('a');
-        if(!btn) return;
-        const txt = btn.innerText.trim();
-        const email = localStorage.getItem('drozo_active_session') || 'admin@drozominds.com';
-
-        if (txt.includes('Scan Fingerprint')) {
-            e.preventDefault(); 
-            localStorage.setItem('drozo_user_2fa_verified_' + email, 'true');
-            window.location.href = 'index.html';
-        } else if (txt === 'Cancel' || txt.includes('Go Back')) {
-            e.preventDefault(); 
-            window.location.href = 'index.html'; 
-        }
-    }, true);
-});
-</script>
-
 </body>
 </html>
