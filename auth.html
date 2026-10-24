@@ -5,43 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Drozo Guard Authenticator</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <style>
 body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background:#060b11; color:#f1f5f9; -webkit-tap-highlight-color:transparent; }
 .mono { font-family: ui-monospace, Menlo, monospace; }
-#qrArea { width:100%; max-width:260px; aspect-ratio:1/1; margin:0 auto; overflow:hidden; border-radius:1rem; }
-#qrArea video { width:100% !important; height:100% !important; object-fit:cover !important; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
 
 <header class="flex items-center justify-between py-3 border-b border-slate-800">
   <div class="flex items-center gap-2"><span class="text-xl">🛡️</span><span class="text-xs font-black tracking-widest uppercase">Drozo Guard</span></div>
-  <div id="guardPill" class="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">STANDBY</div>
+  <div id="guardPill" class="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">SIGNED OUT</div>
 </header>
 
 <main class="my-auto py-8">
-  <!-- Standby -->
-  <section id="standbyView" class="flex flex-col items-center text-center space-y-5">
+  <section id="loginView" class="space-y-3">
+    <h2 class="text-base font-extrabold text-center">Sign in to Drozo Guard</h2>
+    <p class="text-xs text-slate-400 text-center">Use the same account you sign in with on the website.</p>
+    <input id="gEmail" type="email" autocomplete="username" placeholder="Email" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm" />
+    <input id="gPass" type="password" autocomplete="current-password" placeholder="Password" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm" />
+    <input id="gCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit authenticator code" class="hidden w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm mono text-center tracking-widest" />
+    <button type="button" id="btnLogin" class="w-full py-3 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">Sign In</button>
+  </section>
+
+  <section id="standbyView" class="hidden flex flex-col items-center text-center space-y-4">
     <div class="w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-5xl">🛡️</div>
     <div>
       <h2 class="text-base font-extrabold">Drozo Guard Active</h2>
-      <p class="text-xs text-slate-400 mt-1">Listening for sign-in requests from DrozoMind…</p>
+      <p class="text-xs text-slate-400 mt-1">Waiting for a sign-in request for <span id="acctEmail" class="text-sky-300 mono"></span></p>
     </div>
-    <button type="button" id="btnScan" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs">📷 Scan Website Challenge QR</button>
-    <button type="button" id="btnManual" class="w-full py-2.5 bg-slate-900 text-slate-300 rounded-xl text-xs font-semibold border border-slate-800">Enter Session ID Manually</button>
+    <button type="button" id="btnSignOut" class="text-xs text-slate-500 underline">Sign out of this phone</button>
   </section>
 
-  <!-- Challenge -->
   <section id="challengeView" class="hidden space-y-4">
     <div class="p-4 rounded-3xl bg-slate-900 border border-sky-500/30 space-y-4">
       <div class="text-xs font-extrabold uppercase tracking-wide">🔐 Sign-In Request</div>
-      <div class="p-3 rounded-2xl bg-black/40 border border-slate-800">
-        <div class="text-xs font-bold truncate" id="userNameDisplay"></div>
-        <div class="text-[11px] text-sky-400 mono truncate" id="userEmailDisplay"></div>
-      </div>
-      <div class="flex justify-between text-xs"><span class="text-slate-400">Session ID</span><span class="mono font-bold text-sky-300" id="sessionTokenDisplay"></span></div>
+      <div class="p-3 rounded-2xl bg-black/40 border border-slate-800 text-[11px] text-sky-400 mono truncate" id="userEmailDisplay"></div>
       <p class="text-[11px] text-slate-400 text-center">Are you trying to sign in to DrozoMind right now?</p>
       <div class="grid grid-cols-2 gap-3">
         <button type="button" id="btnDeny" class="py-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs">✕ Deny</button>
@@ -51,15 +51,12 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   </section>
 </main>
 
-<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono">
-  <span>Drozo Guard</span><span id="bioTag">Standard</span>
-</footer>
+<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono"><span>Drozo Guard</span><span id="bioTag">Standard</span></footer>
 
-<!-- Fingerprint enrollment -->
 <div id="enrollModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
-  <div class="text-5xl">👆</div>
-  <h2 class="text-base font-extrabold">Protect Drozo Guard</h2>
-  <p class="text-xs text-slate-400 max-w-[280px]">Choose how you approve sign-ins. Face ID stores a numeric face template (not a photo) in Supabase, linked to your email.</p>
+  <div class="text-5xl">🔒</div>
+  <h2 class="text-base font-extrabold">Protect Drozo Guard on this phone</h2>
+  <p class="text-xs text-slate-400 max-w-[290px]">Face ID stores a numeric face template (not a photo) in your account, protected by row-level security.</p>
   <div class="w-full max-w-xs space-y-2">
     <button type="button" id="btnEnroll" class="w-full py-3 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">👆 Set Up Fingerprint</button>
     <button type="button" id="btnEnrollFace" class="w-full py-3 bg-indigo-600 text-white font-extrabold rounded-2xl text-xs">👤 Set Up Face ID</button>
@@ -68,36 +65,20 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   <div id="enrollMsg" class="text-[11px] text-slate-500"></div>
 </div>
 
-<!-- Lock screen -->
 <div id="lockModal" class="hidden fixed inset-0 z-50 bg-[#060b11] flex flex-col items-center justify-center p-6 text-center space-y-4">
   <div class="text-5xl">👆</div>
   <h2 class="text-lg font-black">Drozo Guard Locked</h2>
-  <p class="text-xs text-slate-400">Scan your fingerprint to unlock.</p>
   <button type="button" id="btnUnlock" class="w-full max-w-xs py-3.5 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">Scan Fingerprint to Unlock</button>
   <div id="lockMsg" class="text-[11px] text-slate-500"></div>
 </div>
 
-<!-- Face scanner -->
 <div id="faceModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
   <h3 class="text-base font-extrabold" id="faceTitle">Face ID</h3>
-  <div class="w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 bg-black">
-    <video id="faceVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-  </div>
+  <div class="w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 bg-black"><video id="faceVideo" autoplay playsinline muted class="w-full h-full object-cover"></video></div>
   <div id="faceMsg" class="text-xs text-emerald-300 mono"></div>
   <div class="w-full max-w-xs space-y-2">
     <button type="button" id="btnFaceCapture" class="w-full py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">Scan Face</button>
     <button type="button" id="btnFaceCancel" class="w-full py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
-  </div>
-</div>
-
-<!-- QR scanner -->
-<div id="scanModal" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
-  <div class="w-full max-w-xs bg-slate-900 rounded-3xl p-5 border border-slate-800 text-center space-y-3">
-    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-      <span class="text-xs font-bold uppercase">📷 Scan Challenge QR</span>
-      <button type="button" id="btnCloseScan" class="text-rose-400 text-xs font-bold">Close ✕</button>
-    </div>
-    <div id="qrArea" class="bg-black"></div>
   </div>
 </div>
 
@@ -106,21 +87,14 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   "use strict";
   var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
   var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
-  var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "none" | null
+  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
+  var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "face" | "none" | null  (per phone)
   var CRED_KEY = "drozo_guard_passkey_id";
-  var activeToken = null, activeEmail = "", scanner = null, pollTimer = null;
-
+  var activeId = null, pollTimer = null;
   var $ = function (id) { return document.getElementById(id); };
   var show = function (id) { $(id).classList.remove("hidden"); };
   var hide = function (id) { $(id).classList.add("hidden"); };
-  var sbHeaders = function (extra) {
-    var h = { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON };
-    for (var k in (extra || {})) h[k] = extra[k];
-    return h;
-  };
-
-  function b64(buf) { return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); }
-  function unb64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }).buffer; }
+  var errText = function (e) { return (e && e.message) ? e.message : String(e); };
 
   // ---------- WebAuthn (device fingerprint / screen lock) ----------
   async function passkeyAvailable() {
@@ -194,176 +168,131 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   }
   function faceCancelClick() { closeFace(); if (faceFail) { var f = faceFail; faceFail = null; faceOk = null; f(new Error("Cancelled")); } }
 
-  async function rpc(name, body) {
-    var r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + name, {
-      method: "POST", headers: sbHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(body)
-    });
-    if (!r.ok) throw new Error("Supabase error: " + (await r.text()));
-    return r.json();
+
+  async function rpc(name, args) {
+    var r = await sb.rpc(name, args);
+    if (r.error) throw r.error;
+    return r.data;
   }
-  async function enrollFace(email) {
+  async function enrollFace() {
     var d = await getFaceDescriptor("Face ID Enrollment");
-    var saved = await rpc("enroll_face", { target_email: email, probe: JSON.stringify(d) });
-    if (!saved) throw new Error("A face is already registered for this email. Ask the owner to reset it.");
+    var saved = await rpc("enroll_my_face", { probe: JSON.stringify(d) });
+    if (!saved) {   // a face is already registered for this account: it must match
+      var ok = await verifyFace();
+      if (!ok) throw new Error("A different face is already registered for this account.");
+    }
   }
-  async function verifyFace(email) {
+  async function verifyFace() {
     var d = await getFaceDescriptor("Face ID Check");
-    var rows = await rpc("match_user_face", { target_email: email, probe: JSON.stringify(d) });
+    var rows = await rpc("verify_my_face", { probe: JSON.stringify(d) });
     return !!(rows && rows.length && rows[0].match_found);
   }
 
-  // ---------- Lock / enroll flow ----------
+  // ---------- enroll / lock ----------
   async function unlock() {
     $("lockMsg").textContent = "Touch the fingerprint sensor…";
     try { await verifyPasskey(); hide("lockModal"); }
     catch (e) { $("lockMsg").textContent = "Cancelled or failed. Tap to retry."; }
   }
-  async function enroll() {
+  async function enrollFingerprint() {
     $("enrollMsg").textContent = "";
     try {
-      if (!(await passkeyAvailable())) throw new Error("This device has no fingerprint / screen-lock passkey support.");
+      if (!(await passkeyAvailable())) throw new Error("This phone has no fingerprint / screen-lock passkey support.");
       await enrollPasskey();
-      localStorage.setItem(BIO_KEY, "fingerprint");
-      $("bioTag").textContent = "🔒 Fingerprint Locked";
-      hide("enrollModal");
-    } catch (e) { $("enrollMsg").textContent = e.message || "Enrollment failed."; }
+      localStorage.setItem(BIO_KEY, "fingerprint"); $("bioTag").textContent = "🔒 Fingerprint"; hide("enrollModal");
+    } catch (e) { $("enrollMsg").textContent = errText(e); }
   }
   async function enrollWithFace() {
     $("enrollMsg").textContent = "";
-    var email = (prompt("Enter the account email to link this face to:") || "").trim().toLowerCase();
-    if (!email) return;
-    try {
-      await enrollFace(email);
-      localStorage.setItem(BIO_KEY, "face");
-      $("bioTag").textContent = "🔒 Face ID";
-      hide("enrollModal");
-      alert("Face ID registered for " + email + " ✓");
-    } catch (e) { $("enrollMsg").textContent = e.message || "Face enrollment failed."; }
+    try { await enrollFace(); localStorage.setItem(BIO_KEY, "face"); $("bioTag").textContent = "🔒 Face ID"; hide("enrollModal"); }
+    catch (e) { $("enrollMsg").textContent = errText(e); }
   }
   function skip() {
-    if (!confirm("Anyone with this phone could approve sign-ins. Continue without fingerprint protection?")) return;
-    localStorage.setItem(BIO_KEY, "none");
-    $("bioTag").textContent = "⚠️ No Biometrics";
-    hide("enrollModal");
+    if (!confirm("Anyone holding this phone could approve sign-ins. Continue without protection?")) return;
+    localStorage.setItem(BIO_KEY, "none"); $("bioTag").textContent = "⚠️ No Biometrics"; hide("enrollModal");
   }
 
-  // ---------- Challenge handling ----------
-  function showChallenge(token, email) {
-    if (!token) return;
-    activeToken = token; activeEmail = (email || "").trim().toLowerCase();
-    hide("standbyView"); show("challengeView");
-    $("sessionTokenDisplay").textContent = token;
-    $("userEmailDisplay").textContent = email || "";
-    $("userNameDisplay").textContent = email ? email.split("@")[0] : "Unknown user";
-    var pill = $("guardPill");
-    pill.textContent = "CHALLENGE";
-    pill.className = "px-2.5 py-1 rounded-full bg-sky-950 border border-sky-500/40 text-sky-400 text-[10px] font-bold mono";
+  // ---------- sign in ----------
+  async function afterLogin() {
+    var aal = (await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;
+    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") { show("loginView"); show("gCode"); $("gCode").focus(); return; }
+    var u = (await sb.auth.getUser()).data.user;
+    $("acctEmail").textContent = u ? u.email : "";
+    hide("loginView"); show("standbyView");
+    $("guardPill").textContent = "STANDBY";
+    var bio = localStorage.getItem(BIO_KEY);
+    if (bio === "fingerprint") { $("bioTag").textContent = "🔒 Fingerprint"; show("lockModal"); unlock(); }
+    else if (bio === "face") { $("bioTag").textContent = "🔒 Face ID"; }
+    else if (bio === "none") { $("bioTag").textContent = "⚠️ No Biometrics"; }
+    else { show("enrollModal"); }
+    poll(); if (pollTimer) clearInterval(pollTimer); pollTimer = setInterval(poll, 2000);
   }
-
-  async function respond(decision) {
-    if (!activeToken) return;
-    var tok = activeToken;
-    sessionStorage.setItem("handled_" + tok, "1");
-    localStorage.setItem("drozo_challenge_result_" + tok, decision);
+  async function login() {
     try {
-      await fetch(SUPABASE_URL + "/rest/v1/drozo_guard_sessions?session_token=eq." + encodeURIComponent(tok), {
-        method: "PATCH",
-        headers: sbHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ status: decision })
-      });
-    } catch (_) {}
-    try { new BroadcastChannel("drozo_sync").postMessage({ type: "GUARD_RESULT", token: tok, status: decision }); } catch (_) {}
-    alert(decision === "authorized" ? "Login Approved ✓" : "Login Denied ✕");
-    location.href = location.pathname;
+      if (!$("gCode").classList.contains("hidden")) {
+        var totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
+        if (!totp.length) throw new Error("No authenticator is linked to this account.");
+        var v = await sb.auth.mfa.challengeAndVerify({ factorId: totp[0].id, code: $("gCode").value.trim() });
+        if (v.error) throw v.error;
+        $("gCode").value = ""; hide("gCode");
+      } else {
+        var r = await sb.auth.signInWithPassword({ email: $("gEmail").value.trim().toLowerCase(), password: $("gPass").value });
+        if (r.error) throw r.error;
+        $("gPass").value = "";
+      }
+      await afterLogin();
+    } catch (e) { alert(/invalid login/i.test(errText(e)) ? "Incorrect email or password." : errText(e)); }
+  }
+  async function signOut() {
+    if (pollTimer) clearInterval(pollTimer);
+    try { await sb.auth.signOut(); } catch (_) {}
+    location.reload();
   }
 
+  // ---------- challenges ----------
+  async function poll() {
+    if (activeId) return;
+    try {
+      var since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      var r = await sb.from("guard_challenges").select("id").eq("status", "pending").gt("created_at", since).order("created_at", { ascending: false }).limit(1);
+      if (r.data && r.data.length) showChallenge(r.data[0].id);
+    } catch (_) {}
+  }
+  function showChallenge(id) {
+    activeId = id;
+    $("userEmailDisplay").textContent = $("acctEmail").textContent;
+    hide("standbyView"); show("challengeView");
+    $("guardPill").textContent = "CHALLENGE";
+  }
+  async function respond(decision) {
+    if (!activeId) return;
+    var r = await sb.from("guard_challenges").update({ status: decision }).eq("id", activeId);
+    if (r.error) { alert("Could not send your answer: " + errText(r.error)); return; }
+    alert(decision === "authorized" ? "Login Approved ✓" : "Login Denied ✕");
+    activeId = null; hide("challengeView"); show("standbyView"); $("guardPill").textContent = "STANDBY";
+  }
   async function approve() {
     var bio = localStorage.getItem(BIO_KEY);
-    if (bio === "fingerprint") {
-      try { await verifyPasskey(); } catch (e) { alert("Fingerprint check failed. Approval cancelled."); return; }
-    } else if (bio === "face") {
-      var em = activeEmail || (prompt("Account email to verify:") || "").trim().toLowerCase();
-      if (!em) return;
-      try {
-        if (!(await verifyFace(em))) { alert("Face does not match this account. Approval cancelled."); return; }
-      } catch (e) { alert(e.message || "Face check failed."); return; }
-    }
+    try {
+      if (bio === "fingerprint") await verifyPasskey();
+      else if (bio === "face") { if (!(await verifyFace())) { alert("Face does not match this account. Approval cancelled."); return; } }
+    } catch (e) { alert("Check failed or cancelled: " + errText(e)); return; }
     respond("authorized");
   }
 
-  // ---------- Polling ----------
-  async function checkPending() {
-    if (activeToken) return;
-    try {
-      var res = await fetch(SUPABASE_URL + "/rest/v1/drozo_guard_sessions?status=eq.pending&select=session_token,email&limit=1&_t=" + Date.now(),
-        { headers: sbHeaders(), cache: "no-store" });
-      if (!res.ok) return;
-      var rows = await res.json();
-      if (rows && rows.length && !sessionStorage.getItem("handled_" + rows[0].session_token)) {
-        showChallenge(rows[0].session_token, rows[0].email);
-      }
-    } catch (_) {}
-  }
-
-  // ---------- QR scanner ----------
-  function parseScan(text) {
-    text = String(text || "").trim();
-    if (text.indexOf("SES_") === 0) return { token: text, email: "" };
-    try { var u = new URL(text); var t = u.searchParams.get("token"); if (t) return { token: t, email: u.searchParams.get("email") || "" }; } catch (_) {}
-    return null;
-  }
-  async function stopScan() {
-    if (scanner) { try { await scanner.stop(); } catch (_) {} scanner = null; }
-    hide("scanModal");
-  }
-  async function startScan() {
-    show("scanModal");
-    if (typeof Html5Qrcode === "undefined") { alert("QR scanner library failed to load. Use the manual Session ID."); hide("scanModal"); return; }
-    var onOk = async function (txt) {
-      var r = parseScan(txt);
-      if (r) { await stopScan(); showChallenge(r.token, r.email); }
-    };
-    var cfg = { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 };
-    try {
-      scanner = new Html5Qrcode("qrArea");
-      try { await scanner.start({ facingMode: "environment" }, cfg, onOk, function () {}); }
-      catch (_) { await scanner.start({ facingMode: "user" }, cfg, onOk, function () {}); }
-    } catch (e) { alert("Camera permission is required. You can enter the Session ID manually."); await stopScan(); }
-  }
-  function manualToken() {
-    var code = prompt("Enter the Session ID from your screen (e.g. SES_XXXXXX):");
-    if (code && code.trim().toUpperCase().indexOf("SES_") === 0) showChallenge(code.trim().toUpperCase(), "");
-  }
-
-  // ---------- Init ----------
-  document.addEventListener("DOMContentLoaded", function () {
-    $("btnScan").addEventListener("click", startScan);
-    $("btnManual").addEventListener("click", manualToken);
-    $("btnCloseScan").addEventListener("click", stopScan);
+  document.addEventListener("DOMContentLoaded", async function () {
+    $("btnLogin").addEventListener("click", login);
+    $("btnSignOut").addEventListener("click", signOut);
     $("btnApprove").addEventListener("click", approve);
     $("btnDeny").addEventListener("click", function () { respond("denied"); });
-    $("btnEnroll").addEventListener("click", enroll);
-    $("btnSkip").addEventListener("click", skip);
+    $("btnEnroll").addEventListener("click", enrollFingerprint);
     $("btnEnrollFace").addEventListener("click", enrollWithFace);
+    $("btnSkip").addEventListener("click", skip);
+    $("btnUnlock").addEventListener("click", unlock);
     $("btnFaceCapture").addEventListener("click", faceCaptureClick);
     $("btnFaceCancel").addEventListener("click", faceCancelClick);
-    $("btnUnlock").addEventListener("click", unlock);
-
-    var bio = localStorage.getItem(BIO_KEY);
-    if (bio === "fingerprint") {
-      $("bioTag").textContent = "🔒 Fingerprint Locked";
-      show("lockModal"); unlock();
-    } else if (bio === "face") {
-      $("bioTag").textContent = "🔒 Face ID";
-    } else if (bio === "none") {
-      $("bioTag").textContent = "⚠️ No Biometrics";
-    } else {
-      show("enrollModal");   // first run, or old "faceid" setting: choose a method
-    }
-
-    var p = new URLSearchParams(location.search);
-    if (p.get("token")) showChallenge(p.get("token"), p.get("email") || "");
-    else { checkPending(); pollTimer = setInterval(checkPending, 2000); }
+    var s = (await sb.auth.getSession()).data;
+    if (s && s.session) afterLogin();
   });
 })();
 </script>

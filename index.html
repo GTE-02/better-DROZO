@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
@@ -79,7 +80,7 @@
           <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
             <div class="text-2xl">👆</div>
             <div class="font-bold text-slate-800 text-sm">Protected Sign-In</div>
-            <p class="text-xs text-slate-500">Your password is verified by our server, and you can add a second step with an authenticator app or Drozo Guard.</p>
+            <p class="text-xs text-slate-500">Your account is protected by Supabase sign-in, and you can add a second step with an authenticator app or Drozo Guard.</p>
           </div>
         </div>
       </div>
@@ -251,7 +252,7 @@
     <div id="authStepOnboarding" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
       <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span>🛡️</span> Security Enrollment</div>
       <h3 class="text-base font-extrabold text-slate-900">Configure Account Protection</h3>
-      <p class="text-xs text-slate-500">Pick 1 verification method. You can add your ID Pass later from the My ID Pass tab.</p>
+      <p class="text-xs text-slate-500">Pick 1 verification method. The authenticator app is enforced by the database; Drozo Guard approves on your phone.</p>
       <div class="space-y-2.5 pt-1 text-left">
         <button type="button" onclick="startDrozoGuardEnrollment()" class="w-full p-3.5 rounded-2xl bg-[#0e1722] text-sky-300 border border-[#1e2f42] hover:bg-[#152333] transition flex items-center justify-between shadow-sm cursor-pointer">
           <div class="flex items-center gap-2.5"><span class="text-2xl">🛡️</span><div><div class="text-xs font-bold text-white">Drozo Guard (Phone)</div><div class="text-[10px] text-sky-400">Approve sign-ins with fingerprint or Face ID</div></div></div>
@@ -289,7 +290,7 @@
         <div class="font-bold text-white text-sm">How to link your device:</div>
         <div class="flex gap-2.5 items-start bg-[#131f2d] p-2.5 rounded-xl border border-[#1e3044]">
           <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[11px] shrink-0">1</span>
-          <div>Open Drozo Guard on your phone: <code class="text-sky-300 mono text-[10px] block mt-0.5">https://gte-02.github.io/better-DROZO/auth.html</code></div>
+          <div>Open Drozo Guard on your phone and sign in with <strong>this same account</strong>: <code class="text-sky-300 mono text-[10px] block mt-0.5">https://gte-02.github.io/better-DROZO/auth.html</code></div>
         </div>
         <div class="flex gap-2.5 items-start bg-[#131f2d] p-2.5 rounded-xl border border-[#1e3044]">
           <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[11px] shrink-0">2</span>
@@ -372,394 +373,285 @@
   </footer>
 
   <script>
-// DrozoMind front-end script (rewritten). Passwords/2FA are checked by server.js on Render.
-const RENDER_API_URL = "https://better-drozo.onrender.com";
+// DrozoMind front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
 const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
-const ADMIN_EMAILS = ["admin@drozominds.com", "gamerkids1109@gmail.com"];
+const STAFF_ROLES = ["therapist", "coordinator", "admin"];
 
-let currentEmail = "", activeToken = "", pendingToken = "", pollTimer = null;
-let selectedChannel = "discord", authMode = "login", busyLogin = false;
-let idCaptureScanner = null, lastGuardUrl = "";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+
+let me = null;                      // { id, email, role, twofa_pref }
+let authMode = "login", busy = false;
+let pollTimer = null, apptTimer = null, activeChallenge = "", guardEnrolling = false, lastGuardUrl = "";
+let pendingFactorId = "", selectedChannel = "discord", currentAppt = null, idCaptureScanner = null;
 
 const $ = (id) => document.getElementById(id);
 const show = (id) => { const e = $(id); if (e) e.classList.remove('hidden'); };
 const hide = (id) => { const e = $(id); if (e) e.classList.add('hidden'); };
 const escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-let syncChannel = null;
-try {
-  syncChannel = new BroadcastChannel('drozo_sync');
-  syncChannel.onmessage = (event) => {
-    const d = event.data || {};
-    if (d.type === 'STATUS_UPDATE') syncAppointmentStatus();
-    if (d.type === 'GUARD_RESULT' && d.token && d.token === activeToken) {
-      if (d.status === 'authorized') executeFinalLogin('drozo_guard');
-      else if (d.status === 'denied') { clearInterval(pollTimer); alert('Login request was denied on device.'); location.reload(); }
-    }
-  };
-} catch (_) {}
-
-// ---------- server API ----------
-function getToken() { return localStorage.getItem('drozo_api_token') || ''; }
-
-async function api(path, body, opts) {
-  opts = opts || {};
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), opts.timeout || 60000);
-  try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (opts.token !== false) headers.Authorization = 'Bearer ' + (opts.token || getToken());
-    const res = await fetch(RENDER_API_URL + path, {
-      method: body === undefined ? 'GET' : 'POST',
-      headers: headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: ctrl.signal
-    });
-    let data = {};
-    try { data = await res.json(); } catch (_) {}
-    if (res.status === 401 && opts.token !== false && !opts.noLogout && localStorage.getItem('drozo_active_session')) {
-      forceRelogin('Your session expired. Please sign in again.');
-    }
-    return { ok: res.ok, status: res.status, data: data };
-  } finally { clearTimeout(timer); }
-}
-
-function forceRelogin(msg) {
-  ['drozo_active_session', 'drozo_auth_state', 'drozo_api_token'].forEach((k) => localStorage.removeItem(k));
-  alert(msg);
-  location.reload();
-}
-
-async function setCloudState(key, value) {
-  const v = typeof value === 'object' ? JSON.stringify(value) : String(value);
-  localStorage.setItem(key, v);
-  if (!getToken()) return;
-  try { await api('/api/state', { key: key, value: v }, { noLogout: true }); } catch (_) {}
-}
-
-async function pullCloudState(key, fallback) {
-  if (getToken()) {
-    try {
-      const r = await api('/api/state/' + encodeURIComponent(key), undefined, { noLogout: true, timeout: 20000 });
-      if (r.ok && r.data && r.data.value !== null && r.data.value !== undefined) {
-        localStorage.setItem(key, r.data.value);
-        return r.data.value;
-      }
-    } catch (_) {}
-  }
-  const local = localStorage.getItem(key);
-  return local !== null ? local : (fallback === undefined ? null : fallback);
-}
-
-async function bootstrapEntireWebsiteFromCloud() {
-  if (getToken() && localStorage.getItem('drozo_active_session')) {
-    for (const k of ['drozo_session_status', 'drozo_appointment_deleted', 'drozo_client_dispatched_docs']) {
-      await pullCloudState(k, null);
-    }
-  }
-  syncAppointmentStatus();
-  loadDispatchedDocuments();
-  loadCloudVaultFiles();
-}
-
-function tokenExpired() {
-  try {
-    const p = getToken().split('.')[0];
-    const d = JSON.parse(atob(p.replace(/-/g, '+').replace(/_/g, '/')));
-    return !d.x || d.x < Date.now();
-  } catch (_) { return true; }
+const errMsg = (e) => (e && e.message) ? e.message : String(e);
+function authError(e) {
+  const m = errMsg(e);
+  if (/invalid login/i.test(m)) return 'Access Denied: Incorrect password or email.';
+  if (/not confirmed/i.test(m)) return 'Please confirm your email first (check your inbox), then sign in.';
+  if (/already registered/i.test(m)) return 'An account with this email already exists. Use Sign In.';
+  return m;
 }
 
 const liveDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dubai', dateStyle: 'full', timeStyle: 'short' });
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   $('aiWelcomeMsg').innerHTML = 'Hello! I am your AI therapy assistant. Today is <strong>' + escapeHtml(liveDate) + '</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.';
-  // remove the screen-scan shortcuts' leftover divider
-  document.querySelectorAll('div').forEach((d) => {
-    if (d.children.length === 0 && d.textContent.trim() === 'Or Verify via ID') {
-      const w = d.closest('.relative.py-1'); if (w) w.remove();
+  lockPortal();
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) await routeAfterAuth(false); else openLoginModal();
+  } catch (_) { openLoginModal(); }
+});
+
+function lockPortal() { const p = $('portalContent'); if (p) p.classList.add('blur-sm', 'pointer-events-none', 'select-none'); }
+
+// ---------- profile + routing ----------
+async function loadMe() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { me = null; return null; }
+  const { data, error } = await sb.from('profiles').select('id,email,role,twofa_pref').eq('id', user.id).maybeSingle();
+  if (error) throw error;
+  me = data || { id: user.id, email: user.email, role: 'patient', twofa_pref: null };
+  return me;
+}
+async function setPref(pref) {
+  const { error } = await sb.from('profiles').update({ twofa_pref: pref }).eq('id', me.id);
+  if (error) throw error;
+  me.twofa_pref = pref;
+}
+
+async function routeAfterAuth(isNew) {
+  lockPortal();
+  try {
+    await loadMe();
+    if (!me) { openLoginModal(); return; }
+    const aal = (await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;
+    if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+      ['authStep1', 'authStepOnboarding', 'wizardDrozoGuard', 'wizardAuthenticator', 'authStep3Guard'].forEach(hide);
+      show('authModal'); show('authStep3Standard');
+      return;
     }
-  });
-  const activeUser = localStorage.getItem('drozo_active_session');
-  if (activeUser && getToken() && !tokenExpired()) {
-    unlockSanctuaryUI(activeUser);
-  } else {
-    ['drozo_active_session', 'drozo_auth_state', 'drozo_api_token'].forEach((k) => localStorage.removeItem(k));
+    const factors = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
+    const forced = localStorage.getItem('drozo_force_setup_wizard') === me.id;
+    if (isNew || forced || !me.twofa_pref || (me.twofa_pref === 'totp' && !factors.length)) {
+      localStorage.removeItem('drozo_force_setup_wizard');
+      showOnboardingChoice();
+      return;
+    }
+    if (me.twofa_pref === 'drozo_guard' && sessionStorage.getItem('drozo_guard_ok_' + me.id) !== '1') { startDrozoGuard2FA(false); return; }
+    unlockSanctuaryUI();
+  } catch (e) {
+    alert('Could not load your account: ' + errMsg(e));
     openLoginModal();
   }
-});
+}
 
-window.addEventListener('storage', (e) => {
-  if (e.key === 'drozo_session_status') syncAppointmentStatus();
-  if (activeToken && e.key === 'drozo_challenge_result_' + activeToken && e.newValue === 'authorized') executeFinalLogin('drozo_guard');
-});
-
-// ---------- login modal ----------
+// ---------- sign in / register ----------
 function switchAuthTab(mode) {
   authMode = mode;
-  const lBtn = $('tabLoginBtn'), rBtn = $('tabRegisterBtn');
-  if (mode === 'register') {
-    lBtn.className = 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600';
-    rBtn.className = 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600';
-    $('authHeaderTitle').innerText = 'Register New Account';
-    $('authHeaderSubtitle').innerText = 'Create credentials to access your sandboxed therapy sanctuary.';
-    $('btnSubmitStep1').innerText = 'Create Account & Setup 2FA →';
-  } else {
-    rBtn.className = 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600';
-    lBtn.className = 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600';
-    $('authHeaderTitle').innerText = 'Sign In to DrozoMind';
-    $('authHeaderSubtitle').innerText = 'Please sign in to access your confidential sanctuary.';
-    $('btnSubmitStep1').innerText = 'Continue to 2FA Verification →';
-  }
-  $('loginEmail').value = '';
-  $('loginPass').value = '';
+  const reg = mode === 'register';
+  $('tabLoginBtn').className = reg ? 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600' : 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600';
+  $('tabRegisterBtn').className = reg ? 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600' : 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600';
+  $('authHeaderTitle').innerText = reg ? 'Register New Account' : 'Sign In to DrozoMind';
+  $('authHeaderSubtitle').innerText = reg ? 'Create credentials to access your sandboxed therapy sanctuary.' : 'Please sign in to access your confidential sanctuary.';
+  $('btnSubmitStep1').innerText = reg ? 'Create Account & Setup 2FA →' : 'Continue to 2FA Verification →';
+  $('loginEmail').value = ''; $('loginPass').value = '';
 }
 
 function openLoginModal() {
-  const portal = $('portalContent');
-  if (portal) portal.classList.add('blur-sm', 'pointer-events-none', 'select-none');
-  const m = $('authModal');
-  m.style.pointerEvents = 'auto';
-  m.classList.remove('hidden');
-  ['authStepOnboarding', 'wizardDrozoGuard', 'wizardAuthenticator', 'authStep3Guard', 'authStep3Standard', 'skipWarningModal', 'mandatoryIdEnrollModal'].forEach(hide);
+  lockPortal();
+  show('authModal');
+  ['authStepOnboarding', 'wizardDrozoGuard', 'wizardAuthenticator', 'authStep3Guard', 'authStep3Standard', 'skipWarningModal'].forEach(hide);
   show('authStep1');
   switchAuthTab('login');
 }
 
 async function handleStep1Submit(e) {
   if (e && e.preventDefault) e.preventDefault();
-  if (busyLogin) return;
+  if (busy) return;
   const email = $('loginEmail').value.trim().toLowerCase();
   const pass = $('loginPass').value;
   if (!email || !pass) { alert('Please enter a valid email and password.'); return; }
   if (authMode === 'register' && pass.length < 8) { alert('Password must be at least 8 characters long.'); return; }
-
-  const btn = $('btnSubmitStep1');
-  const label = btn.innerText;
-  busyLogin = true; btn.disabled = true;
-  btn.innerText = 'Connecting… (first load can take up to a minute)';
-  let r;
+  const btn = $('btnSubmitStep1'), label = btn.innerText;
+  busy = true; btn.disabled = true; btn.innerText = 'Please wait…';
   try {
-    r = await api(authMode === 'register' ? '/api/register' : '/api/login', { email: email, password: pass }, { token: false });
+    if (authMode === 'register') {
+      const { data, error } = await sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: location.origin + location.pathname } });
+      if (error) throw error;
+      if (!data.session) { alert('Account created. Check your email to confirm it, then sign in.'); switchAuthTab('login'); return; }
+      await routeAfterAuth(true);
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+      if (error) throw error;
+      await routeAfterAuth(false);
+    }
   } catch (err) {
-    alert('Could not reach the server. It may be waking up: wait 30 seconds and try again.');
-    return;
-  } finally { busyLogin = false; btn.disabled = false; btn.innerText = label; }
-
-  if (!r.ok) {
-    alert(r.status === 401 ? 'Access Denied: Incorrect password or email.' : ((r.data && r.data.error) || ('Sign-in failed (' + r.status + ').')));
+    alert(authError(err));
     $('loginPass').value = '';
-    return;
-  }
-  currentEmail = email;
-  if (r.data.needsTotp) {            // password OK, server still wants the authenticator code
-    pendingToken = r.data.token;
-    hide('authStep1'); show('authStep3Standard');
-    return;
-  }
-  localStorage.setItem('drozo_api_token', r.data.token);
-
-  let pref = localStorage.getItem('drozo_user_2fa_pref_' + email) || await pullCloudState('drozo_user_2fa_pref_' + email, null);
-  const done = localStorage.getItem('drozo_user_2fa_verified_' + email) === 'true' || (await pullCloudState('drozo_user_2fa_verified_' + email, 'false')) === 'true';
-  const forced = localStorage.getItem('drozo_force_setup_wizard') === email;
-
-  if (authMode === 'register' || !pref || !done || forced) {
-    localStorage.removeItem('drozo_force_setup_wizard');
-    showOnboardingChoice();
-    return;
-  }
-  if (pref === 'drozo_guard') { startDrozoGuard2FA(); return; }
-  if (pref === 'none') { executeFinalLogin('password_only'); return; }
-  if (pref === 'totp') { alert('Your authenticator is not linked yet. Please set it up again.'); }
-  showOnboardingChoice();
+  } finally { busy = false; btn.disabled = false; btn.innerText = label; }
 }
 
 function showOnboardingChoice() {
-  hide('authStep1'); hide('authStep3Guard'); hide('authStep3Standard');
-  show('authStepOnboarding');
+  ['authStep1', 'authStep3Guard', 'authStep3Standard', 'wizardDrozoGuard', 'wizardAuthenticator'].forEach(hide);
+  show('authModal'); show('authStepOnboarding');
 }
 function backToOnboardingChoice() { hide('wizardDrozoGuard'); hide('wizardAuthenticator'); show('authStepOnboarding'); }
 function triggerSkip2FAWarning() { hide('authStepOnboarding'); show('skipWarningModal'); }
 function cancelSkip2FAWarning() { hide('skipWarningModal'); show('authStepOnboarding'); }
 
-function confirmPasswordOnlyMode() {
-  hide('skipWarningModal');
-  alert('Warning Acknowledged: 2FA Disabled. Logging in with password only.');
-  executeFinalLogin('password_only');
-}
-
-function activateCompulsoryIdPass() { hide('mandatoryIdEnrollModal'); }
-
-// ---------- Drozo Guard (phone approval) ----------
-function startDrozoGuardEnrollment() { hide('authStepOnboarding'); show('wizardDrozoGuard'); }
-
-function confirmDrozoGuardLinked() {
-  localStorage.setItem('drozo_user_2fa_pref_' + currentEmail, 'drozo_guard');
-  hide('wizardDrozoGuard');
-  startDrozoGuard2FA();               // prove the link with a real phone approval
-}
-
-function startDrozoGuard2FA() {
-  ['authStep1', 'authStepOnboarding', 'wizardDrozoGuard'].forEach(hide);
-  show('authStep3Guard');
-
-  activeToken = 'SES_' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map((b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-  $('steamTokenLabel').innerText = activeToken;
-  $('steamEmailDisplay').innerText = currentEmail;
-  $('steamAccountDisplay').innerText = currentEmail === 'admin@drozominds.com' ? 'Water_Chugger/Owner' : (currentEmail === 'gamerkids1109@gmail.com' ? 'Drozo YT' : currentEmail.split('@')[0]);
-
-  const base = window.location.origin + window.location.pathname.replace('index.html', '');
-  lastGuardUrl = base + 'auth.html?token=' + activeToken + '&email=' + encodeURIComponent(currentEmail);
-
-  const box = $('qrCanvasContainer');
-  if (box) {
-    box.innerHTML = '';
-    try {
-      new QRCode(box, { text: lastGuardUrl, width: 160, height: 160, colorDark: '#02140d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-    } catch (_) {
-      box.textContent = 'QR failed to load. Use "Open on Phone".';
-    }
-  }
-  try { new BroadcastChannel('drozo_guard_sync').postMessage({ type: 'NEW_CHALLENGE', token: activeToken, email: currentEmail }); } catch (_) {}
-
-  fetch(SUPABASE_URL + '/rest/v1/drozo_guard_sessions', {
-    method: 'POST',
-    headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify({ session_token: activeToken, email: currentEmail, status: 'pending' })
-  }).catch(() => {});
-
-  const startedAt = Date.now();
-  if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(async () => {
-    if (Date.now() - startedAt > 5 * 60 * 1000) { clearInterval(pollTimer); alert('Sign-in request expired. Please try again.'); location.reload(); return; }
-    const local = localStorage.getItem('drozo_challenge_result_' + activeToken);
-    if (local === 'authorized') { executeFinalLogin('drozo_guard'); return; }
-    if (local === 'denied') { clearInterval(pollTimer); alert('Login request was denied on device.'); location.reload(); return; }
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/drozo_guard_sessions?session_token=eq.' + encodeURIComponent(activeToken) + '&select=status&_t=' + Date.now(), {
-        headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON }, cache: 'no-store'
-      });
-      if (res.ok) {
-        const rows = await res.json();
-        if (rows && rows.length) {
-          if (rows[0].status === 'authorized') executeFinalLogin('drozo_guard');
-          else if (rows[0].status === 'denied') { clearInterval(pollTimer); alert('Login request was denied on device.'); location.reload(); }
-        }
-      }
-    } catch (_) {}
-  }, 1500);
-}
-
-function openApprovalSimulator() { if (lastGuardUrl) window.open(lastGuardUrl, '_blank'); }
-
-function backToStep1() {
-  if (pollTimer) clearInterval(pollTimer);
-  pendingToken = '';
-  ['authStep3Guard', 'authStep3Standard', 'authStepOnboarding', 'wizardDrozoGuard', 'wizardAuthenticator'].forEach(hide);
-  show('authStep1');
-}
-
-// ---------- Authenticator (TOTP, verified by the server) ----------
-async function startAuthenticatorEnrollment() {
-  hide('authStepOnboarding');
-  show('wizardAuthenticator');
-  const qrBox = $('enrollTotpQrContainer');
-  qrBox.innerHTML = 'Loading…';
-  $('enrollTotpSecretText').innerText = '…';
-  const r = await api('/api/totp/setup', {}, { noLogout: true });
-  if (!r.ok) { alert('Could not start authenticator setup. Please sign in again.'); backToStep1(); return; }
-  $('enrollTotpSecretText').innerText = r.data.secret;
-  qrBox.innerHTML = '';
+async function confirmPasswordOnlyMode() {
   try {
-    new QRCode(qrBox, { text: r.data.uri, width: 160, height: 160, colorDark: '#02140d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-  } catch (_) { qrBox.textContent = 'Enter the secret below manually.'; }
+    await setPref('none');
+    hide('skipWarningModal');
+    alert('Warning Acknowledged: 2FA Disabled. Logging in with password only.');
+    unlockSanctuaryUI();
+  } catch (e) { alert('Could not save your choice: ' + errMsg(e)); }
+}
+
+async function backToStep1() {
+  if (pollTimer) clearInterval(pollTimer);
+  try { await sb.auth.signOut(); } catch (_) {}
+  me = null;
+  openLoginModal();
+}
+
+// ---------- authenticator app (Supabase MFA / TOTP) ----------
+async function startAuthenticatorEnrollment() {
+  hide('authStepOnboarding'); show('wizardAuthenticator');
+  const box = $('enrollTotpQrContainer');
+  box.textContent = 'Loading…'; $('enrollTotpSecretText').innerText = '…';
+  try {
+    const lf = (await sb.auth.mfa.listFactors()).data;
+    for (const f of ((lf && lf.all) || [])) {
+      if (f.factor_type === 'totp' && f.status === 'unverified') await sb.auth.mfa.unenroll({ factorId: f.id });
+    }
+    const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'DrozoMind-' + Date.now() });
+    if (error) throw error;
+    pendingFactorId = data.id;
+    $('enrollTotpSecretText').innerText = data.totp.secret;
+    box.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = data.totp.qr_code; img.alt = 'Authenticator QR code'; img.className = 'w-36 h-36';
+    box.appendChild(img);
+  } catch (e) {
+    alert('Could not start authenticator setup: ' + errMsg(e) + '\n(In Supabase: Authentication > Sign In / Providers > make sure MFA (TOTP) is enabled.)');
+    backToOnboardingChoice();
+  }
 }
 
 async function handleTestTotpLink(e) {
   if (e && e.preventDefault) e.preventDefault();
   const input = $('testTotpInput');
-  const r = await api('/api/totp/confirm', { code: input.value.trim() }, { noLogout: true });
-  if (r.ok) {
-    localStorage.setItem('drozo_user_2fa_pref_' + currentEmail, 'totp');
-    alert('Verification Successful! Your Authenticator app is now linked.');
-    hide('wizardAuthenticator');
-    executeFinalLogin('totp');
-  } else {
-    alert('Linking Failed: invalid code. Check your Authenticator app and try again.');
-    input.value = ''; input.focus();
-  }
+  const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: pendingFactorId, code: input.value.trim() });
+  if (error) { alert('Linking Failed: invalid code. Check your Authenticator app and try again.'); input.value = ''; input.focus(); return; }
+  try { await setPref('totp'); } catch (_) {}
+  alert('Verification Successful! Your Authenticator app is now linked.');
+  hide('wizardAuthenticator');
+  unlockSanctuaryUI();
 }
 
 async function handleStandardTOTP(e) {
   if (e && e.preventDefault) e.preventDefault();
   const input = $('totpInput');
-  const r = await api('/api/totp/verify', { code: input.value.trim() }, { token: pendingToken, noLogout: true });
-  if (r.ok && r.data.token) {
-    pendingToken = r.data.token;
-    executeFinalLogin('totp');
-  } else if (r.status === 401) {
-    alert('Session expired. Please sign in again.'); backToStep1();
-  } else if (r.status === 429) {
-    alert('Too many attempts. Wait 15 minutes.');
-  } else {
-    alert('Authentication Failed: invalid 6-digit code.');
-    input.value = ''; input.focus();
-  }
+  const totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
+  if (!totp.length) { alert('No authenticator is linked to this account.'); return; }
+  const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: totp[0].id, code: input.value.trim() });
+  if (error) { alert('Authentication Failed: invalid 6-digit code.'); input.value = ''; input.focus(); return; }
+  hide('authStep3Standard'); input.value = '';
+  await routeAfterAuth(false);
 }
 
-// ---------- finish login / session ----------
-function executeFinalLogin(method) {
+// ---------- Drozo Guard (approve on your phone, signed in as the same account) ----------
+function startDrozoGuardEnrollment() { hide('authStepOnboarding'); show('wizardDrozoGuard'); }
+function confirmDrozoGuardLinked() { hide('wizardDrozoGuard'); startDrozoGuard2FA(true); }
+
+async function startDrozoGuard2FA(enrolling) {
+  guardEnrolling = !!enrolling;
+  ['authStep1', 'authStepOnboarding', 'wizardDrozoGuard'].forEach(hide);
+  show('authModal'); show('authStep3Guard');
+  $('steamEmailDisplay').innerText = me.email;
+  $('steamAccountDisplay').innerText = me.email.split('@')[0];
+
+  const { data, error } = await sb.from('guard_challenges').insert({}).select('id').single();
+  if (error) { alert('Could not start the phone approval: ' + errMsg(error)); backToStep1(); return; }
+  activeChallenge = data.id;
+  $('steamTokenLabel').innerText = activeChallenge.slice(0, 8).toUpperCase();
+
+  lastGuardUrl = location.origin + location.pathname.replace('index.html', '') + 'auth.html';
+  const box = $('qrCanvasContainer');
+  box.innerHTML = '';
+  try { new QRCode(box, { text: lastGuardUrl, width: 160, height: 160, colorDark: '#02140d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+  catch (_) { box.textContent = 'Open ' + lastGuardUrl + ' on your phone.'; }
+
+  const startedAt = Date.now();
   if (pollTimer) clearInterval(pollTimer);
-  if (pendingToken) { localStorage.setItem('drozo_api_token', pendingToken); pendingToken = ''; }
-  const pref = method === 'password_only' ? 'none' : method;
-  localStorage.setItem('drozo_user_2fa_pref_' + currentEmail, pref);
-  localStorage.setItem('drozo_user_2fa_verified_' + currentEmail, 'true');
-  localStorage.setItem('drozo_active_session', currentEmail);
-  if (ADMIN_EMAILS.includes(currentEmail)) localStorage.setItem('drozo_auth_state', 'UNLOCKED');
-  setCloudState('drozo_user_2fa_pref_' + currentEmail, pref);
-  setCloudState('drozo_user_2fa_verified_' + currentEmail, 'true');
-  unlockSanctuaryUI(currentEmail);
+  pollTimer = setInterval(async () => {
+    if (Date.now() - startedAt > 5 * 60 * 1000) { clearInterval(pollTimer); alert('Sign-in request expired. Please try again.'); location.reload(); return; }
+    try {
+      const { data: row } = await sb.from('guard_challenges').select('status').eq('id', activeChallenge).maybeSingle();
+      if (!row) return;
+      if (row.status === 'authorized') {
+        clearInterval(pollTimer);
+        sessionStorage.setItem('drozo_guard_ok_' + me.id, '1');
+        if (guardEnrolling) { try { await setPref('drozo_guard'); } catch (_) {} }
+        unlockSanctuaryUI();
+      } else if (row.status === 'denied') {
+        clearInterval(pollTimer); alert('Login request was denied on your phone.'); location.reload();
+      }
+    } catch (_) {}
+  }, 1500);
 }
+function openApprovalSimulator() { if (lastGuardUrl) window.open(lastGuardUrl, '_blank'); }
 
-function unlockSanctuaryUI(email) {
-  currentEmail = email;
-  const m = $('authModal');
-  m.classList.add('hidden'); m.style.pointerEvents = 'none';
+// ---------- unlocked app ----------
+function unlockSanctuaryUI() {
+  if (pollTimer) clearInterval(pollTimer);
+  localStorage.setItem('drozo_active_session', me.email);
+  hide('authModal');
   const portal = $('portalContent');
   if (portal) portal.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
 
   const area = $('navAuthArea');
-  if (area) {
-    area.innerHTML = '';
-    const chip = document.createElement('span');
-    chip.className = 'hidden sm:inline text-xs font-semibold text-slate-500 mono truncate max-w-[160px]';
-    chip.textContent = email;
-    area.appendChild(chip);
-    if (ADMIN_EMAILS.includes(email)) {
-      const a = document.createElement('a');
-      a.href = './admin.html'; a.textContent = 'Admin';
-      a.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition';
-      area.appendChild(a);
-    }
-    const sec = document.createElement('button');
-    sec.type = 'button'; sec.title = 'Security settings'; sec.textContent = '⚙️';
-    sec.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 transition';
-    sec.addEventListener('click', openSecurityModal);
-    area.appendChild(sec);
-    const out = document.createElement('button');
-    out.type = 'button'; out.textContent = 'Sign Out';
-    out.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white hover:bg-rose-600 transition shadow';
-    out.addEventListener('click', logout);
-    area.appendChild(out);
+  area.innerHTML = '';
+  const chip = document.createElement('span');
+  chip.className = 'hidden sm:inline text-xs font-semibold text-slate-500 mono truncate max-w-[160px]';
+  chip.textContent = me.email;
+  area.appendChild(chip);
+  if (STAFF_ROLES.includes(me.role)) {
+    const a = document.createElement('a');
+    a.href = './admin.html'; a.textContent = 'Admin';
+    a.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition';
+    area.appendChild(a);
   }
-  checkAndDisplayIdPassNav(email);
-  bootstrapEntireWebsiteFromCloud();
+  const sec = document.createElement('button');
+  sec.type = 'button'; sec.title = 'Security settings'; sec.textContent = '⚙️';
+  sec.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 transition';
+  sec.addEventListener('click', openSecurityModal);
+  area.appendChild(sec);
+  const out = document.createElement('button');
+  out.type = 'button'; out.textContent = 'Sign Out';
+  out.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white hover:bg-rose-600 transition shadow';
+  out.addEventListener('click', logout);
+  area.appendChild(out);
+
+  checkAndDisplayIdPassNav();
+  loadAppointment(); loadDispatchedDocuments(); loadCloudVaultFiles();
+  if (apptTimer) clearInterval(apptTimer);
+  apptTimer = setInterval(loadAppointment, 10000);
 }
 
-function logout() {
-  ['drozo_active_session', 'drozo_auth_state', 'drozo_api_token'].forEach((k) => localStorage.removeItem(k));
+async function logout() {
+  try { await sb.auth.signOut(); } catch (_) {}
+  localStorage.removeItem('drozo_active_session');
+  sessionStorage.clear();
   location.reload();
 }
 
@@ -771,31 +663,139 @@ function focusSection(id) {
 }
 
 // ---------- security settings ----------
-function openSecurityModal() { $('secUserEmailDisplay').textContent = currentEmail; show('securityManagementModal'); }
+function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; show('securityManagementModal'); }
 function closeSecurityModal() { hide('securityManagementModal'); }
 
 async function executeSwitch2FAMethod() {
-  const email = currentEmail;
-  const pw = prompt('Enter your password to reset 2FA:');
-  if (!pw) return;
-  const r = await api('/api/totp/reset', { password: pw });
-  if (!r.ok) { alert(r.status === 403 ? 'Incorrect password.' : 'Could not reset 2FA.'); return; }
-  ['drozo_user_2fa_pref_', 'drozo_user_2fa_verified_'].forEach((p) => localStorage.removeItem(p + email));
-  await setCloudState('drozo_user_2fa_pref_' + email, '');
-  await setCloudState('drozo_user_2fa_verified_' + email, 'false');
-  localStorage.setItem('drozo_force_setup_wizard', email);
-  logout();
+  if (!confirm('Remove your current 2FA and set it up again?')) return;
+  try {
+    const lf = (await sb.auth.mfa.listFactors()).data;
+    for (const f of ((lf && lf.all) || [])) {
+      const { error } = await sb.auth.mfa.unenroll({ factorId: f.id });
+      if (error) throw error;
+    }
+    await setPref(null);
+    localStorage.setItem('drozo_force_setup_wizard', me.id);
+    await logout();
+  } catch (e) { alert('Could not reset 2FA: ' + errMsg(e)); }
 }
 
 async function executeChangePassword() {
   const np = $('newSecPassword').value;
   if (np.length < 8) { alert('Password must be at least 8 characters long.'); return; }
-  const old = prompt('Enter your current password:');
-  if (!old) return;
-  const r = await api('/api/password', { oldPassword: old, newPassword: np });
-  if (r.ok) { alert('Password updated.'); $('newSecPassword').value = ''; closeSecurityModal(); }
-  else alert(r.status === 403 ? 'Current password is incorrect.' : ((r.data && r.data.error) || 'Could not change password.'));
+  const { error } = await sb.auth.updateUser({ password: np });
+  if (error) { alert('Could not change password: ' + errMsg(error)); return; }
+  alert('Password updated.');
+  $('newSecPassword').value = ''; closeSecurityModal();
 }
+
+// ---------- appointments ----------
+async function loadAppointment() {
+  if (!me) return;
+  try {
+    const { data, error } = await sb.from('appointments').select('*').eq('patient_id', me.id).order('created_at', { ascending: false }).limit(1);
+    if (error) throw error;
+    currentAppt = (data && data[0]) || null;
+    if (currentAppt) selectedChannel = currentAppt.channel;
+  } catch (_) {}
+  syncAppointmentStatus();
+}
+const ACTIVE = ['PENDING', 'CLAIMED', 'CONFIRMED'];
+
+async function bookAppointment() {
+  if (currentAppt && ACTIVE.includes(currentAppt.status)) { appendChatMessage('Drozo AI', 'You already have an active appointment. See your schedule.', 'bot'); return; }
+  const { error } = await sb.from('appointments').insert({ channel: selectedChannel });
+  if (error) { appendChatMessage('Drozo AI', 'Sorry, I could not book that: ' + escapeHtml(errMsg(error)), 'bot'); return; }
+  await loadAppointment();
+  appendChatMessage('Drozo AI', 'Appointment requested. A therapist will confirm it shortly and you will see the join link here.', 'bot');
+}
+
+function syncAppointmentStatus() {
+  const card = $('scheduleList'), count = $('appointmentCount');
+  if (!card) return;
+  const a = currentAppt, title = 'Mindfulness & Cognitive Restructure';
+  if (!a || a.status === 'CANCELLED' || a.status === 'COMPLETED') {
+    if (count) count.innerText = '0 Active';
+    const note = !a ? 'No Active Appointments' : (a.status === 'COMPLETED' ? 'Last session completed' : 'Last appointment was cancelled');
+    card.innerHTML = '<div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-2"><span class="text-2xl block">🗓️</span><div class="text-xs font-bold text-slate-700">' + note + '</div><p class="text-[11px] text-slate-400">Talk to the AI assistant to book a new slot.</p></div>';
+    return;
+  }
+  if (a.status === 'PENDING' || a.status === 'CLAIMED') {
+    if (count) count.innerText = '1 Active';
+    card.innerHTML = '<div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col gap-2"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml(a.slot_label) + '</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-white">' + (a.status === 'PENDING' ? 'Awaiting therapist' : 'Therapist assigned') + '</span></div><div class="pt-2 border-t border-amber-200/60 text-[11px] text-slate-500">Your join link appears here as soon as the therapist confirms.</div></div>';
+    return;
+  }
+  if (count) count.innerText = '1 Active';
+  const dis = selectedChannel === 'discord', vid = selectedChannel === 'video';
+  card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml(a.slot_label) + '</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span></div><div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2"><span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span><div class="grid grid-cols-2 gap-2"><button type="button" onclick="setSessionChannel(\'discord\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (dis ? 'bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎮</span> Discord VC</button><button type="button" onclick="setSessionChannel(\'video\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (vid ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎥</span> Video Call</button></div></div><div class="pt-1"><button type="button" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord VC Room' : 'Video Call') + '</button></div></div>';
+}
+async function setSessionChannel(mode) {
+  selectedChannel = mode;
+  if (currentAppt) {
+    const { error } = await sb.rpc('set_my_channel', { appt: currentAppt.id, ch: mode });
+    if (!error) currentAppt.channel = mode;
+  }
+  syncAppointmentStatus();
+}
+function launchSessionMeeting() {
+  if (selectedChannel === 'discord') window.open(DISCORD_INVITE_URL, '_blank');
+  else if (currentAppt) window.open('https://meet.jit.si/drozo-' + currentAppt.id, '_blank');
+}
+
+// ---------- clinical documents ----------
+async function loadDispatchedDocuments() {
+  const list = $('clientHistoryList');
+  if (!list || !me) return;
+  const { data, error } = await sb.from('clinical_docs').select('*').eq('patient_id', me.id).order('created_at', { ascending: false });
+  if (error || !data || !data.length) return;
+  list.innerHTML = '';
+  data.forEach((doc) => {
+    const item = document.createElement('div');
+    item.className = 'p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex justify-between items-center gap-2';
+    const left = document.createElement('div');
+    const t = document.createElement('div'); t.className = 'font-bold text-slate-800'; t.textContent = doc.category;
+    const s = document.createElement('div'); s.className = 'text-[10px] text-emerald-700'; s.textContent = 'Issued by ' + doc.therapist + ' • ' + new Date(doc.created_at).toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
+    left.append(t, s);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-emerald-700 hover:text-emerald-900 font-bold text-[11px] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-emerald-300 shadow-sm';
+    btn.textContent = '📄 View PDF';
+    btn.addEventListener('click', () => renderCustomPDF(doc.patient_label, doc.category, doc.therapist, doc.notes, doc.actions));
+    item.append(left, btn);
+    list.appendChild(item);
+  });
+}
+
+// ---------- AI chat ----------
+function toggleAiBot() { $('aiChatDrawer').classList.toggle('hidden'); }
+function handleChatSubmit(e) {
+  e.preventDefault();
+  const input = $('chatInput');
+  const val = input.value.trim();
+  if (!val) return;
+  appendChatMessage('You', escapeHtml(val), 'user');
+  input.value = '';
+  setTimeout(() => {
+    const low = val.toLowerCase();
+    if (low.includes('book') || low.includes('schedule')) bookAppointment();
+    else appendChatMessage('Drozo AI', 'I hear you. Let us take a deep, steady breath and explore this together.', 'bot');
+  }, 500);
+}
+function appendChatMessage(sender, html, type) {
+  const box = $('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = 'flex gap-2 ' + (type === 'user' ? 'justify-end' : '');
+  msg.innerHTML = (type === 'bot' ? '<span class="text-base">🤖</span>' : '') + '<div class="' + (type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800') + ' p-3 rounded-2xl max-w-[80%] leading-relaxed">' + html + '</div>';
+  box.appendChild(msg);
+  box.scrollTop = box.scrollHeight;
+}
+
+function checkAndDisplayIdPassNav() {
+  const navBtn = $('navMyIdPassBtn');
+  if (!navBtn || !me) return;
+  if (me.twofa_pref === 'drozo_guard' || me.twofa_pref === 'totp') navBtn.classList.remove('hidden'); else navBtn.classList.add('hidden');
+}
+
 
 // ---------- vault (stored in this browser only) ----------
 function vaultDB() {
@@ -865,29 +865,23 @@ async function loadCloudVaultFiles() {
   });
 }
 
-// ---------- ID pass ----------
-function checkAndDisplayIdPassNav(email) {
-  const navBtn = $('navMyIdPassBtn');
-  if (!navBtn) return;
-  const pref = localStorage.getItem('drozo_user_2fa_pref_' + email);
-  if (pref === 'drozo_guard' || pref === 'totp') navBtn.classList.remove('hidden'); else navBtn.classList.add('hidden');
-}
 
+// ---------- ID pass ----------
 function openMyIdPassModal() {
-  const user = localStorage.getItem('drozo_active_session') || currentEmail;
+  const user = localStorage.getItem('drozo_active_session') || (me && me.email);
   const seen = localStorage.getItem('drozo_id_tut_seen_' + user) === 'true';
   if (!seen) { show('idTutorialView'); hide('idCardMainView'); } else { hide('idTutorialView'); show('idCardMainView'); }
   populateCardData(user);
   show('myIdPassModal');
 }
 function startIdCardSetupFromTutorial() {
-  const user = localStorage.getItem('drozo_active_session') || currentEmail;
+  const user = localStorage.getItem('drozo_active_session') || (me && me.email);
   localStorage.setItem('drozo_id_tut_seen_' + user, 'true');
   hide('idTutorialView'); show('idCardMainView');
   openIdCameraForCard();
 }
 function dismissIdTutorial() {
-  const user = localStorage.getItem('drozo_active_session') || currentEmail;
+  const user = localStorage.getItem('drozo_active_session') || (me && me.email);
   localStorage.setItem('drozo_id_tut_seen_' + user, 'true');
   hide('idTutorialView'); show('idCardMainView');
 }
@@ -913,13 +907,13 @@ async function openIdCameraForCard() {
 }
 async function captureCardPhoto() {
   const video = document.querySelector('#idCaptureReader video');
-  const user = localStorage.getItem('drozo_active_session') || currentEmail;
+  const user = localStorage.getItem('drozo_active_session') || (me && me.email);
   if (video) {
     try {
       const c = document.createElement('canvas'); c.width = 200; c.height = 200;
       c.getContext('2d').drawImage(video, 0, 0, 200, 200);
       const url = c.toDataURL('image/jpeg', 0.85);
-      await setCloudState('drozo_id_photo_' + user, url);
+      localStorage.setItem('drozo_id_photo_' + user, url);
       $('cardCapturedImage').src = url; show('cardCapturedImage'); hide('cardPhotoIcon');
       alert('ID Pass photo updated.');
     } catch (_) { alert('Could not capture the photo.'); }
@@ -934,98 +928,8 @@ function exportDigitalIdCard() {
   renderCustomPDF($('cardPassReference').innerText, 'Official Sanctuary ID Pass', $('cardUserName').innerText, 'Hardware-bound ID Pass for patient verification.', 'Keep this digital pass confidential.');
 }
 
-// ---------- AI chat ----------
-function toggleAiBot() { $('aiChatDrawer').classList.toggle('hidden'); }
-function handleChatSubmit(e) {
-  e.preventDefault();
-  const input = $('chatInput');
-  const val = input.value.trim();
-  if (!val) return;
-  appendChatMessage('You', escapeHtml(val), 'user');
-  input.value = '';
-  setTimeout(() => {
-    const low = val.toLowerCase();
-    if (low.includes('book') || low.includes('schedule')) {
-      setCloudState('drozo_appointment_deleted', 'false');
-      setCloudState('drozo_session_status', 'CONFIRMED');
-      syncAppointmentStatus();
-      appendChatMessage('Drozo AI', 'Appointment registered successfully with Water_Chugger/Owner. Confirmed in Schedule.', 'bot');
-    } else {
-      appendChatMessage('Drozo AI', 'I hear you. Let us take a deep, steady breath and explore this together.', 'bot');
-    }
-  }, 500);
-}
-function appendChatMessage(sender, html, type) {
-  const box = $('chatMessages');
-  const msg = document.createElement('div');
-  msg.className = 'flex gap-2 ' + (type === 'user' ? 'justify-end' : '');
-  msg.innerHTML = (type === 'bot' ? '<span class="text-base">🤖</span>' : '') + '<div class="' + (type === 'user' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-800') + ' p-3 rounded-2xl max-w-[80%] leading-relaxed">' + html + '</div>';
-  box.appendChild(msg);
-  box.scrollTop = box.scrollHeight;
-}
 
-// ---------- schedule ----------
-function syncAppointmentStatus() {
-  const status = localStorage.getItem('drozo_session_status') || 'NONE';
-  const isDeleted = localStorage.getItem('drozo_appointment_deleted') === 'true';
-  const card = $('scheduleList'), count = $('appointmentCount');
-  const isOwner = ADMIN_EMAILS.includes(localStorage.getItem('drozo_active_session') || '');
-  if (!card) return;
-  const title = 'Mindfulness & Cognitive Restructure';
-  if (isDeleted || status === 'DELETED' || status === 'NONE') {
-    if (count) count.innerText = '0 Active';
-    card.innerHTML = '<div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-2"><span class="text-2xl block">🗓️</span><div class="text-xs font-bold text-slate-700">No Active Appointments</div><p class="text-[11px] text-slate-400">All previous schedules have been cleared. Talk to the AI assistant or therapist to book a new slot.</p></div>';
-    return;
-  }
-  if (status === 'CANCELLED') {
-    if (count) count.innerText = '0 Active';
-    card.innerHTML = '<div class="p-3.5 rounded-xl border border-rose-200 bg-rose-50/50 flex flex-col gap-2"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-rose-600 font-bold mt-0.5">Status: Cancelled by Therapist</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">Cancelled</span></div><div class="pt-2 border-t border-rose-200/50 text-[11px] text-slate-500 flex justify-between items-center"><span>This session was cancelled. No active links available.</span>' + (isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-rose-600 font-bold underline hover:text-rose-800">Clear</button>' : '') + '</div></div>';
-  } else if (status === 'COMPLETED') {
-    if (count) count.innerText = '0 Active';
-    card.innerHTML = '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col gap-2"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">Session Concluded • Water_Chugger/Owner</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-600 text-white">Completed</span></div><div class="pt-2 border-t border-slate-200 text-[11px] text-emerald-700 font-semibold flex items-center justify-between"><span>Clinical report generated in 30-Day History below</span>' + (isOwner ? '<button onclick="ownerDirectDeleteAppointment()" class="text-slate-400 font-bold hover:text-rose-600">Dismiss</button>' : '') + '</div></div>';
-  } else if (status === 'CONFIRMED') {
-    if (count) count.innerText = '1 Active';
-    const dis = selectedChannel === 'discord', vid = selectedChannel === 'video';
-    card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">Scheduled Slot • Water_Chugger/Owner</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span></div><div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2"><span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span><div class="grid grid-cols-2 gap-2"><button type="button" onclick="setSessionChannel(\'discord\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (dis ? 'bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎮</span> Discord VC</button><button type="button" onclick="setSessionChannel(\'video\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (vid ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎥</span> Video Call</button></div></div><div class="pt-1 flex gap-2"><button type="button" onclick="launchSessionMeeting()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord VC Room' : 'Video Call') + '</button>' + (isOwner ? '<button type="button" onclick="ownerDirectDeleteAppointment()" class="px-3 py-2 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition" title="Owner Quick Remove">🗑️</button>' : '') + '</div></div>';
-  }
-}
-function setSessionChannel(mode) { selectedChannel = mode; syncAppointmentStatus(); }
-function launchSessionMeeting() {
-  if (selectedChannel === 'discord') window.open(DISCORD_INVITE_URL, '_blank');
-  else window.open('https://meet.jit.si/drozo-sanctuary-' + Math.random().toString(36).substring(7), '_blank');
-}
-async function ownerDirectDeleteAppointment() {
-  if (!confirm('Owner Override: Remove this appointment from client sanctuary now?')) return;
-  await setCloudState('drozo_appointment_deleted', 'true');
-  await setCloudState('drozo_session_status', 'DELETED');
-  if (syncChannel) syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
-  syncAppointmentStatus();
-}
-
-// ---------- documents / PDF ----------
-function loadDispatchedDocuments() {
-  let docs = [];
-  try { docs = JSON.parse(localStorage.getItem('drozo_client_dispatched_docs') || '[]'); } catch (_) {}
-  const list = $('clientHistoryList');
-  if (!list || !docs.length) return;
-  list.innerHTML = '';
-  docs.forEach((doc) => {
-    const item = document.createElement('div');
-    item.className = 'p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 flex justify-between items-center gap-2';
-    const left = document.createElement('div');
-    const t = document.createElement('div'); t.className = 'font-bold text-slate-800'; t.textContent = doc.category || '';
-    const s = document.createElement('div'); s.className = 'text-[10px] text-emerald-700'; s.textContent = 'Issued by ' + (doc.therapist || '') + ' • ' + (doc.date || '');
-    left.append(t, s);
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'text-emerald-700 hover:text-emerald-900 font-bold text-[11px] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-emerald-300 shadow-sm';
-    btn.textContent = '📄 View PDF';
-    btn.addEventListener('click', () => renderCustomPDF(doc.patientId, doc.category, doc.therapist, doc.notes, doc.actions));
-    item.append(left, btn);
-    list.appendChild(item);
-  });
-}
-
+// ---------- PDF ----------
 function renderCustomPDF(patient, type, therapist, notes, actions) {
   const e = escapeHtml;
   const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
@@ -1042,6 +946,7 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
   win.focus();
   setTimeout(() => { try { win.print(); } catch (_) {} }, 500);
 }
+
   </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drozo Admin Console - Root Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #02140d; }
@@ -36,7 +37,7 @@
       </div>
       <div class="text-xs space-y-2 text-emerald-100">
         <div><strong class="text-white">Account:</strong> <span class="mono text-emerald-300 font-bold" id="adminHeaderAccount">admin@drozominds.com</span></div>
-        <div><strong class="text-white">Assigned Coordinator:</strong> <span class="mono text-emerald-400">Drozo YT (gamerkids1109@gmail.com)</span></div>
+        <div><strong class="text-white">Role:</strong> <span class="mono text-emerald-400" id="adminHeaderRole">…</span></div>
       </div>
     </div>
 
@@ -51,25 +52,11 @@
         <table class="w-full text-xs text-left text-emerald-100">
           <thead class="text-[10px] text-emerald-400 uppercase bg-[#021810] border-b border-[#0d4f34]">
             <tr>
-              <th class="py-2.5 px-3">Patient / ID</th><th class="py-2.5 px-3">Session Type</th><th class="py-2.5 px-3">Chosen Channel</th>
+              <th class="py-2.5 px-3">Patient</th><th class="py-2.5 px-3">Session Type</th><th class="py-2.5 px-3">Chosen Channel</th>
               <th class="py-2.5 px-3">Date & Time</th><th class="py-2.5 px-3">Therapist Status</th><th class="py-2.5 px-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#0d4f34]/60" id="appointmentsTableBody">
-            <tr id="aptRow_9182">
-              <td class="py-3 px-3 mono text-white">PAT_9182</td>
-              <td class="py-3 px-3">Cognitive Behavioral Reframing</td>
-              <td class="py-3 px-3"><span id="channelIndicator" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🎮 Discord VC</span></td>
-              <td class="py-3 px-3 text-emerald-300">Tomorrow, 4:00 PM</td>
-              <td class="py-3 px-3"><span id="aptStatus_9182" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">UNCLAIMED</span></td>
-              <td class="py-3 px-3 text-right" id="aptActionCell_9182">
-                <div class="flex items-center justify-end gap-1.5">
-                  <button onclick="claimSession('aptRow_9182', 'aptStatus_9182', 'aptActionCell_9182')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition shadow">Claim Session</button>
-                  <button onclick="deleteAppointmentRow('aptRow_9182')" title="Delete from Admin Panel" class="px-2 py-1.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 font-bold rounded-lg text-xs transition">🗑️</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+          <tbody class="divide-y divide-[#0d4f34]/60" id="appointmentsTableBody"><tr><td colspan="6" class="py-6 px-3 text-center text-emerald-400/70">Loading appointments…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -78,7 +65,7 @@
       <div class="border-b border-[#0d4f34] pb-4">
         <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">RESTRICTED ROOT DIRECTORY</span>
         <h3 class="text-lg font-black text-white flex items-center gap-2 mt-0.5"><span>👑</span> Privilege Delegation & Admin Access Giver</h3>
-        <p class="text-xs text-emerald-300/80">Not connected to the server yet: submitting changes nothing.</p>
+        <p class="text-xs text-emerald-300/80">Only the owner can change roles. The person must already have registered. Owner accounts are set in the database.</p>
       </div>
       <form onsubmit="handleGrantAdmin(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-[#021810] p-4 rounded-2xl border border-[#0d4f34]">
         <div class="sm:col-span-2">
@@ -88,10 +75,9 @@
         <div>
           <label class="block text-[10px] font-bold uppercase text-emerald-400 mb-1">Assigned Role</label>
           <select id="targetAdminRole" class="w-full bg-[#031d13] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs text-emerald-200 focus:outline-none">
-            <option value="Coordinator">Drozo Coordinator (Drozo YT)</option>
-            <option value="Assistant Therapist">Staff Therapist</option>
-            <option value="Audit Officer">Audit & Security Officer</option>
-            <option value="Revoked">Revoke Access (Demote)</option>
+            <option value="coordinator">Drozo Coordinator (Drozo YT)</option>
+            <option value="therapist">Staff Therapist</option>
+            <option value="patient">Revoke Access (back to patient)</option>
           </select>
         </div>
         <div class="flex items-end"><button type="submit" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-lg">⚡ Grant Access</button></div>
@@ -107,7 +93,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-bold uppercase text-emerald-400 mb-1">Patient Identifier</label>
-            <input type="text" id="docPatientId" value="PAT_9182" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-white focus:outline-none" />
+            <select id="docPatientId" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl px-3 py-2 text-xs mono text-emerald-200 focus:outline-none"><option value="">Loading patients…</option></select>
           </div>
           <div>
             <label class="block text-[11px] font-bold uppercase text-emerald-400 mb-1">Diagnostic Category</label>
@@ -135,118 +121,123 @@
   </div>
 
   <script>
-// Drozo admin console script (rewritten). The server decides what an admin may write; this page only hides the UI.
-const API = "https://better-drozo.onrender.com";
-const ADMINS = ["admin@drozominds.com", "gamerkids1109@gmail.com"];
+// Drozo admin console (Supabase edition). The database decides who may read or write; this page only shows the UI.
+const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
+const STAFF = ["therapist", "coordinator", "admin"];
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
 const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const errMsg = (e) => (e && e.message) ? e.message : String(e);
+let me = null, rows = [];
 
-function tokenInfo() {
+async function boot() {
   try {
-    const t = localStorage.getItem('drozo_api_token') || '';
-    const d = JSON.parse(atob(t.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
-    return d && d.x > Date.now() && d.s === 'full' ? d : null;
-  } catch (_) { return null; }
+    const { data } = await sb.auth.getSession();
+    if (!data.session) return goHome();
+    const aal = (await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;
+    if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') return goHome();
+    const { data: p, error } = await sb.from('profiles').select('id,email,role').eq('id', data.session.user.id).maybeSingle();
+    if (error || !p || !STAFF.includes(p.role)) return goHome();
+    me = p;
+  } catch (_) { return goHome(); }
+  $('adminHeaderName').innerText = me.role === 'admin' ? 'Owner' : (me.role === 'coordinator' ? 'Coordinator' : 'Therapist');
+  $('adminHeaderAccount').innerText = me.email;
+  $('adminHeaderRole').innerText = me.role;
+  if (me.role === 'admin') $('rootOwnerAdminGiver').classList.remove('hidden');
+  loadPatients();
+  loadQueue();
+  setInterval(loadQueue, 10000);
 }
-const info = tokenInfo();
-if (!info || !ADMINS.includes(info.e)) { window.location.replace('./index.html'); }
+function goHome() { window.location.replace('./index.html'); }
 
-let syncChannel = null;
-try { syncChannel = new BroadcastChannel('drozo_sync'); } catch (_) {}
-
-async function cloudCall(path, body) {
-  const res = await fetch(API + path, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('drozo_api_token') || '') },
-    body: body === undefined ? undefined : JSON.stringify(body)
-  });
-  let data = {}; try { data = await res.json(); } catch (_) {}
-  if (res.status === 401) { alert('Your session expired. Please sign in again.'); logoutAdmin(); }
-  return { ok: res.ok, data: data };
-}
-async function cloudSet(key, value) {
-  localStorage.setItem(key, value);
-  try { await cloudCall('/api/state', { key: key, value: value }); } catch (_) {}
-}
-function broadcastState(status) {
-  cloudSet('drozo_session_status', status);
-  if (syncChannel) syncChannel.postMessage({ type: 'STATUS_UPDATE', status: status });
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (!info) return;
-  const giver = $('rootOwnerAdminGiver');
-  if (info.e === 'admin@drozominds.com') {
-    if (giver) giver.classList.remove('hidden');
-  } else {
-    $('adminHeaderName').innerText = 'Drozo YT (Coordinator)';
-    $('adminHeaderAccount').innerText = info.e;
-    if (giver) giver.remove();
-  }
-});
-
-function setBadge(statusId, cls, text) { const b = $(statusId); b.className = 'px-2 py-0.5 rounded text-[10px] font-bold ' + cls; b.innerText = text; }
-const BTN_DEL = (rowId) => '<button onclick="deleteAppointmentRow(\'' + rowId + '\')" title="Delete from Admin Panel" class="px-2 py-1.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 font-bold rounded-lg text-xs transition">🗑️</button>';
-const BTN_CANCEL = (statusId, cellId) => '<button onclick="cancelSession(\'' + statusId + '\', \'' + cellId + '\')" class="px-2 py-1.5 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 font-bold rounded-lg text-xs transition">Cancel</button>';
-
-function claimSession(rowId, statusId, cellId) {
-  setBadge(statusId, 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30', 'CLAIMED: ' + (info.e === 'admin@drozominds.com' ? 'Water_Chugger/Owner' : 'Drozo YT'));
-  const chosen = localStorage.getItem('drozo_patient_channel') || 'discord';
-  const label = chosen === 'video' ? 'Video Link' : 'Discord VC';
-  $(cellId).innerHTML = '<div class="flex items-center justify-end gap-1.5"><button onclick="confirmAndSendLink(\'' + rowId + '\', \'' + statusId + '\', \'' + cellId + '\')" class="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1"><span>🔗</span> Send ' + label + '</button>' + BTN_CANCEL(statusId, cellId) + BTN_DEL(rowId) + '</div>';
-}
-function confirmAndSendLink(rowId, statusId, cellId) {
-  setBadge(statusId, 'bg-teal-500/20 text-teal-300 border border-teal-500/30 animate-pulse', 'IN PROGRESS: Link Dispatched');
-  broadcastState('CONFIRMED');
-  $(cellId).innerHTML = '<div class="flex items-center justify-end gap-1.5"><button onclick="endSession(\'' + statusId + '\', \'' + cellId + '\')" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white font-bold rounded-lg text-xs transition shadow flex items-center gap-1"><span>🏁</span> End Session</button>' + BTN_CANCEL(statusId, cellId) + BTN_DEL(rowId) + '</div>';
-}
-function endSession(statusId, cellId) {
-  setBadge(statusId, 'bg-slate-700 text-slate-300 border border-slate-600', 'COMPLETED');
-  broadcastState('COMPLETED');
-  $(cellId).innerHTML = '<span class="text-xs text-emerald-400 font-bold px-2">Session Concluded</span>';
-}
-function cancelSession(statusId, cellId) {
-  setBadge(statusId, 'bg-rose-500/20 text-rose-300 border border-rose-500/30', 'CANCELLED');
-  broadcastState('CANCELLED');
-  $(cellId).innerHTML = '<span class="text-xs text-rose-400 font-semibold px-2">Cancelled</span>';
-}
-async function deleteAppointmentRow(rowId) {
-  if (!confirm('Permanently wipe this appointment from both Admin and Client Portal?')) return;
-  const row = $(rowId); if (row) row.remove();
-  await cloudSet('drozo_appointment_deleted', 'true');
-  await cloudSet('drozo_session_status', 'DELETED');
-  if (syncChannel) syncChannel.postMessage({ type: 'STATUS_UPDATE', status: 'DELETED' });
-  alert('Appointment purged from all client views.');
-}
-
-async function dispatchClinicalDocument() {
-  const newDoc = {
-    patientId: $('docPatientId').value.trim() || 'PAT_9182',
-    category: $('docDiagnosis').value,
-    notes: $('docDetailedNotes').value.trim(),
-    actions: $('docActionItems').value.trim(),
-    therapist: info.e === 'admin@drozominds.com' ? 'Water_Chugger/Owner' : 'Drozo YT',
-    date: new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' })
+// ---------- appointment queue ----------
+async function loadQueue() {
+  const { data, error } = await sb.from('appointments').select('id,status,channel,slot_label,created_at,patient_id,profiles(email)').order('created_at', { ascending: false });
+  const body = $('appointmentsTableBody');
+  if (error) { body.innerHTML = '<tr><td colspan="6" class="py-6 px-3 text-center text-rose-300">Could not load appointments: ' + esc(errMsg(error)) + '</td></tr>'; return; }
+  rows = data || [];
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="6" class="py-6 px-3 text-center text-emerald-400/70">No appointments yet.</td></tr>'; return; }
+  const BADGE = {
+    PENDING: ['UNCLAIMED', 'bg-amber-500/20 text-amber-300 border border-amber-500/30'],
+    CLAIMED: ['CLAIMED', 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'],
+    CONFIRMED: ['IN PROGRESS: Link Dispatched', 'bg-teal-500/20 text-teal-300 border border-teal-500/30'],
+    COMPLETED: ['COMPLETED', 'bg-slate-700 text-slate-300 border border-slate-600'],
+    CANCELLED: ['CANCELLED', 'bg-rose-500/20 text-rose-300 border border-rose-500/30']
   };
-  let existing = [];
-  try {
-    const r = await cloudCall('/api/state/drozo_client_dispatched_docs');
-    existing = JSON.parse((r.ok && r.data.value) || localStorage.getItem('drozo_client_dispatched_docs') || '[]');
-  } catch (_) {}
-  existing.unshift(newDoc);
-  await cloudSet('drozo_client_dispatched_docs', JSON.stringify(existing));
-  alert('Clinical Outcome Dispatched! Document appears in client 30-Day History.');
+  body.innerHTML = '';
+  rows.forEach((r) => {
+    const tr = document.createElement('tr');
+    const email = (r.profiles && r.profiles.email) || r.patient_id.slice(0, 8);
+    const b = BADGE[r.status] || [r.status, ''];
+    tr.innerHTML = '<td class="py-3 px-3 mono text-white">' + esc(email) + '</td><td class="py-3 px-3">Cognitive Behavioral Reframing</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">' + (r.channel === 'video' ? '🎥 Video Call' : '🎮 Discord VC') + '</span></td><td class="py-3 px-3 text-emerald-300">' + esc(r.slot_label) + '</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + b[1] + '">' + esc(b[0]) + '</span></td><td class="py-3 px-3 text-right"><div class="flex items-center justify-end gap-1.5 actions"></div></td>';
+    const box = tr.querySelector('.actions');
+    const add = (label, cls, fn) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'px-2.5 py-1.5 font-bold rounded-lg text-xs transition shadow ' + cls; x.textContent = label; x.addEventListener('click', fn); box.appendChild(x); };
+    if (r.status === 'PENDING') add('Claim Session', 'bg-emerald-600 hover:bg-emerald-500 text-white', () => setStatus(r.id, 'CLAIMED'));
+    if (r.status === 'CLAIMED') add('🔗 Send Link', 'bg-teal-600 hover:bg-teal-500 text-white', () => setStatus(r.id, 'CONFIRMED'));
+    if (r.status === 'CONFIRMED') {
+      add('Open Room', 'bg-sky-700 hover:bg-sky-600 text-white', () => window.open(r.channel === 'video' ? 'https://meet.jit.si/drozo-' + r.id : DISCORD_INVITE_URL, '_blank'));
+      add('🏁 End Session', 'bg-indigo-700 hover:bg-indigo-600 text-white', () => setStatus(r.id, 'COMPLETED'));
+    }
+    if (['PENDING', 'CLAIMED', 'CONFIRMED'].includes(r.status)) add('Cancel', 'bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300', () => setStatus(r.id, 'CANCELLED'));
+    add('🗑️', 'bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300', () => deleteAppointment(r.id));
+    body.appendChild(tr);
+  });
+}
+async function setStatus(id, status) {
+  const { error } = await sb.from('appointments').update({ status: status }).eq('id', id);
+  if (error) alert('Could not update: ' + errMsg(error));
+  loadQueue();
+}
+async function deleteAppointment(id) {
+  if (!confirm('Permanently delete this appointment?')) return;
+  const { error } = await sb.from('appointments').delete().eq('id', id);
+  if (error) alert('Could not delete: ' + errMsg(error));
+  loadQueue();
 }
 
-function handleGrantAdmin(e) {
+// ---------- clinical documents ----------
+async function loadPatients() {
+  const sel = $('docPatientId');
+  const { data, error } = await sb.from('profiles').select('id,email').eq('role', 'patient').order('email');
+  sel.innerHTML = '';
+  if (error || !data || !data.length) { sel.innerHTML = '<option value="">No patients yet</option>'; return; }
+  data.forEach((p) => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.email; sel.appendChild(o); });
+}
+async function dispatchClinicalDocument() {
+  const sel = $('docPatientId');
+  if (!sel.value) { alert('Choose a patient first.'); return; }
+  const notes = $('docDetailedNotes').value.trim(), actions = $('docActionItems').value.trim();
+  if (!notes) { alert('Add the encounter notes first.'); return; }
+  const { error } = await sb.from('clinical_docs').insert({
+    patient_id: sel.value,
+    patient_label: sel.options[sel.selectedIndex].textContent,
+    category: $('docDiagnosis').value,
+    notes: notes, actions: actions,
+    therapist: me.role === 'admin' ? 'Water_Chugger/Owner' : me.email.split('@')[0]
+  });
+  if (error) { alert('Could not dispatch: ' + errMsg(error)); return; }
+  alert('Clinical Outcome Dispatched! It appears in that patient\'s 30-Day History.');
+}
+
+// ---------- roles ----------
+async function handleGrantAdmin(e) {
   e.preventDefault();
-  alert('Role delegation is not connected to the server yet, so nothing was changed. Admin accounts are currently fixed in server.js.');
+  const email = $('targetAdminEmail').value.trim().toLowerCase();
+  const role = $('targetAdminRole').value;
+  const { error } = await sb.rpc('set_role', { target_email: email, new_role: role });
+  if (error) { alert('Could not change the role: ' + errMsg(error)); return; }
+  alert('Role for ' + email + ' is now: ' + role + '. (Nothing changes if that person has not registered yet.)');
+  loadPatients();
 }
 
-function logoutAdmin() {
-  ['drozo_auth_state', 'drozo_active_session', 'drozo_api_token'].forEach((k) => localStorage.removeItem(k));
-  window.location.replace('./index.html');
+async function logoutAdmin() {
+  try { await sb.auth.signOut(); } catch (_) {}
+  localStorage.removeItem('drozo_active_session');
+  goHome();
 }
+boot();
   </script>
 </body>
 </html>
