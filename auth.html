@@ -35,7 +35,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
       <h2 class="text-base font-extrabold">Drozo Guard Active</h2>
       <p class="text-xs text-slate-400 mt-1">Waiting for a sign-in request for <span id="acctEmail" class="text-sky-300 mono"></span></p>
     </div>
-    <button type="button" id="btnSignOut" class="text-xs text-slate-500 underline">Sign out of this phone</button>
+    <div class="flex gap-4"><button type="button" id="btnChange" class="text-xs text-sky-400 underline">Change protection</button><button type="button" id="btnSignOut" class="text-xs text-slate-500 underline">Sign out of this phone</button></div>
   </section>
 
   <section id="challengeView" class="hidden space-y-4">
@@ -85,8 +85,8 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 <script>
 (function () {
   "use strict";
-  var SUPABASE_URL = "https://fvnhrpvhmloqpwnrcxal.supabase.co";
-  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bmhycHZobWxvcXB3bnJjeGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODYyMTIsImV4cCI6MjEwNjk2MjIxMn0.YGRJfGV1qTaLghF2M6RY3cDjtNTBAJaT5S3aBYHM_wg";
+  var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
   var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
   var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "face" | "none" | null  (per phone)
   var CRED_KEY = "drozo_guard_passkey_id";
@@ -157,14 +157,24 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
       } catch (e) { closeFace(); reject(new Error("Camera or model loading failed: " + (e.message || e))); }
     });
   }
+  var scanning = false;
   async function faceCaptureClick() {
-    if (!faceOk || !modelsReady) return;
-    $("faceMsg").textContent = "Scanning…";
-    var det = await faceapi.detectSingleFace($("faceVideo"), new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
-      .withFaceLandmarks().withFaceDescriptor();
-    if (!det) { $("faceMsg").textContent = "No clear face found. Try again."; return; }
-    var d = Array.from(det.descriptor), ok = faceOk; faceOk = null;
-    closeFace(); ok(d);
+    if (!faceOk || !modelsReady || scanning) return;
+    scanning = true;
+    var got = [], tries = 0;
+    while (got.length < 5 && tries < 14) {
+      tries++;
+      $("faceMsg").textContent = "Hold still… " + got.length + "/5";
+      var det = await faceapi.detectSingleFace($("faceVideo"), new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 }))
+        .withFaceLandmarks().withFaceDescriptor();
+      if (det) got.push(Array.from(det.descriptor));
+      await new Promise(function (r) { setTimeout(r, 200); });
+    }
+    scanning = false;
+    if (got.length < 3) { $("faceMsg").textContent = "No clear face found. Face the camera in good light and try again."; return; }
+    var avg = got[0].map(function (_, i) { return got.reduce(function (sum, d) { return sum + d[i]; }, 0) / got.length; });
+    var ok = faceOk; faceOk = null;
+    closeFace(); ok(avg);
   }
   function faceCancelClick() { closeFace(); if (faceFail) { var f = faceFail; faceFail = null; faceOk = null; f(new Error("Cancelled")); } }
 
@@ -177,14 +187,21 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   async function enrollFace() {
     var d = await getFaceDescriptor("Face ID Enrollment");
     var saved = await rpc("enroll_my_face", { probe: JSON.stringify(d) });
-    if (!saved) {   // a face is already registered for this account: it must match
+    if (!saved) {   // a face is already registered for this account
       var ok = await verifyFace();
-      if (!ok) throw new Error("A different face is already registered for this account.");
+      if (!ok) {
+        if (!confirm("A face is already registered for this account and this scan does not match it. Replace it with the face you just scanned?")) throw new Error("Face ID was not changed.");
+        await rpc("reset_my_face", {});
+        var saved2 = await rpc("enroll_my_face", { probe: JSON.stringify(d) });
+        if (!saved2) throw new Error("Could not save your face. Try again.");
+      }
     }
   }
+  var lastFace = { registered: false, distance: null };
   async function verifyFace() {
     var d = await getFaceDescriptor("Face ID Check");
     var rows = await rpc("verify_my_face", { probe: JSON.stringify(d) });
+    lastFace = { registered: !!(rows && rows.length), distance: (rows && rows.length) ? rows[0].distance : null };
     return !!(rows && rows.length && rows[0].match_found);
   }
 
@@ -243,6 +260,13 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
       await afterLogin();
     } catch (e) { alert(/invalid login/i.test(errText(e)) ? "Incorrect email or password." : errText(e)); }
   }
+  async function resetProtection() {
+    if (!confirm("Remove fingerprint / Face ID protection from this phone and set it up again?")) return;
+    try { await rpc("reset_my_face", {}); } catch (_) {}
+    localStorage.removeItem(BIO_KEY); localStorage.removeItem(CRED_KEY);
+    $("bioTag").textContent = "Standard"; $("enrollMsg").textContent = "";
+    show("enrollModal");
+  }
   async function signOut() {
     if (pollTimer) clearInterval(pollTimer);
     try { await sb.auth.signOut(); } catch (_) {}
@@ -275,7 +299,12 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
     var bio = localStorage.getItem(BIO_KEY);
     try {
       if (bio === "fingerprint") await verifyPasskey();
-      else if (bio === "face") { if (!(await verifyFace())) { alert("Face does not match this account. Approval cancelled."); return; } }
+      else if (bio === "face") { if (!(await verifyFace())) {
+        alert(lastFace.registered
+          ? "Face does not match this account (score " + Number(lastFace.distance).toFixed(2) + ", needs under 0.55). Try better lighting, or tap Change protection to register your face again."
+          : "No Face ID is registered for this account yet. Tap Change protection to set it up.");
+        return;
+      } }
     } catch (e) { alert("Check failed or cancelled: " + errText(e)); return; }
     respond("authorized");
   }
@@ -283,6 +312,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   document.addEventListener("DOMContentLoaded", async function () {
     $("btnLogin").addEventListener("click", login);
     $("btnSignOut").addEventListener("click", signOut);
+    $("btnChange").addEventListener("click", resetProtection);
     $("btnApprove").addEventListener("click", approve);
     $("btnDeny").addEventListener("click", function () { respond("denied"); });
     $("btnEnroll").addEventListener("click", enrollFingerprint);
