@@ -122,8 +122,8 @@
 
   <script>
 // Drozo admin console (Supabase edition). The database decides who may read or write; this page only shows the UI.
-const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+const SUPABASE_URL = "https://YOURPROJECT.supabase.co";
+const SUPABASE_ANON = "PASTE_ANON_PUBLIC_KEY";
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 const STAFF = ["therapist", "coordinator", "admin"];
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });

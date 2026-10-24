@@ -85,8 +85,8 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 <script>
 (function () {
   "use strict";
-  var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+  var SUPABASE_URL = "https://YOURPROJECT.supabase.co";
+  var SUPABASE_ANON = "PASTE_ANON_PUBLIC_KEY";
   var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
   var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "face" | "none" | null  (per phone)
   var CRED_KEY = "drozo_guard_passkey_id";
