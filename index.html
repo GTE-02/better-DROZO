@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0/dist/umd/supabase.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
@@ -165,6 +165,17 @@
         <input type="password" id="newSecPassword" autocomplete="new-password" placeholder="Enter new password (min. 8 chars)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         <button type="button" onclick="executeChangePassword()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Save New Password ✓</button>
       </div>
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>👤</span> Face ID / Touch ID Sign-In</div>
+          <span class="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-bold px-2 py-0.5 rounded-full">Passkey</span>
+        </div>
+        <p class="text-[11px] text-slate-500">Add a passkey on this device to sign in with your face or fingerprint. Your biometrics never leave the device.</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="addPasskey()" class="py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Add on this device</button>
+          <button type="button" onclick="removePasskeys()" class="py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition">Remove all</button>
+        </div>
+      </div>
       <div class="text-center pt-1"><button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button></div>
     </div>
   </div>
@@ -246,6 +257,8 @@
           <input type="password" id="loginPass" autocomplete="new-password" required onkeydown="if(event.key === 'Enter') handleStep1Submit(event)" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
         <button type="button" onclick="handleStep1Submit(event)" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
+        <div class="relative py-1"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div><div class="relative flex justify-center text-[10px] uppercase font-bold text-slate-400"><span class="bg-white px-2">or</span></div></div>
+        <button type="button" onclick="signInWithPasskeyBtn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>👤</span> Sign in with Face ID / Touch ID</button>
       </div>
     </div>
 
@@ -374,12 +387,12 @@
 
   <script>
 // DrozoMind front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
-const SUPABASE_URL = "https://fvnhrpvhmloqpwnrcxal.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bmhycHZobWxvcXB3bnJjeGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODYyMTIsImV4cCI6MjEwNjk2MjIxMn0.YGRJfGV1qTaLghF2M6RY3cDjtNTBAJaT5S3aBYHM_wg";
+const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 const STAFF_ROLES = ["therapist", "coordinator", "admin"];
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, experimental: { passkey: true } } });
 
 let me = null;                      // { id, email, role, twofa_pref }
 let authMode = "login", busy = false;
@@ -427,7 +440,7 @@ async function setPref(pref) {
   me.twofa_pref = pref;
 }
 
-async function routeAfterAuth(isNew) {
+async function routeAfterAuth(isNew, viaPasskey) {
   lockPortal();
   try {
     await loadMe();
@@ -440,7 +453,7 @@ async function routeAfterAuth(isNew) {
     }
     const factors = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
     const forced = localStorage.getItem('drozo_force_setup_wizard') === me.id;
-    if (isNew || forced || !me.twofa_pref || (me.twofa_pref === 'totp' && !factors.length)) {
+    if (isNew || forced || (!me.twofa_pref && !viaPasskey) || (me.twofa_pref === 'totp' && !factors.length)) {
       localStorage.removeItem('drozo_force_setup_wizard');
       showOnboardingChoice();
       return;
@@ -497,6 +510,43 @@ async function handleStep1Submit(e) {
     alert(authError(err));
     $('loginPass').value = '';
   } finally { busy = false; btn.disabled = false; btn.innerText = label; }
+}
+
+// ---------- passkeys (Face ID / Touch ID on this device, handled by Supabase Auth) ----------
+function passkeyError(e) {
+  const m = errMsg(e), code = (e && (e.code || e.name)) || '';
+  if (/passkey_disabled/.test(code + m)) return 'Passkeys are not turned on in Supabase yet (Authentication > Passkeys).';
+  if (/NotAllowed|cancel|abort/i.test(code + m)) return 'Cancelled. Nothing was changed.';
+  if (/not_found|not found|webauthn_credential/i.test(code + m)) return 'No passkey was found for this site. Sign in with your password, then add one in Security Settings.';
+  return m;
+}
+async function signInWithPasskeyBtn() {
+  if (busy) return;
+  if (typeof sb.auth.signInWithPasskey !== 'function') { alert('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.'); return; }
+  busy = true;
+  try {
+    const { error } = await sb.auth.signInWithPasskey();
+    if (error) throw error;
+    await routeAfterAuth(false, true);
+  } catch (e) { alert(passkeyError(e)); }
+  finally { busy = false; }
+}
+async function addPasskey() {
+  if (typeof sb.auth.registerPasskey !== 'function') { alert('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.'); return; }
+  try {
+    const { error } = await sb.auth.registerPasskey();
+    if (error) throw error;
+    alert('Passkey added. Next time you can sign in with the Face ID / Touch ID button.');
+  } catch (e) { alert(passkeyError(e)); }
+}
+async function removePasskeys() {
+  if (!confirm('Remove all passkeys from your account?')) return;
+  try {
+    const { data, error } = await sb.auth.passkey.list();
+    if (error) throw error;
+    for (const p of (data || [])) { const r = await sb.auth.passkey.delete({ passkeyId: p.id }); if (r.error) throw r.error; }
+    alert('Passkeys removed.');
+  } catch (e) { alert(passkeyError(e)); }
 }
 
 function showOnboardingChoice() {
