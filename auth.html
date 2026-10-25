@@ -72,16 +72,163 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   <div id="lockMsg" class="text-[11px] text-slate-500"></div>
 </div>
 
-<div id="faceModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
-  <h3 class="text-base font-extrabold" id="faceTitle">Face ID</h3>
-  <div class="w-64 h-72 rounded-[44px] overflow-hidden border-2 border-emerald-500/60 bg-black"><video id="faceVideo" autoplay playsinline muted class="w-full h-full object-cover"></video></div>
-  <div id="faceMsg" class="text-xs text-emerald-300 mono"></div>
-  <div class="w-full max-w-xs space-y-2">
-    <button type="button" id="btnFaceCapture" class="w-full py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">Scan Face</button>
-    <button type="button" id="btnFaceCancel" class="w-full py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
+<div id="faceidOverlay" class="hidden fixed inset-0 z-[70] bg-[#060b11] flex flex-col items-center justify-center p-4 text-center space-y-4">
+    <div id="faceidTitle" class="text-sm font-extrabold text-white tracking-wide">Face ID</div>
+    <div class="relative w-72 h-72">
+      <div class="absolute inset-3 rounded-full overflow-hidden bg-black">
+        <video id="faceidVideo" autoplay playsinline muted style="transform:scaleX(-1)" class="w-full h-full object-cover"></video>
+      </div>
+      <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full -rotate-90">
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#1e293b" stroke-width="2.5"></circle>
+        <circle id="faceidRing" cx="50" cy="50" r="47" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" style="transition: stroke-dashoffset .25s ease"></circle>
+      </svg>
+    </div>
+    <div id="faceidInstruction" class="text-lg font-black text-emerald-300 min-h-[2rem] px-4"></div>
+    <div id="faceidSub" class="text-xs text-slate-400 min-h-[1rem]"></div>
+    <button type="button" id="faceidCancel" class="px-5 py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
   </div>
-</div>
 
+<script>
+// ===== Dynamic Face ID (face-api.js). No Scan button: the camera finds your face and guides you. =====
+const FaceID = (function () {
+  const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
+  const g = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let loaded = false, stream = null, cancelled = false, running = false;
+
+  const dist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); };
+  const avg = (list) => list[0].map((_, i) => list.reduce((s, v) => s + v[i], 0) / list.length);
+  // head direction from the 68 face landmarks (camera image is not mirrored; "left" = the user's left)
+  const yawOf = (p) => (p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x);
+  const pitchOf = (p) => { let ey = 0; for (let i = 36; i < 48; i++) ey += p[i].y; ey /= 12; return (p[30].y - ey) / (p[8].y - ey); };
+
+  function say(main, sub) { const a = g('faceidInstruction'), b = g('faceidSub'); if (a) a.textContent = main || ''; if (b) b.textContent = sub || ''; }
+  function ring(frac) { const r = g('faceidRing'); if (r) r.style.strokeDashoffset = String(100 - Math.max(0, Math.min(1, frac)) * 100); }
+
+  async function loadModels() {
+    if (loaded) return;
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+    loaded = true;
+  }
+  async function waitForVideo(video) {
+    const t0 = Date.now();
+    while (!(video.videoWidth > 0)) { if (Date.now() - t0 > 8000) throw new Error('The camera did not start.'); await sleep(100); }
+  }
+  const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+  const quick = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks()) || null;
+  const full = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks().withFaceDescriptor()) || null;
+
+  function placement(d, video) {
+    const b = d.detection.box, vw = video.videoWidth, vh = video.videoHeight;
+    if (b.width < vw * 0.26) return 'Move a little closer';
+    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.22 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.22) return 'Center your face in the circle';
+    return null;
+  }
+
+  // Wait (automatically) until the requested pose is held, then grab descriptors. Returns a list, or null on timeout.
+  async function capture(video, o) {
+    const got = [], t0 = Date.now();
+    let stable = 0;
+    while (Date.now() - t0 < o.timeout) {
+      if (cancelled) throw new Error('Cancelled');
+      const q = await quick(video);
+      if (!q) { say('Move your face into the circle', ''); stable = 0; await sleep(80); continue; }
+      const place = placement(q, video);
+      if (place) { say(place, ''); stable = 0; await sleep(80); continue; }
+      const pts = q.landmarks.positions;
+      if (!o.test(pts)) { say(o.say, o.sub || ''); stable = 0; await sleep(40); continue; }
+      stable++;
+      if (stable < 2) continue;
+      say(o.say, 'Hold it…');
+      let f = q;
+      if (!o.noDescriptor) { f = await full(video); if (!f) continue; }
+      got.push(o.noDescriptor ? null : Array.from(f.descriptor));
+      if (o.tick) o.tick(f);
+      if (got.length >= o.frames) return got;
+    }
+    return null;
+  }
+
+  async function enroll(video) {
+    let neutral = 0.5;
+    const steps = [
+      { key: 'front', say: 'Look straight at the camera', test: (p) => Math.abs(yawOf(p)) < 0.09, frames: 3, timeout: 20000, req: true },
+      { key: 'left', say: 'Slowly turn your head left', test: (p) => yawOf(p) > 0.16, frames: 2, timeout: 20000, req: true },
+      { key: 'right', say: 'Now slowly turn your head right', test: (p) => yawOf(p) < -0.16, frames: 2, timeout: 20000, req: true },
+      { key: 'up', say: 'Tilt your chin up a little', test: (p) => pitchOf(p) < neutral - 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false },
+      { key: 'down', say: 'Tilt your chin down a little', test: (p) => pitchOf(p) > neutral + 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false }
+    ];
+    const total = steps.reduce((s, x) => s + x.frames, 0);
+    let done = 0;
+    const poses = [], pitches = [];
+    for (let i = 0; i < steps.length; i++) {
+      const st = steps[i];
+      st.sub = 'Step ' + (i + 1) + ' of ' + steps.length;
+      st.tick = (f) => { done++; ring(done / total); if (st.key === 'front') { pitches.push(pitchOf(f.landmarks.positions)); neutral = pitches.reduce((a, b) => a + b, 0) / pitches.length; } };
+      const got = await capture(video, st);
+      if (!got) {
+        if (st.req) throw new Error('Could not capture "' + st.key + '". Check the lighting and try again.');
+        done += st.frames; ring(done / total); continue;
+      }
+      poses.push({ pose: st.key, v: avg(got) });
+      say('✓', ''); await sleep(350);
+    }
+    const front = poses[0].v;
+    for (const p of poses) if (dist(front, p.v) > 0.85) throw new Error('Please keep only your own face in view and try again.');
+    say('✓ Face saved', ''); ring(1); await sleep(600);
+    return { poses: poses };
+  }
+
+  async function verify(video) {
+    const total = 8; let done = 0;
+    const tick = () => { done++; ring(done / total); };
+    const frontal = (p) => Math.abs(yawOf(p)) < 0.09;
+    const A = await capture(video, { say: 'Look straight at the camera', test: frontal, frames: 4, timeout: 20000, tick: tick });
+    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const T = await capture(video, {
+      say: 'Now slowly turn your head ' + side, noDescriptor: true, frames: 1, timeout: 12000, tick: tick,
+      test: (p) => side === 'left' ? yawOf(p) > 0.14 : yawOf(p) < -0.14
+    });
+    if (!T) throw new Error('Liveness check failed: turn your head when asked.');
+    const B = await capture(video, { say: 'Great. Now look straight again', test: frontal, frames: 3, timeout: 15000, tick: tick });
+    if (!B) throw new Error('Liveness check failed: look straight again after turning.');
+    if (dist(avg(A), avg(B)) > 0.5) throw new Error('The face changed during the check. Try again.');
+    say('✓ Face scanned', ''); ring(1); await sleep(500);
+    return { v: avg(A.concat(B)), live: true };
+  }
+
+  async function run(mode) {
+    if (running) throw new Error('Face ID is already open.');
+    if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
+    running = true; cancelled = false;
+    const overlay = g('faceidOverlay'), video = g('faceidVideo');
+    overlay.classList.remove('hidden');
+    g('faceidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
+    const cancelBtn = g('faceidCancel');
+    cancelBtn.onclick = () => { cancelled = true; };
+    try {
+      ring(0); say('Starting camera…', '');
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+      video.srcObject = stream;
+      say('Loading Face ID…', 'The first time can take a few seconds');
+      await loadModels();
+      await waitForVideo(video);
+      return mode === 'enroll' ? await enroll(video) : await verify(video);
+    } finally {
+      if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+      overlay.classList.add('hidden');
+      running = false;
+    }
+  }
+  return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg } };
+})();
+
+</script>
 <script>
 (function () {
   "use strict";
@@ -127,80 +274,20 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
     }});
   }
 
-  // ---------- Face ID (face-api descriptor + Supabase pgvector) ----------
-  var FACE_URL = "https://vladmandic.github.io/face-api/model/";
-  var modelsReady = false, faceStream = null, faceOk = null, faceFail = null;
-
-  async function loadModels() {
-    if (modelsReady) return;
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(FACE_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(FACE_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(FACE_URL)
-    ]);
-    modelsReady = true;
-  }
-  function closeFace() {
-    if (faceStream) { faceStream.getTracks().forEach(function (t) { t.stop(); }); faceStream = null; }
-    hide("faceModal");
-  }
-  function getFaceDescriptor(title) {
-    return new Promise(async function (resolve, reject) {
-      if (typeof faceapi === "undefined") return reject(new Error("Face library failed to load. Check your connection."));
-      faceOk = resolve; faceFail = reject;
-      $("faceTitle").textContent = title; $("faceMsg").textContent = "Loading face models…"; show("faceModal");
-      try {
-        faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
-        $("faceVideo").srcObject = faceStream;
-        await loadModels();
-        $("faceMsg").textContent = "Center your face, then tap Scan Face.";
-      } catch (e) { closeFace(); reject(new Error("Camera or model loading failed: " + (e.message || e))); }
-    });
-  }
-  var scanning = false;
-  async function faceCaptureClick() {
-    if (!faceOk || !modelsReady || scanning) return;
-    scanning = true;
-    var got = [], tries = 0;
-    while (got.length < 5 && tries < 14) {
-      tries++;
-      $("faceMsg").textContent = "Hold still… " + got.length + "/5";
-      var det = await faceapi.detectSingleFace($("faceVideo"), new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 }))
-        .withFaceLandmarks().withFaceDescriptor();
-      if (det) got.push(Array.from(det.descriptor));
-      await new Promise(function (r) { setTimeout(r, 200); });
-    }
-    scanning = false;
-    if (got.length < 3) { $("faceMsg").textContent = "No clear face found. Face the camera in good light and try again."; return; }
-    var avg = got[0].map(function (_, i) { return got.reduce(function (sum, d) { return sum + d[i]; }, 0) / got.length; });
-    var ok = faceOk; faceOk = null;
-    closeFace(); ok(avg);
-  }
-  function faceCancelClick() { closeFace(); if (faceFail) { var f = faceFail; faceFail = null; faceOk = null; f(new Error("Cancelled")); } }
-
-
   async function rpc(name, args) {
     var r = await sb.rpc(name, args);
     if (r.error) throw r.error;
     return r.data;
   }
   async function enrollFace() {
-    var d = await getFaceDescriptor("Face ID Enrollment");
-    var saved = await rpc("enroll_my_face", { probe: JSON.stringify(d) });
-    if (!saved) {   // a face is already registered for this account
-      var ok = await verifyFace();
-      if (!ok) {
-        if (!confirm("A face is already registered for this account and this scan does not match it. Replace it with the face you just scanned?")) throw new Error("Face ID was not changed.");
-        await rpc("reset_my_face", {});
-        var saved2 = await rpc("enroll_my_face", { probe: JSON.stringify(d) });
-        if (!saved2) throw new Error("Could not save your face. Try again.");
-      }
-    }
+    var r = await FaceID.run("enroll");
+    var n = await rpc("enroll_my_face", { poses: r.poses });
+    if (!n) throw new Error("Could not save your face. Try again.");
   }
   var lastFace = { registered: false, distance: null };
   async function verifyFace() {
-    var d = await getFaceDescriptor("Face ID Check");
-    var rows = await rpc("verify_my_face", { probe: JSON.stringify(d) });
+    var r = await FaceID.run("verify");
+    var rows = await rpc("verify_my_face", { probe: JSON.stringify(r.v) });
     lastFace = { registered: !!(rows && rows.length), distance: (rows && rows.length) ? rows[0].distance : null };
     return !!(rows && rows.length && rows[0].match_found);
   }
@@ -319,8 +406,6 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
     $("btnEnrollFace").addEventListener("click", enrollWithFace);
     $("btnSkip").addEventListener("click", skip);
     $("btnUnlock").addEventListener("click", unlock);
-    $("btnFaceCapture").addEventListener("click", faceCaptureClick);
-    $("btnFaceCancel").addEventListener("click", faceCancelClick);
     var s = (await sb.auth.getSession()).data;
     if (s && s.session) afterLogin();
   });

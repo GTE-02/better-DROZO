@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
@@ -176,6 +177,18 @@
           <button type="button" onclick="removePasskeys()" class="py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition">Remove all</button>
         </div>
       </div>
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>🙂</span> Face ID (AI face model)</div>
+          <span class="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-bold px-2 py-0.5 rounded-full">Face</span>
+        </div>
+        <p class="text-[11px] text-slate-500" id="faceStatusText"></p>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="enrollFaceFromSettings()" class="py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Register / redo my face</button>
+          <button type="button" onclick="removeFace()" class="py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition">Delete my face</button>
+        </div>
+        <button type="button" id="btnFaceLogin" onclick="toggleFaceLogin()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition disabled:opacity-50">Allow face-only sign-in</button>
+      </div>
       <div class="text-center pt-1"><button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button></div>
     </div>
   </div>
@@ -258,7 +271,8 @@
         </div>
         <button type="button" onclick="handleStep1Submit(event)" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
         <div class="relative py-1"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div><div class="relative flex justify-center text-[10px] uppercase font-bold text-slate-400"><span class="bg-white px-2">or</span></div></div>
-        <button type="button" onclick="signInWithPasskeyBtn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>👤</span> Sign in with Face ID / Touch ID</button>
+        <button type="button" onclick="signInWithPasskeyBtn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>👤</span> Sign in with passkey (device Face ID / Touch ID)</button>
+        <button type="button" onclick="signInWithFace()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>🙂</span> Sign in with my face (AI scan)</button>
       </div>
     </div>
 
@@ -273,6 +287,14 @@
         </button>
         <button type="button" onclick="startAuthenticatorEnrollment()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm cursor-pointer">
           <div class="flex items-center gap-2.5"><span class="text-2xl">📱</span><div><div class="text-xs font-bold text-slate-900">Authenticator App</div><div class="text-[10px] text-slate-500">6-digit code from Google Authenticator, Authy, etc.</div></div></div>
+          <span class="text-xs font-bold text-slate-700">Select →</span>
+        </button>
+        <button type="button" onclick="startFaceEnrollment()" class="w-full p-3.5 rounded-2xl bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition flex items-center justify-between shadow-sm cursor-pointer">
+          <div class="flex items-center gap-2.5"><span class="text-2xl">🙂</span><div><div class="text-xs font-bold">Face ID (AI face scan)</div><div class="text-[10px] text-indigo-700">Automatic scan, no buttons. Face model saved in Supabase</div></div></div>
+          <span class="text-xs font-bold">Select →</span>
+        </button>
+        <button type="button" onclick="startFingerprintEnrollment()" class="w-full p-3.5 rounded-2xl bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100 transition flex items-center justify-between shadow-sm cursor-pointer">
+          <div class="flex items-center gap-2.5"><span class="text-2xl">👆</span><div><div class="text-xs font-bold text-slate-900">Fingerprint / Touch ID</div><div class="text-[10px] text-slate-500">Checked by this device's sensor</div></div></div>
           <span class="text-xs font-bold text-slate-700">Select →</span>
         </button>
         <button type="button" onclick="triggerSkip2FAWarning()" class="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition text-center text-xs font-bold mt-2">⚠️ Skip All 2FA (Sign In With Password Only)</button>
@@ -381,10 +403,167 @@
     </div>
   </div>
 
+  <div id="faceidOverlay" class="hidden fixed inset-0 z-[70] bg-[#060b11] flex flex-col items-center justify-center p-4 text-center space-y-4">
+    <div id="faceidTitle" class="text-sm font-extrabold text-white tracking-wide">Face ID</div>
+    <div class="relative w-72 h-72">
+      <div class="absolute inset-3 rounded-full overflow-hidden bg-black">
+        <video id="faceidVideo" autoplay playsinline muted style="transform:scaleX(-1)" class="w-full h-full object-cover"></video>
+      </div>
+      <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full -rotate-90">
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#1e293b" stroke-width="2.5"></circle>
+        <circle id="faceidRing" cx="50" cy="50" r="47" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" style="transition: stroke-dashoffset .25s ease"></circle>
+      </svg>
+    </div>
+    <div id="faceidInstruction" class="text-lg font-black text-emerald-300 min-h-[2rem] px-4"></div>
+    <div id="faceidSub" class="text-xs text-slate-400 min-h-[1rem]"></div>
+    <button type="button" id="faceidCancel" class="px-5 py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
+  </div>
+
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
     &copy; 2026 DrozoMind Sanctuary. All rights reserved.
   </footer>
 
+  <script>
+// ===== Dynamic Face ID (face-api.js). No Scan button: the camera finds your face and guides you. =====
+const FaceID = (function () {
+  const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
+  const g = (id) => document.getElementById(id);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let loaded = false, stream = null, cancelled = false, running = false;
+
+  const dist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); };
+  const avg = (list) => list[0].map((_, i) => list.reduce((s, v) => s + v[i], 0) / list.length);
+  // head direction from the 68 face landmarks (camera image is not mirrored; "left" = the user's left)
+  const yawOf = (p) => (p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x);
+  const pitchOf = (p) => { let ey = 0; for (let i = 36; i < 48; i++) ey += p[i].y; ey /= 12; return (p[30].y - ey) / (p[8].y - ey); };
+
+  function say(main, sub) { const a = g('faceidInstruction'), b = g('faceidSub'); if (a) a.textContent = main || ''; if (b) b.textContent = sub || ''; }
+  function ring(frac) { const r = g('faceidRing'); if (r) r.style.strokeDashoffset = String(100 - Math.max(0, Math.min(1, frac)) * 100); }
+
+  async function loadModels() {
+    if (loaded) return;
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+    loaded = true;
+  }
+  async function waitForVideo(video) {
+    const t0 = Date.now();
+    while (!(video.videoWidth > 0)) { if (Date.now() - t0 > 8000) throw new Error('The camera did not start.'); await sleep(100); }
+  }
+  const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+  const quick = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks()) || null;
+  const full = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks().withFaceDescriptor()) || null;
+
+  function placement(d, video) {
+    const b = d.detection.box, vw = video.videoWidth, vh = video.videoHeight;
+    if (b.width < vw * 0.26) return 'Move a little closer';
+    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.22 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.22) return 'Center your face in the circle';
+    return null;
+  }
+
+  // Wait (automatically) until the requested pose is held, then grab descriptors. Returns a list, or null on timeout.
+  async function capture(video, o) {
+    const got = [], t0 = Date.now();
+    let stable = 0;
+    while (Date.now() - t0 < o.timeout) {
+      if (cancelled) throw new Error('Cancelled');
+      const q = await quick(video);
+      if (!q) { say('Move your face into the circle', ''); stable = 0; await sleep(80); continue; }
+      const place = placement(q, video);
+      if (place) { say(place, ''); stable = 0; await sleep(80); continue; }
+      const pts = q.landmarks.positions;
+      if (!o.test(pts)) { say(o.say, o.sub || ''); stable = 0; await sleep(40); continue; }
+      stable++;
+      if (stable < 2) continue;
+      say(o.say, 'Hold it…');
+      let f = q;
+      if (!o.noDescriptor) { f = await full(video); if (!f) continue; }
+      got.push(o.noDescriptor ? null : Array.from(f.descriptor));
+      if (o.tick) o.tick(f);
+      if (got.length >= o.frames) return got;
+    }
+    return null;
+  }
+
+  async function enroll(video) {
+    let neutral = 0.5;
+    const steps = [
+      { key: 'front', say: 'Look straight at the camera', test: (p) => Math.abs(yawOf(p)) < 0.09, frames: 3, timeout: 20000, req: true },
+      { key: 'left', say: 'Slowly turn your head left', test: (p) => yawOf(p) > 0.16, frames: 2, timeout: 20000, req: true },
+      { key: 'right', say: 'Now slowly turn your head right', test: (p) => yawOf(p) < -0.16, frames: 2, timeout: 20000, req: true },
+      { key: 'up', say: 'Tilt your chin up a little', test: (p) => pitchOf(p) < neutral - 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false },
+      { key: 'down', say: 'Tilt your chin down a little', test: (p) => pitchOf(p) > neutral + 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false }
+    ];
+    const total = steps.reduce((s, x) => s + x.frames, 0);
+    let done = 0;
+    const poses = [], pitches = [];
+    for (let i = 0; i < steps.length; i++) {
+      const st = steps[i];
+      st.sub = 'Step ' + (i + 1) + ' of ' + steps.length;
+      st.tick = (f) => { done++; ring(done / total); if (st.key === 'front') { pitches.push(pitchOf(f.landmarks.positions)); neutral = pitches.reduce((a, b) => a + b, 0) / pitches.length; } };
+      const got = await capture(video, st);
+      if (!got) {
+        if (st.req) throw new Error('Could not capture "' + st.key + '". Check the lighting and try again.');
+        done += st.frames; ring(done / total); continue;
+      }
+      poses.push({ pose: st.key, v: avg(got) });
+      say('✓', ''); await sleep(350);
+    }
+    const front = poses[0].v;
+    for (const p of poses) if (dist(front, p.v) > 0.85) throw new Error('Please keep only your own face in view and try again.');
+    say('✓ Face saved', ''); ring(1); await sleep(600);
+    return { poses: poses };
+  }
+
+  async function verify(video) {
+    const total = 8; let done = 0;
+    const tick = () => { done++; ring(done / total); };
+    const frontal = (p) => Math.abs(yawOf(p)) < 0.09;
+    const A = await capture(video, { say: 'Look straight at the camera', test: frontal, frames: 4, timeout: 20000, tick: tick });
+    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const T = await capture(video, {
+      say: 'Now slowly turn your head ' + side, noDescriptor: true, frames: 1, timeout: 12000, tick: tick,
+      test: (p) => side === 'left' ? yawOf(p) > 0.14 : yawOf(p) < -0.14
+    });
+    if (!T) throw new Error('Liveness check failed: turn your head when asked.');
+    const B = await capture(video, { say: 'Great. Now look straight again', test: frontal, frames: 3, timeout: 15000, tick: tick });
+    if (!B) throw new Error('Liveness check failed: look straight again after turning.');
+    if (dist(avg(A), avg(B)) > 0.5) throw new Error('The face changed during the check. Try again.');
+    say('✓ Face scanned', ''); ring(1); await sleep(500);
+    return { v: avg(A.concat(B)), live: true };
+  }
+
+  async function run(mode) {
+    if (running) throw new Error('Face ID is already open.');
+    if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
+    running = true; cancelled = false;
+    const overlay = g('faceidOverlay'), video = g('faceidVideo');
+    overlay.classList.remove('hidden');
+    g('faceidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
+    const cancelBtn = g('faceidCancel');
+    cancelBtn.onclick = () => { cancelled = true; };
+    try {
+      ring(0); say('Starting camera…', '');
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+      video.srcObject = stream;
+      say('Loading Face ID…', 'The first time can take a few seconds');
+      await loadModels();
+      await waitForVideo(video);
+      return mode === 'enroll' ? await enroll(video) : await verify(video);
+    } finally {
+      if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+      overlay.classList.add('hidden');
+      running = false;
+    }
+  }
+  return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg } };
+})();
+
+  </script>
   <script>
 // DrozoMind front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
 const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
@@ -429,9 +608,9 @@ function lockPortal() { const p = $('portalContent'); if (p) p.classList.add('bl
 async function loadMe() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) { me = null; return null; }
-  const { data, error } = await sb.from('profiles').select('id,email,role,twofa_pref').eq('id', user.id).maybeSingle();
+  const { data, error } = await sb.from('profiles').select('id,email,role,twofa_pref,face_login').eq('id', user.id).maybeSingle();
   if (error) throw error;
-  me = data || { id: user.id, email: user.email, role: 'patient', twofa_pref: null };
+  me = data || { id: user.id, email: user.email, role: 'patient', twofa_pref: null, face_login: false };
   return me;
 }
 async function setPref(pref) {
@@ -440,7 +619,7 @@ async function setPref(pref) {
   me.twofa_pref = pref;
 }
 
-async function routeAfterAuth(isNew, viaPasskey) {
+async function routeAfterAuth(isNew, viaPasskey, viaFace) {
   lockPortal();
   try {
     await loadMe();
@@ -453,12 +632,23 @@ async function routeAfterAuth(isNew, viaPasskey) {
     }
     const factors = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
     const forced = localStorage.getItem('drozo_force_setup_wizard') === me.id;
-    if (isNew || forced || (!me.twofa_pref && !viaPasskey) || (me.twofa_pref === 'totp' && !factors.length)) {
+    if (isNew || forced || (!me.twofa_pref && !(viaPasskey || viaFace)) || (me.twofa_pref === 'totp' && !factors.length)) {
       localStorage.removeItem('drozo_force_setup_wizard');
       showOnboardingChoice();
       return;
     }
     if (me.twofa_pref === 'drozo_guard' && sessionStorage.getItem('drozo_guard_ok_' + me.id) !== '1') { startDrozoGuard2FA(false); return; }
+    if (me.twofa_pref === 'face' && !viaFace && sessionStorage.getItem('drozo_face_ok_' + me.id) !== '1') {
+      ['authStep1', 'authStepOnboarding'].forEach(hide);
+      if (!(await requireFace())) { await backToStep1(); return; }
+      sessionStorage.setItem('drozo_face_ok_' + me.id, '1');
+    }
+    if (me.twofa_pref === 'fingerprint' && !viaPasskey && sessionStorage.getItem('drozo_fp_ok_' + me.id) !== '1') {
+      if (!localStorage.getItem(FP_KEY + me.id)) { alert('Fingerprint is not set up on this device yet. Please set it up again.'); showOnboardingChoice(); return; }
+      ['authStep1', 'authStepOnboarding'].forEach(hide);
+      if (!(await requireFingerprint())) { await backToStep1(); return; }
+      sessionStorage.setItem('drozo_fp_ok_' + me.id, '1');
+    }
     unlockSanctuaryUI();
   } catch (e) {
     alert('Could not load your account: ' + errMsg(e));
@@ -547,6 +737,128 @@ async function removePasskeys() {
     for (const p of (data || [])) { const r = await sb.auth.passkey.delete({ passkeyId: p.id }); if (r.error) throw r.error; }
     alert('Passkeys removed.');
   } catch (e) { alert(passkeyError(e)); }
+}
+
+// ---------- Face ID (AI face model saved in Supabase) + device fingerprint ----------
+const FP_KEY = 'drozo_fp_cred_';
+const b64e = (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+const b64d = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const isCancel = (e) => /cancel|abort|NotAllowed/i.test(((e && (e.name || '')) + ' ' + errMsg(e)));
+
+async function enrollFaceModel() {
+  try {
+    const r = await FaceID.run('enroll');
+    const { error } = await sb.rpc('enroll_my_face', { poses: r.poses });
+    if (error) throw error;
+    return true;
+  } catch (e) { if (!isCancel(e)) alert('Face ID setup: ' + errMsg(e)); return false; }
+}
+async function verifyFaceModel() {
+  try {
+    const r = await FaceID.run('verify');
+    const { data, error } = await sb.rpc('verify_my_face', { probe: JSON.stringify(r.v) });
+    if (error) throw error;
+    const row = data && data[0];
+    if (!row) { alert('No face is registered for this account. Set it up again in Security Settings.'); return null; }
+    if (!row.match_found) { alert('Face did not match (score ' + Number(row.distance).toFixed(2) + ', needs under 0.55).'); return false; }
+    return true;
+  } catch (e) { if (!isCancel(e)) alert('Face check: ' + errMsg(e)); return false; }
+}
+async function requireFace() {
+  for (;;) {
+    const ok = await verifyFaceModel();
+    if (ok === true) return true;
+    if (ok === null || !confirm('The face check did not pass. Try again?')) return false;
+  }
+}
+async function startFaceEnrollment() {
+  hide('authStepOnboarding');
+  if (await enrollFaceModel()) {
+    try { await setPref('face'); } catch (e) { alert('Could not save your choice: ' + errMsg(e)); showOnboardingChoice(); return; }
+    sessionStorage.setItem('drozo_face_ok_' + me.id, '1');
+    unlockSanctuaryUI();
+  } else showOnboardingChoice();
+}
+
+async function signInWithFace() {
+  if (busy) return;
+  busy = true;
+  try {
+    const r = await FaceID.run('verify');
+    const { data, error } = await sb.functions.invoke('face-login', { body: { probe: r.v } });
+    if (error || !data || !data.token_hash) throw new Error('Face not recognised, or face-only sign-in is not turned on for that account.');
+    let v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'email' });
+    if (v.error) v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
+    if (v.error) throw v.error;
+    await routeAfterAuth(false, false, true);
+  } catch (e) { if (!isCancel(e)) alert(errMsg(e)); }
+  finally { busy = false; }
+}
+
+function refreshFaceCard() {
+  const b = $('btnFaceLogin'), t = $('faceStatusText');
+  if (!b || !me) return;
+  const staff = STAFF_ROLES.includes(me.role);
+  b.disabled = staff;
+  b.textContent = staff ? 'Face-only sign-in is not available for staff' : (me.face_login ? 'Face-only sign-in: ON (tap to turn off)' : 'Allow face-only sign-in');
+  if (t) t.textContent = 'Your face is saved as numbers (a model), never as a picture.';
+}
+async function enrollFaceFromSettings() { if (await enrollFaceModel()) alert('Your face model was saved.'); }
+async function toggleFaceLogin() {
+  if (STAFF_ROLES.includes(me.role)) return;
+  if (!me.face_login) {
+    const has = await sb.rpc('has_my_face');
+    if (!has.data) { alert('Register your face first.'); return; }
+    const totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
+    const warn = totp.length ? '' : '\n\nYou have no authenticator app linked, so a face scan alone would be your only protection. Link one first for real safety.';
+    if (!confirm('Face-only sign-in lets a matching face scan sign in without a password. A photo of you could potentially fool a camera scan.' + warn + '\n\nTurn it on?')) return;
+  }
+  const { error } = await sb.from('profiles').update({ face_login: !me.face_login }).eq('id', me.id);
+  if (error) { alert('Could not change this: ' + errMsg(error)); return; }
+  me.face_login = !me.face_login; refreshFaceCard();
+}
+async function removeFace() {
+  if (!confirm('Delete your saved face model?')) return;
+  const { error } = await sb.rpc('reset_my_face');
+  if (error) { alert('Could not delete: ' + errMsg(error)); return; }
+  me.face_login = false;
+  if (me.twofa_pref === 'face') { try { await setPref(null); } catch (_) {} }
+  sessionStorage.removeItem('drozo_face_ok_' + me.id);
+  refreshFaceCard(); alert('Face model deleted.');
+}
+
+async function fingerprintAvailable() {
+  return !!(window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+}
+async function startFingerprintEnrollment() {
+  hide('authStepOnboarding');
+  try {
+    if (!(await fingerprintAvailable())) throw new Error('This device has no fingerprint / Face ID / screen-lock sensor available to the browser.');
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: 'DrozoMind', id: location.hostname },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: me.email, displayName: me.email },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+      timeout: 60000
+    } });
+    localStorage.setItem(FP_KEY + me.id, b64e(cred.rawId));
+    await setPref('fingerprint');
+    sessionStorage.setItem('drozo_fp_ok_' + me.id, '1');
+    unlockSanctuaryUI();
+  } catch (e) { if (!isCancel(e)) alert('Fingerprint setup: ' + errMsg(e)); showOnboardingChoice(); }
+}
+async function requireFingerprint() {
+  for (;;) {
+    try {
+      await navigator.credentials.get({ publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)), rpId: location.hostname,
+        allowCredentials: [{ type: 'public-key', id: b64d(localStorage.getItem(FP_KEY + me.id)) }],
+        userVerification: 'required', timeout: 60000
+      } });
+      return true;
+    } catch (e) { if (!confirm('The fingerprint check did not pass. Try again?')) return false; }
+  }
 }
 
 function showOnboardingChoice() {
@@ -713,7 +1025,7 @@ function focusSection(id) {
 }
 
 // ---------- security settings ----------
-function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; show('securityManagementModal'); }
+function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; refreshFaceCard(); show('securityManagementModal'); }
 function closeSecurityModal() { hide('securityManagementModal'); }
 
 async function executeSwitch2FAMethod() {
