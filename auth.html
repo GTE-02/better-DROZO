@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Drozo Guard Authenticator</title>
+<script src="config.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
@@ -232,8 +233,9 @@ const FaceID = (function () {
 <script>
 (function () {
   "use strict";
-  var SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+  if (!(window.DROZO_CONFIG && window.DROZO_CONFIG.url && window.DROZO_CONFIG.anon)) { alert('config.js is missing or empty. Create it next to index.html with your Supabase Project URL and anon key.'); }
+  var SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+  var SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
   var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
   var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "face" | "none" | null  (per phone)
   var CRED_KEY = "drozo_guard_passkey_id";

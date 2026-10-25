@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drozo Admin Console - Root Control</title>
+  <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
@@ -122,8 +123,9 @@
 
   <script>
 // Drozo admin console (Supabase edition). The database decides who may read or write; this page only shows the UI.
-const SUPABASE_URL = "https://fvnhrpvhmloqpwnrcxal.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bmhycHZobWxvcXB3bnJjeGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODYyMTIsImV4cCI6MjEwNjk2MjIxMn0.YGRJfGV1qTaLghF2M6RY3cDjtNTBAJaT5S3aBYHM_wg";
+if (!(window.DROZO_CONFIG && window.DROZO_CONFIG.url && window.DROZO_CONFIG.anon)) { alert('config.js is missing or empty. Create it next to index.html with your Supabase Project URL and anon key.'); }
+const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 const STAFF = ["therapist", "coordinator", "admin"];
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });

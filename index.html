@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drozo Mind- Therapy</title>
+  <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -570,8 +571,9 @@ const FaceID = (function () {
   </script>
   <script>
 // DrozoMind front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
-const SUPABASE_URL = "https://ahlwsktpiymgdvdmjdqq.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFobHdza3RwaXltZ2R2ZG1qZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODY4OTUsImV4cCI6MjEwNjk2Mjg5NX0.8-mzkzp4parfSMVgbKNQ0eqoTazvZHc8R-HRpYcpirY";
+if (!(window.DROZO_CONFIG && window.DROZO_CONFIG.url && window.DROZO_CONFIG.anon)) { alert('config.js is missing or empty. Create it next to index.html with your Supabase Project URL and anon key.'); }
+const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
 const DISCORD_INVITE_URL = "https://discord.gg/ePrjEPtg8X";
 const STAFF_ROLES = ["therapist", "coordinator", "admin"];
 

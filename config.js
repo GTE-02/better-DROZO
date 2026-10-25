@@ -1,0 +1,1 @@
+window.DROZO_CONFIG = { url: "https://fvnhrpvhmloqpwnrcxal.supabase.co", anon: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bmhycHZobWxvcXB3bnJjeGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODYyMTIsImV4cCI6MjEwNjk2MjIxMn0.YGRJfGV1qTaLghF2M6RY3cDjtNTBAJaT5S3aBYHM_wg" };
