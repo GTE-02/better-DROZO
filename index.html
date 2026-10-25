@@ -424,6 +424,10 @@
   </footer>
 
   <script>
+    // If the newer Supabase library could not be downloaded, load the older one so sign-in still works.
+    if (typeof supabase === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>'); }
+  </script>
+  <script>
 // ===== Dynamic Face ID (face-api.js). No Scan button: the camera finds your face and guides you. =====
 const FaceID = (function () {
   const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
@@ -608,9 +612,13 @@ function lockPortal() { const p = $('portalContent'); if (p) p.classList.add('bl
 async function loadMe() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) { me = null; return null; }
-  const { data, error } = await sb.from('profiles').select('id,email,role,twofa_pref,face_login').eq('id', user.id).maybeSingle();
-  if (error) throw error;
-  me = data || { id: user.id, email: user.email, role: 'patient', twofa_pref: null, face_login: false };
+  let res = await sb.from('profiles').select('id,email,role,twofa_pref,face_login').eq('id', user.id).maybeSingle();
+  if (res.error && /face_login|42703|column/i.test((res.error.code || '') + ' ' + (res.error.message || ''))) {
+    // the Face ID SQL upgrade has not been run yet: sign-in must still work without it
+    res = await sb.from('profiles').select('id,email,role,twofa_pref').eq('id', user.id).maybeSingle();
+  }
+  if (res.error) throw res.error;
+  me = res.data ? Object.assign({ face_login: false }, res.data) : { id: user.id, email: user.email, role: 'patient', twofa_pref: null, face_login: false };
   return me;
 }
 async function setPref(pref) {
