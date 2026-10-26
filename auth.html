@@ -73,160 +73,230 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   <div id="lockMsg" class="text-[11px] text-slate-500"></div>
 </div>
 
-<div id="faceidOverlay" class="hidden fixed inset-0 z-[70] bg-[#060b11] flex flex-col items-center justify-center p-4 text-center space-y-4">
-    <div id="faceidTitle" class="text-sm font-extrabold text-white tracking-wide">Face ID</div>
-    <div class="relative w-72 h-72">
-      <div class="absolute inset-3 rounded-full overflow-hidden bg-black">
-        <video id="faceidVideo" autoplay playsinline muted style="transform:scaleX(-1)" class="w-full h-full object-cover"></video>
-      </div>
-      <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r="47" fill="none" stroke="#1e293b" stroke-width="2.5"></circle>
-        <circle id="faceidRing" cx="50" cy="50" r="47" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" style="transition: stroke-dashoffset .25s ease"></circle>
-      </svg>
-    </div>
-    <div id="faceidInstruction" class="text-lg font-black text-emerald-300 min-h-[2rem] px-4"></div>
-    <div id="faceidSub" class="text-xs text-slate-400 min-h-[1rem]"></div>
-    <button type="button" id="faceidCancel" class="px-5 py-2 bg-slate-900 text-slate-400 rounded-xl text-xs border border-slate-800">Cancel</button>
-  </div>
-
 <script>
-// ===== Dynamic Face ID (face-api.js). No Scan button: the camera finds your face and guides you. =====
+// ===== DrozoMind Face ID v2: automatic, Apple-style. No Scan button. =====
+// The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
+// signing in is a quick look plus a small, random head nudge to prove you are a live person.
 const FaceID = (function () {
   const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
   const g = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  let loaded = false, stream = null, cancelled = false, running = false;
+  let loaded = false, stream = null, cancelled = false, running = false, uiReady = false, dark = 0;
 
+  // ---------- maths ----------
   const dist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); };
   const avg = (list) => list[0].map((_, i) => list.reduce((s, v) => s + v[i], 0) / list.length);
-  // head direction from the 68 face landmarks (camera image is not mirrored; "left" = the user's left)
-  const yawOf = (p) => (p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x);
-  const pitchOf = (p) => { let ey = 0; for (let i = 36; i < 48; i++) ey += p[i].y; ey /= 12; return (p[30].y - ey) / (p[8].y - ey); };
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const yawOf = (p) => (p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x);   // + = user's left
+  const pitchOf = (p) => { let ey = 0; for (let i = 36; i < 48; i++) ey += p[i].y; ey /= 12; return (p[30].y - ey) / (p[8].y - ey); };  // - = chin up
+  // head direction relative to "looking straight": x to the user's right, y downwards, ~1 = a comfortable full turn
+  const dirOf = (p, n) => ({ x: -(yawOf(p) - n.yaw) / 0.20, y: (pitchOf(p) - n.pitch) / 0.11 });
+  const sectorOf = (d) => Math.floor(((Math.atan2(d.x, -d.y) * 180 / Math.PI + 360) % 360) / 30) % 12;
 
-  function say(main, sub) { const a = g('faceidInstruction'), b = g('faceidSub'); if (a) a.textContent = main || ''; if (b) b.textContent = sub || ''; }
-  function ring(frac) { const r = g('faceidRing'); if (r) r.style.strokeDashoffset = String(100 - Math.max(0, Math.min(1, frac)) * 100); }
+  // ---------- interface (built once, no page markup needed) ----------
+  const CSS = '#fidOv{position:fixed;inset:0;z-index:2147483000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse at 50% 30%,#111a2a 0%,#05080d 70%);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;text-align:center;padding:24px;-webkit-user-select:none;user-select:none}' +
+    '#fidOv.show{display:flex;animation:fidIn .25s ease}@keyframes fidIn{from{opacity:0}to{opacity:1}}' +
+    '.fid-title{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.65;font-weight:600}' +
+    '.fid-stage{position:relative;width:min(78vw,300px);aspect-ratio:1/1}' +
+    '.fid-vid{position:absolute;inset:8%;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.65)}' +
+    '.fid-vid video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}' +
+    '.fid-svg{position:absolute;inset:0;width:100%;height:100%}' +
+    '.fid-svg line{stroke:rgba(255,255,255,.2);stroke-width:1.7;stroke-linecap:round;transition:stroke .15s,stroke-width .15s}' +
+    '.fid-svg line.on{stroke:#34d399;stroke-width:2.7}.fid-svg.bad line{stroke:#f87171}' +
+    '.fid-check{position:absolute;inset:8%;border-radius:50%;display:none;align-items:center;justify-content:center;background:rgba(5,8,13,.6)}' +
+    '.fid-check.on{display:flex;animation:fidPop .4s cubic-bezier(.2,1.4,.4,1)}@keyframes fidPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}' +
+    '.fid-check path{stroke:#34d399;stroke-width:6;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:fidDraw .45s .12s ease forwards}@keyframes fidDraw{to{stroke-dashoffset:0}}' +
+    '.fid-shake{animation:fidShake .45s}@keyframes fidShake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}' +
+    '.fid-arrow{position:absolute;font-size:38px;line-height:1;color:#34d399;opacity:0;transition:opacity .2s}.fid-arrow.on{opacity:1;animation:fidNudge 1s infinite}' +
+    '@keyframes fidNudge{50%{transform:translate(var(--nx,0),var(--ny,0))}}' +
+    '#fidAl{left:-3%;top:44%;--nx:-8px}#fidAr{right:-3%;top:44%;--nx:8px}#fidAu{top:-3%;left:46%;--ny:-8px}#fidAd{bottom:-3%;left:46%;--ny:8px}' +
+    '.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
+    '.fid-btns{display:flex;gap:10px;min-height:42px}.fid-btn{padding:11px 24px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:600;cursor:pointer}.fid-btn.main{background:#fff;color:#000;border-color:#fff}';
 
+  function ensureUI() {
+    if (uiReady && g('fidOv')) return;
+    const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+    let ticks = '';
+    for (let i = 0; i < 60; i++) {
+      const a = (i * 6 - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      ticks += '<line id="fidT' + i + '" x1="' + (50 + 44.5 * c).toFixed(2) + '" y1="' + (50 + 44.5 * s).toFixed(2) + '" x2="' + (50 + 49 * c).toFixed(2) + '" y2="' + (50 + 49 * s).toFixed(2) + '"></line>';
+    }
+    const w = document.createElement('div');
+    w.id = 'fidOv';
+    w.innerHTML = '<div class="fid-title" id="fidTitle">Face ID</div>' +
+      '<div class="fid-stage" id="fidStage"><div class="fid-vid"><video id="fidVideo" autoplay playsinline muted></video></div>' +
+      '<svg class="fid-svg" id="fidSvg" viewBox="0 0 100 100">' + ticks + '</svg>' +
+      '<div class="fid-check" id="fidCheck"><svg width="86" height="86" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" style="stroke-width:2.2"></path></svg></div>' +
+      '<div class="fid-arrow" id="fidAl">&#8592;</div><div class="fid-arrow" id="fidAr">&#8594;</div><div class="fid-arrow" id="fidAu">&#8593;</div><div class="fid-arrow" id="fidAd">&#8595;</div></div>' +
+      '<div class="fid-msg" id="fidMsg"></div><div class="fid-sub" id="fidSub"></div>' +
+      '<div class="fid-btns"><button type="button" class="fid-btn main" id="fidRetry" style="display:none">Try again</button><button type="button" class="fid-btn" id="fidCancel">Cancel</button></div>';
+    document.body.appendChild(w);
+    uiReady = true;
+  }
+  function say(m, s) { const a = g('fidMsg'), b = g('fidSub'); if (a) a.textContent = m || ''; if (b) b.textContent = s || ''; }
+  function ticksOn(from, to, on) { for (let i = from; i < to; i++) { const t = g('fidT' + i); if (t) t.classList[on ? 'add' : 'remove']('on'); } }
+  function fillTo(frac) { const n = Math.round(Math.max(0, Math.min(1, frac)) * 60); ticksOn(0, n, true); ticksOn(n, 60, false); }
+  function arrow(dir) { ['l', 'r', 'u', 'd'].forEach((k) => { const e = g('fidA' + k); if (e) e.classList[k === dir ? 'add' : 'remove']('on'); }); }
+  const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (_) {} };
+
+  // ---------- camera + models ----------
   async function loadModels() {
     if (loaded) return;
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
+    await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL), faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL), faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)]);
     loaded = true;
   }
-  async function waitForVideo(video) {
-    const t0 = Date.now();
-    while (!(video.videoWidth > 0)) { if (Date.now() - t0 > 8000) throw new Error('The camera did not start.'); await sleep(100); }
+  async function waitForVideo(v) { const t0 = Date.now(); while (!(v.videoWidth > 0)) { if (Date.now() - t0 > 8000) throw new Error('The camera did not start.'); await sleep(100); } }
+  const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 });
+  const quick = async (v) => (await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks()) || null;
+  const full = async (v) => (await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor()) || null;
+  function brightness(v) {
+    try { const c = document.createElement('canvas'); c.width = 32; c.height = 32; const x = c.getContext('2d'); x.drawImage(v, 0, 0, 32, 32); const d = x.getImageData(0, 0, 32, 32).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; return s / (d.length / 4); } catch (_) { return 128; }
   }
-  const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
-  const quick = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks()) || null;
-  const full = async (video) => (await faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks().withFaceDescriptor()) || null;
-
-  function placement(d, video) {
-    const b = d.detection.box, vw = video.videoWidth, vh = video.videoHeight;
-    if (b.width < vw * 0.26) return 'Move a little closer';
-    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.22 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.22) return 'Center your face in the circle';
-    return null;
+  // one look at the camera: either a usable face, or a hint for the person
+  async function look(v) {
+    if ((++dark % 12) === 1 && brightness(v) < 40) return { hint: 'It is too dark. Face a light.' };
+    const q = await quick(v);
+    if (!q) return { hint: 'Move your face into the circle' };
+    const b = q.detection.box, vw = v.videoWidth, vh = v.videoHeight;
+    if (b.width < vw * 0.24) return { hint: 'Move a little closer' };
+    if (b.width > vw * 0.82) return { hint: 'Move a little farther away' };
+    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.24 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.24) return { hint: 'Center your face' };
+    return { q: q };
   }
 
-  // Wait (automatically) until the requested pose is held, then grab descriptors. Returns a list, or null on timeout.
-  async function capture(video, o) {
+  // wait until `test` holds for two looks in a row, then collect `frames` descriptors (or none if noDescriptor)
+  async function capture(v, o) {
     const got = [], t0 = Date.now();
     let stable = 0;
     while (Date.now() - t0 < o.timeout) {
       if (cancelled) throw new Error('Cancelled');
-      const q = await quick(video);
-      if (!q) { say('Move your face into the circle', ''); stable = 0; await sleep(80); continue; }
-      const place = placement(q, video);
-      if (place) { say(place, ''); stable = 0; await sleep(80); continue; }
-      const pts = q.landmarks.positions;
-      if (!o.test(pts)) { say(o.say, o.sub || ''); stable = 0; await sleep(40); continue; }
-      stable++;
-      if (stable < 2) continue;
-      say(o.say, 'Hold it…');
-      let f = q;
-      if (!o.noDescriptor) { f = await full(video); if (!f) continue; }
+      const L = await look(v);
+      if (!L.q) { say(L.hint, ''); arrow(null); stable = 0; await sleep(60); continue; }
+      const p = L.q.landmarks.positions;
+      if (!o.test(p)) { say(o.say, o.sub || ''); arrow(o.arrow || null); stable = 0; await sleep(30); continue; }
+      if (++stable < 2) continue;
+      say(o.done || o.say, o.sub || '');
+      let f = L.q;
+      if (!o.noDescriptor) { f = await full(v); if (!f) continue; }
       got.push(o.noDescriptor ? null : Array.from(f.descriptor));
       if (o.tick) o.tick(f);
-      if (got.length >= o.frames) return got;
+      if (got.length >= o.frames) { arrow(null); return got; }
     }
+    arrow(null);
     return null;
   }
 
-  async function enroll(video) {
-    let neutral = 0.5;
-    const steps = [
-      { key: 'front', say: 'Look straight at the camera', test: (p) => Math.abs(yawOf(p)) < 0.09, frames: 3, timeout: 20000, req: true },
-      { key: 'left', say: 'Slowly turn your head left', test: (p) => yawOf(p) > 0.16, frames: 2, timeout: 20000, req: true },
-      { key: 'right', say: 'Now slowly turn your head right', test: (p) => yawOf(p) < -0.16, frames: 2, timeout: 20000, req: true },
-      { key: 'up', say: 'Tilt your chin up a little', test: (p) => pitchOf(p) < neutral - 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false },
-      { key: 'down', say: 'Tilt your chin down a little', test: (p) => pitchOf(p) > neutral + 0.06 && Math.abs(yawOf(p)) < 0.12, frames: 2, timeout: 7000, req: false }
-    ];
-    const total = steps.reduce((s, x) => s + x.frames, 0);
-    let done = 0;
-    const poses = [], pitches = [];
-    for (let i = 0; i < steps.length; i++) {
-      const st = steps[i];
-      st.sub = 'Step ' + (i + 1) + ' of ' + steps.length;
-      st.tick = (f) => { done++; ring(done / total); if (st.key === 'front') { pitches.push(pitchOf(f.landmarks.positions)); neutral = pitches.reduce((a, b) => a + b, 0) / pitches.length; } };
-      const got = await capture(video, st);
-      if (!got) {
-        if (st.req) throw new Error('Could not capture "' + st.key + '". Check the lighting and try again.');
-        done += st.frames; ring(done / total); continue;
-      }
-      poses.push({ pose: st.key, v: avg(got) });
-      say('✓', ''); await sleep(350);
+  // ---------- setting up: look straight, then roll your head in a slow circle ----------
+  async function enrollFlow(v) {
+    const ys = [], ps = [];
+    const A = await capture(v, {
+      say: 'Look straight at the camera', sub: 'Step 1 of 2', frames: 4, timeout: 25000,
+      test: (p) => Math.abs(yawOf(p)) < 0.16 && Math.abs(pitchOf(p) - 0.5) < 0.25,
+      tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); fillTo(ys.length / 40); }
+    });
+    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    fillTo(0); await sleep(250);
+    const n = { yaw: mean(ys), pitch: mean(ps) };
+    const samples = [{ pose: 'front', v: avg(A) }], got = new Map();
+    say('Now slowly roll your head in a circle', 'Step 2 of 2. Keep your face in the frame'); buzz(15);
+    const t0 = Date.now(); let last = -1, run = 0;
+    while (Date.now() - t0 < 60000 && got.size < 9) {
+      if (cancelled) throw new Error('Cancelled');
+      const L = await look(v);
+      if (!L.q) { say(L.hint, ''); arrow(null); last = -1; await sleep(60); continue; }
+      const d = dirOf(L.q.landmarks.positions, n);
+      const m = Math.hypot(d.x, d.y);
+      // point the arrow toward the nearest part of the circle that is still empty
+      let want = null, bestGap = 99;
+      const cur = Math.atan2(d.x, -d.y) * 180 / Math.PI;
+      for (let s = 0; s < 12; s++) { if (got.has(s)) continue; const gap = Math.abs((((s * 30 + 15) - cur + 540) % 360) - 180); if (gap < bestGap) { bestGap = gap; want = s * 30 + 15; } }
+      const dirKey = want === null ? null : (want >= 315 || want < 45 ? 'u' : want < 135 ? 'r' : want < 225 ? 'd' : 'l');
+      if (m < 0.5) { say('Now slowly roll your head in a circle', 'Step 2 of 2. Keep your face in the frame'); arrow(dirKey); last = -1; await sleep(30); continue; }
+      arrow(dirKey);
+      const sec = sectorOf(d);
+      if (got.has(sec)) { last = sec; run = 0; continue; }
+      run = (sec === last) ? run + 1 : 1; last = sec;
+      if (run < 2) continue;
+      const f = await full(v); if (!f) continue;
+      got.set(sec, Array.from(f.descriptor));
+      samples.push({ pose: 's' + sec, v: Array.from(f.descriptor) });
+      ticksOn(sec * 5, sec * 5 + 5, true); buzz(8); run = 0;
     }
-    const front = poses[0].v;
-    for (const p of poses) if (dist(front, p.v) > 0.85) throw new Error('Please keep only your own face in view and try again.');
-    say('✓ Face saved', ''); ring(1); await sleep(600);
-    return { poses: poses };
+    arrow(null);
+    const right = got.has(2) || got.has(3) || got.has(4), left = got.has(8) || got.has(9) || got.has(10);
+    if (got.size < 6 || !right || !left) throw new Error('Move your head in a bigger, slower circle and try again.');
+    for (const s of samples) if (dist(samples[0].v, s.v) > 0.9) throw new Error('Please keep only your own face in view and try again.');
+    return { poses: samples };
   }
 
-  async function verify(video) {
-    const total = 8; let done = 0;
-    const tick = () => { done++; ring(done / total); };
-    const frontal = (p) => Math.abs(yawOf(p)) < 0.09;
-    const A = await capture(video, { say: 'Look straight at the camera', test: frontal, frames: 4, timeout: 20000, tick: tick });
-    if (!A) throw new Error('No clear face found. Face the camera in good light.');
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const T = await capture(video, {
-      say: 'Now slowly turn your head ' + side, noDescriptor: true, frames: 1, timeout: 12000, tick: tick,
-      test: (p) => side === 'left' ? yawOf(p) > 0.14 : yawOf(p) < -0.14
+  // ---------- signing in: a quick look + a small random head nudge ----------
+  async function verifyFlow(v) {
+    let done = 0; const total = 8; const ys = [], ps = [];
+    const tick = () => { done++; fillTo(done / total); };
+    const A = await capture(v, {
+      say: 'Look at the camera', frames: 4, timeout: 25000,
+      test: (p) => Math.abs(yawOf(p)) < 0.16 && Math.abs(pitchOf(p) - 0.5) < 0.25,
+      tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); tick(); }
     });
-    if (!T) throw new Error('Liveness check failed: turn your head when asked.');
-    const B = await capture(video, { say: 'Great. Now look straight again', test: frontal, frames: 3, timeout: 15000, tick: tick });
-    if (!B) throw new Error('Liveness check failed: look straight again after turning.');
+    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    const n = { yaw: mean(ys), pitch: mean(ps) };
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const T = await capture(v, {
+      say: 'Now turn your head slightly ' + side, sub: 'Just a little, to confirm it is really you', noDescriptor: true, frames: 1, timeout: 14000, arrow: side === 'left' ? 'l' : 'r',
+      test: (p) => { const d = dirOf(p, n); return side === 'left' ? d.x < -0.45 : d.x > 0.45; },
+      tick: tick
+    });
+    if (!T) throw new Error('Liveness check failed: turn your head slightly when asked.');
+    const B = await capture(v, { say: 'Great. Look at the camera again', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.35; }, tick: tick });
+    if (!B) throw new Error('Liveness check failed: look back at the camera.');
     if (dist(avg(A), avg(B)) > 0.5) throw new Error('The face changed during the check. Try again.');
-    say('✓ Face scanned', ''); ring(1); await sleep(500);
     return { v: avg(A.concat(B)), live: true };
   }
 
+  // ---------- run ----------
+  function choose(retryOk) {
+    return new Promise((resolve) => {
+      const r = g('fidRetry'), c = g('fidCancel');
+      r.style.display = retryOk ? '' : 'none';
+      r.onclick = () => resolve('retry');
+      c.onclick = () => { cancelled = true; resolve('cancel'); };
+    });
+  }
   async function run(mode) {
     if (running) throw new Error('Face ID is already open.');
     if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
-    running = true; cancelled = false;
-    const overlay = g('faceidOverlay'), video = g('faceidVideo');
-    overlay.classList.remove('hidden');
-    g('faceidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
-    const cancelBtn = g('faceidCancel');
-    cancelBtn.onclick = () => { cancelled = true; };
+    running = true; cancelled = false; ensureUI();
+    const ov = g('fidOv'), video = g('fidVideo');
+    ov.classList.add('show');
+    g('fidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
+    g('fidCancel').onclick = () => { cancelled = true; };
     try {
-      ring(0); say('Starting camera…', '');
+      say('Starting camera…', ''); fillTo(0);
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
       video.srcObject = stream;
-      say('Loading Face ID…', 'The first time can take a few seconds');
-      await loadModels();
-      await waitForVideo(video);
-      return mode === 'enroll' ? await enroll(video) : await verify(video);
+      say('Getting Face ID ready…', 'The first time can take a few seconds');
+      await loadModels(); await waitForVideo(video);
+      for (;;) {
+        g('fidSvg').classList.remove('bad'); g('fidCheck').classList.remove('on'); g('fidRetry').style.display = 'none'; fillTo(0);
+        try {
+          const res = mode === 'enroll' ? await enrollFlow(video) : await verifyFlow(video);
+          fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); buzz([20, 40, 20]);
+          await sleep(900);
+          return res;
+        } catch (e) {
+          if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
+          g('fidSvg').classList.add('bad'); ticksOn(0, 60, true); g('fidStage').classList.add('fid-shake'); buzz([60, 40, 60]);
+          setTimeout(() => g('fidStage').classList.remove('fid-shake'), 500);
+          say(e.message, 'Tap Try again, or cancel'); arrow(null);
+          if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
+        }
+      }
     } finally {
       if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
-      overlay.classList.add('hidden');
-      running = false;
+      ov.classList.remove('show'); running = false;
     }
   }
-  return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg } };
+  return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg, dirOf: dirOf, sectorOf: sectorOf } };
 })();
 
 </script>
