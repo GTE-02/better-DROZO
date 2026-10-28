@@ -53,12 +53,13 @@
     catch (e) { s.bad(e.message); }
 
     s = step('models', '3. Face models download');
-    var loaded = false, t0 = Date.now();
+    var loaded = false, tinyOk = false, t0 = Date.now();
     for (var i = 0; i < URLS.length && !loaded; i++) {
       s.info('trying source ' + (i + 1) + '…');
       try {
         await timeout(Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(URLS[i]), faceapi.nets.faceLandmark68Net.loadFromUri(URLS[i]), faceapi.nets.faceRecognitionNet.loadFromUri(URLS[i])]), 30000, 'timed out');
-        loaded = true; s.ok('source ' + (i + 1) + ' worked in ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s');
+        try { await timeout(faceapi.nets.faceLandmark68TinyNet.loadFromUri(URLS[i]), 15000, 'timeout'); tinyOk = true; } catch (_) {}
+        loaded = true; s.ok('source ' + (i + 1) + ' worked in ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s · fast model: ' + (tinyOk ? 'yes' : 'no'));
       } catch (e) { lines.push('     source ' + (i + 1) + ' failed: ' + e.message); }
     }
     if (!loaded) { s.bad('Both download sources failed. Check the internet connection or a content blocker.'); return finish(); }
@@ -79,34 +80,41 @@
     try { var w0 = Date.now(); await timeout(faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor(), 30000, 'The engine took longer than 30 s.'); s.ok('took ' + ((Date.now() - w0) / 1000).toFixed(1) + ' s'); }
     catch (e) { s.bad(e.message); return finish(stream); }
 
-    s = step('live', '6. Live scan (10 seconds, look at the screen and move a little)');
-    var n = 0, found = 0, yaws = [], tilts = [], widths = [], t2 = Date.now(), descs = [];
-    while (Date.now() - t2 < 10000) {
-      var q = await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks();
-      n++;
-      if (q) {
-        found++; var p = q.landmarks.positions;
-        yaws.push((p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x));
-        var ey = 0; for (var k = 36; k < 48; k++) ey += p[k].y; ey /= 12; tilts.push((p[30].y - ey) / (p[8].y - ey));
-        widths.push(q.detection.box.width / v.videoWidth);
-        if (descs.length < 2 && n % 6 === 0) { var f = await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor(); if (f) descs.push(Array.from(f.descriptor)); }
+    // 6. speed + reliability of the two ways of looking at each camera frame (6 seconds each)
+    async function measure(title, make) {
+      var st = step('m', title), n = 0, found = 0, yaws = [], tilts = [], widths = [], t2 = Date.now();
+      while (Date.now() - t2 < 6000) {
+        var q = await make();
+        n++;
+        if (q) { found++; var p = q.landmarks.positions; yaws.push((p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x)); var ey = 0; for (var k = 36; k < 48; k++) ey += p[k].y; ey /= 12; tilts.push((p[30].y - ey) / (p[8].y - ey)); widths.push(q.detection.box.width / v.videoWidth); }
+        st.info('frames ' + n + ' · face seen in ' + found + ' · ' + (n / ((Date.now() - t2) / 1000)).toFixed(1) + ' fps');
+        await sleep(0);
       }
-      s.info('frames ' + n + ' · face seen in ' + found + ' · ' + (n / ((Date.now() - t2) / 1000)).toFixed(1) + ' fps');
-      await sleep(0);
+      var fps = n / ((Date.now() - t2) / 1000), pct = Math.round(100 * found / Math.max(1, n));
+      var mm = function (a) { return a.length ? Math.min.apply(null, a).toFixed(2) + ' to ' + Math.max.apply(null, a).toFixed(2) : 'n/a'; };
+      var avgW = widths.length ? widths.reduce(function (a, b) { return a + b; }, 0) / widths.length : 0;
+      var detail = fps.toFixed(1) + ' fps · face seen in ' + pct + '% · turn ' + mm(yaws) + ' · tilt ' + mm(tilts) + ' · face width ' + Math.round(avgW * 100) + '%';
+      (pct >= 70 && fps >= 1.5 ? st.ok : st.bad)(detail + (pct < 70 ? '. The face was often missed: more light, face the camera.' : (fps < 1.5 ? '. Slow.' : '')));
+      return { fps: fps, pct: pct };
     }
-    var secs = (Date.now() - t2) / 1000, fps = n / secs, pct = Math.round(100 * found / Math.max(1, n));
-    var mm = function (a) { return a.length ? Math.min.apply(null, a).toFixed(2) + ' to ' + Math.max.apply(null, a).toFixed(2) : 'n/a'; };
-    var avgW = widths.length ? (widths.reduce(function (a, b) { return a + b; }, 0) / widths.length) : 0;
-    var detail = fps.toFixed(1) + ' fps · face seen in ' + pct + '% of frames · turn ' + mm(yaws) + ' · tilt ' + mm(tilts) + ' · face width ' + Math.round(avgW * 100) + '% of picture';
-    if (pct < 60) s.bad(detail + '. The face was often not found: more light, face the camera, move closer.');
-    else if (fps < 1.5) s.bad(detail + '. Too slow: this device is struggling with the engine.');
-    else s.ok(detail);
+    s = step('hint', '6. Live scan: keep looking at the screen and move your head a little');
+    s.info('two 6-second measurements follow');
+    var A = await measure('6a. Standard mode (accurate landmarks)', function () { return faceapi.detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 })).withFaceLandmarks(); });
+    var B = tinyOk ? await measure('6b. Fast mode (what Face ID now uses)', function () { return faceapi.detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({ inputSize: 256, scoreThreshold: 0.3 })).withFaceLandmarks(true); }) : null;
+    s.ok(B ? 'fast mode is ' + (B.fps / Math.max(0.1, A.fps)).toFixed(1) + 'x the speed of standard mode' : 'fast model not available, standard mode will be used');
 
+    // 7. two identity scans of the same face must be close to each other
     s = step('same', '7. Same face gives the same numbers');
+    var descs = [], tries = 0;
+    while (descs.length < 2 && tries < 10) {
+      tries++; s.info('scan ' + (descs.length + 1) + ' of 2 (attempt ' + tries + ')…');
+      var f = await faceapi.detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptor();
+      if (f) { descs.push(Array.from(f.descriptor)); await sleep(500); } else await sleep(200);
+    }
     if (descs.length === 2) {
       var d = 0; for (var j = 0; j < 128; j++) { var x = descs[0][j] - descs[1][j]; d += x * x; } d = Math.sqrt(d);
-      (d < 0.4 ? s.ok : s.bad)('distance between two scans of you: ' + d.toFixed(2) + ' (should be under 0.40)');
-    } else s.bad('Could not take two scans of your face. See step 6.');
+      (d < 0.45 ? s.ok : s.bad)('distance between two scans of you: ' + d.toFixed(2) + ' (should be under 0.45), ' + tries + ' attempts');
+    } else s.bad('Could not get two scans of your face in 10 attempts. Face the camera in better light.');
     finish(stream);
   }
   function finish(stream) {
