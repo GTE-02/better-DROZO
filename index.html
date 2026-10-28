@@ -153,11 +153,11 @@
       <p class="text-xs text-slate-500">Manage credentials and authentication devices for <strong id="secUserEmailDisplay" class="text-slate-800"></strong>.</p>
       <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>🛡️</span> Switch 2FA Method</div>
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>🛡️</span> Reset all security</div>
           <span class="text-[10px] text-sky-600 bg-sky-50 border border-sky-200 font-bold px-2 py-0.5 rounded-full">Re-link</span>
         </div>
-        <p class="text-[11px] text-slate-500">Reset your linked device. You will be taken straight to the setup tutorial to pick Drozo Guard or Authenticator.</p>
-        <button type="button" onclick="executeSwitch2FAMethod()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">Reset 2FA & Launch Setup Wizard →</button>
+        <p class="text-[11px] text-slate-500">Removes your authenticator app, saved face and fingerprint passkeys, then takes you back to choose your protection again.</p>
+        <button type="button" onclick="executeSwitch2FAMethod()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">Reset all security & set up again →</button>
       </div>
       <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
         <div class="flex items-center justify-between">
@@ -299,6 +299,7 @@
           <span class="text-xs font-bold text-slate-700">Select →</span>
         </button>
         <button type="button" onclick="triggerSkip2FAWarning()" class="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition text-center text-xs font-bold mt-2">⚠️ Skip All 2FA (Sign In With Password Only)</button>
+        <button type="button" onclick="backToStep1()" class="w-full text-xs text-slate-400 hover:underline mt-1">&#8249; Back to sign in</button>
       </div>
     </div>
 
@@ -413,14 +414,15 @@
     if (typeof supabase === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>'); }
   </script>
   <script>
-// ===== DrozoMind Face ID v2: automatic, Apple-style. No Scan button. =====
+// ===== DrozoMind Face ID v4: automatic, Apple-style. No Scan button. Cancel / Back always work. =====
 // The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
 // signing in is a quick look plus a small, random head nudge to prove you are a live person.
 const FaceID = (function () {
-  const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
+  const MODEL_URLS = ['https://vladmandic.github.io/face-api/model/', 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/'];
   const g = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  let loaded = false, stream = null, cancelled = false, running = false, uiReady = false, dark = 0;
+  let loaded = false, stream = null, cancelled = false, running = false, uiReady = false, dark = 0, ab = (p) => p, chooseResolve = null;
+  const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
 
   // ---------- maths ----------
   const dist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); };
@@ -449,7 +451,7 @@ const FaceID = (function () {
     '.fid-arrow{position:absolute;font-size:38px;line-height:1;color:#34d399;opacity:0;transition:opacity .2s}.fid-arrow.on{opacity:1;animation:fidNudge 1s infinite}' +
     '@keyframes fidNudge{50%{transform:translate(var(--nx,0),var(--ny,0))}}' +
     '#fidAl{left:-3%;top:44%;--nx:-8px}#fidAr{right:-3%;top:44%;--nx:8px}#fidAu{top:-3%;left:46%;--ny:-8px}#fidAd{bottom:-3%;left:46%;--ny:8px}' +
-    '.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
+    '.fid-back{position:absolute;top:max(18px,env(safe-area-inset-top));left:16px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:600;cursor:pointer}.fid-dbg{font-size:11px;opacity:.35;min-height:14px;font-variant-numeric:tabular-nums}.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
     '.fid-btns{display:flex;gap:10px;min-height:42px}.fid-btn{padding:11px 24px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:600;cursor:pointer}.fid-btn.main{background:#fff;color:#000;border-color:#fff}';
 
   function ensureUI() {
@@ -462,16 +464,20 @@ const FaceID = (function () {
     }
     const w = document.createElement('div');
     w.id = 'fidOv';
-    w.innerHTML = '<div class="fid-title" id="fidTitle">Face ID</div>' +
+    w.innerHTML = '<button type="button" class="fid-back" id="fidBack">&#8249; Back</button><div class="fid-title" id="fidTitle">Face ID</div>' +
       '<div class="fid-stage" id="fidStage"><div class="fid-vid"><video id="fidVideo" autoplay playsinline muted></video></div>' +
       '<svg class="fid-svg" id="fidSvg" viewBox="0 0 100 100">' + ticks + '</svg>' +
       '<div class="fid-check" id="fidCheck"><svg width="86" height="86" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" style="stroke-width:2.2"></path></svg></div>' +
       '<div class="fid-arrow" id="fidAl">&#8592;</div><div class="fid-arrow" id="fidAr">&#8594;</div><div class="fid-arrow" id="fidAu">&#8593;</div><div class="fid-arrow" id="fidAd">&#8595;</div></div>' +
-      '<div class="fid-msg" id="fidMsg"></div><div class="fid-sub" id="fidSub"></div>' +
+      '<div class="fid-msg" id="fidMsg"></div><div class="fid-sub" id="fidSub"></div><div class="fid-dbg" id="fidDbg"></div>' +
       '<div class="fid-btns"><button type="button" class="fid-btn main" id="fidRetry" style="display:none">Try again</button><button type="button" class="fid-btn" id="fidCancel">Cancel</button></div>';
     document.body.appendChild(w);
     uiReady = true;
   }
+  const frameTimes = [];
+  function noteFrame() { frameTimes.push(Date.now()); while (frameTimes.length > 8) frameTimes.shift(); }
+  function fps() { if (frameTimes.length < 3) return ''; const s = (frameTimes[frameTimes.length - 1] - frameTimes[0]) / 1000; return s > 0 ? ((frameTimes.length - 1) / s).toFixed(1) + ' fps' : ''; }
+  function dbg(t) { const d = g('fidDbg'); if (d) d.textContent = t || ''; }
   function say(m, s) { const a = g('fidMsg'), b = g('fidSub'); if (a) a.textContent = m || ''; if (b) b.textContent = s || ''; }
   function ticksOn(from, to, on) { for (let i = from; i < to; i++) { const t = g('fidT' + i); if (t) t.classList[on ? 'add' : 'remove']('on'); } }
   function fillTo(frac) { const n = Math.round(Math.max(0, Math.min(1, frac)) * 60); ticksOn(0, n, true); ticksOn(n, 60, false); }
@@ -481,20 +487,48 @@ const FaceID = (function () {
   // ---------- camera + models ----------
   async function loadModels() {
     if (loaded) return;
-    await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL), faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL), faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)]);
-    loaded = true;
+    for (const url of MODEL_URLS) {
+      try {
+        await withTimeout(Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(url), faceapi.nets.faceLandmark68Net.loadFromUri(url), faceapi.nets.faceRecognitionNet.loadFromUri(url)]), 25000, 'timeout');
+        loaded = true; return;
+      } catch (_) { /* try the next download source */ }
+    }
+    throw new Error('Face models could not be downloaded. Check your internet connection, then tap Try again.');
   }
-  async function waitForVideo(v) { const t0 = Date.now(); while (!(v.videoWidth > 0)) { if (Date.now() - t0 > 8000) throw new Error('The camera did not start.'); await sleep(100); } }
+  async function waitForVideo(v) {
+    const t0 = Date.now();
+    while (!(v.videoWidth > 0 && (v.readyState === undefined || v.readyState >= 2))) {
+      if (Date.now() - t0 > 10000) throw new Error('The camera started but no picture arrived. Close other apps that use the camera, then tap Try again.');
+      await sleep(100);
+    }
+  }
+  // download models, start the engine, and run one practice detection so the first real frame is fast
+  async function prepare(video) {
+    say('Downloading face models…', 'Only the first time');
+    await loadModels();
+    say('Starting the face engine…', '');
+    try { if (faceapi.tf && faceapi.tf.ready) await withTimeout(faceapi.tf.ready(), 15000, 'engine timeout'); } catch (_) {}
+    await waitForVideo(video);
+    const warm = () => withTimeout(ab(faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks().withFaceDescriptor()), 25000, 'The face engine took too long to start.');
+    try { await warm(); }
+    catch (e) {
+      if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
+      // the graphics engine failed on this device: switch to the slower, safer CPU engine
+      try { await faceapi.tf.setBackend('cpu'); await faceapi.tf.ready(); await warm(); dbg('engine: cpu (fallback)'); return; }
+      catch (e2) { if (cancelled || /Cancelled/.test((e2 && e2.message) || '')) throw new Error('Cancelled'); throw new Error('The face engine could not start on this device (' + ((e && e.message) || 'error') + ').'); }
+    }
+    dbg('engine: ' + ((faceapi.tf && faceapi.tf.getBackend && faceapi.tf.getBackend()) || 'ready'));
+  }
   const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 });
-  const quick = async (v) => (await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks()) || null;
-  const full = async (v) => (await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor()) || null;
+  const quick = async (v) => (await ab(faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks())) || null;
+  const full = async (v) => (await ab(faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor())) || null;
   function brightness(v) {
     try { const c = document.createElement('canvas'); c.width = 32; c.height = 32; const x = c.getContext('2d'); x.drawImage(v, 0, 0, 32, 32); const d = x.getImageData(0, 0, 32, 32).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; return s / (d.length / 4); } catch (_) { return 128; }
   }
   // one look at the camera: either a usable face, or a hint for the person
   async function look(v) {
     if ((++dark % 12) === 1 && brightness(v) < 40) return { hint: 'It is too dark. Face a light.' };
-    const q = await quick(v);
+    const q = await quick(v); noteFrame();
     if (!q) return { hint: 'Move your face into the circle' };
     const b = q.detection.box, vw = v.videoWidth, vh = v.videoHeight;
     if (b.width < vw * 0.24) return { hint: 'Move a little closer' };
@@ -503,16 +537,20 @@ const FaceID = (function () {
     return { q: q };
   }
 
-  // wait until `test` holds for two looks in a row, then collect `frames` descriptors (or none if noDescriptor)
+  // wait until `test` holds for two looks (a single missed frame is forgiven), then collect `frames` descriptors
   async function capture(v, o) {
     const got = [], t0 = Date.now();
-    let stable = 0;
+    let stable = 0, nofaceRun = 0, failSince = 0;
     while (Date.now() - t0 < o.timeout) {
       if (cancelled) throw new Error('Cancelled');
+      await sleep(0);
       const L = await look(v);
-      if (!L.q) { say(L.hint, ''); arrow(null); stable = 0; await sleep(60); continue; }
+      if (!L.q) { say(L.hint, ''); dbg('looking for a face… ' + fps()); arrow(null); if (++nofaceRun > 2) stable = 0; await sleep(60); continue; }
+      nofaceRun = 0;
       const p = L.q.landmarks.positions;
-      if (!o.test(p)) { say(o.say, o.sub || ''); arrow(o.arrow || null); stable = 0; await sleep(30); continue; }
+      dbg('face found · ' + fps() + ' · turn ' + yawOf(p).toFixed(2) + ' · tilt ' + pitchOf(p).toFixed(2));
+      if (!o.test(p)) { if (!failSince) failSince = Date.now(); say(o.say, Date.now() - failSince > 6000 ? 'Keep your head level and face the screen' : (o.sub || '')); arrow(o.arrow || null); stable = Math.max(0, stable - 1); await sleep(30); continue; }
+      failSince = 0;
       if (++stable < 2) continue;
       say(o.done || o.say, o.sub || '');
       let f = L.q;
@@ -530,7 +568,7 @@ const FaceID = (function () {
     const ys = [], ps = [];
     const A = await capture(v, {
       say: 'Look straight at the camera', sub: 'Step 1 of 2', frames: 4, timeout: 25000,
-      test: (p) => Math.abs(yawOf(p)) < 0.16 && Math.abs(pitchOf(p) - 0.5) < 0.25,
+      test: (p) => Math.abs(yawOf(p)) < 0.24,
       tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); fillTo(ys.length / 40); }
     });
     if (!A) throw new Error('No clear face found. Face the camera in good light.');
@@ -541,6 +579,7 @@ const FaceID = (function () {
     const t0 = Date.now(); let last = -1, run = 0;
     while (Date.now() - t0 < 60000 && got.size < 9) {
       if (cancelled) throw new Error('Cancelled');
+      await sleep(0);
       const L = await look(v);
       if (!L.q) { say(L.hint, ''); arrow(null); last = -1; await sleep(60); continue; }
       const d = dirOf(L.q.landmarks.positions, n);
@@ -574,7 +613,7 @@ const FaceID = (function () {
     const tick = () => { done++; fillTo(done / total); };
     const A = await capture(v, {
       say: 'Look at the camera', frames: 4, timeout: 25000,
-      test: (p) => Math.abs(yawOf(p)) < 0.16 && Math.abs(pitchOf(p) - 0.5) < 0.25,
+      test: (p) => Math.abs(yawOf(p)) < 0.24,
       tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); tick(); }
     });
     if (!A) throw new Error('No clear face found. Face the camera in good light.');
@@ -582,11 +621,11 @@ const FaceID = (function () {
     const side = Math.random() < 0.5 ? 'left' : 'right';
     const T = await capture(v, {
       say: 'Now turn your head slightly ' + side, sub: 'Just a little, to confirm it is really you', noDescriptor: true, frames: 1, timeout: 14000, arrow: side === 'left' ? 'l' : 'r',
-      test: (p) => { const d = dirOf(p, n); return side === 'left' ? d.x < -0.45 : d.x > 0.45; },
+      test: (p) => { const d = dirOf(p, n); return side === 'left' ? d.x < -0.4 : d.x > 0.4; },
       tick: tick
     });
     if (!T) throw new Error('Liveness check failed: turn your head slightly when asked.');
-    const B = await capture(v, { say: 'Great. Look at the camera again', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.35; }, tick: tick });
+    const B = await capture(v, { say: 'Great. Look at the camera again', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.65; }, tick: tick });
     if (!B) throw new Error('Liveness check failed: look back at the camera.');
     if (dist(avg(A), avg(B)) > 0.5) throw new Error('The face changed during the check. Try again.');
     return { v: avg(A.concat(B)), live: true };
@@ -595,42 +634,60 @@ const FaceID = (function () {
   // ---------- run ----------
   function choose(retryOk) {
     return new Promise((resolve) => {
-      const r = g('fidRetry'), c = g('fidCancel');
+      chooseResolve = resolve;
+      const r = g('fidRetry');
       r.style.display = retryOk ? '' : 'none';
       r.onclick = () => resolve('retry');
-      c.onclick = () => { cancelled = true; resolve('cancel'); };
     });
   }
   async function run(mode) {
     if (running) throw new Error('Face ID is already open.');
     if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
-    running = true; cancelled = false; ensureUI();
+    running = true; cancelled = false; chooseResolve = null; ensureUI();
+    let abortRej;
+    const cancelP = new Promise((_, rej) => { abortRej = rej; }); cancelP.catch(() => {});
+    ab = (p) => Promise.race([p, cancelP]);
+    const abort = () => { cancelled = true; abortRej(new Error('Cancelled')); if (chooseResolve) chooseResolve('cancel'); };
     const ov = g('fidOv'), video = g('fidVideo');
     ov.classList.add('show');
     g('fidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
-    g('fidCancel').onclick = () => { cancelled = true; };
+    g('fidCancel').onclick = abort; g('fidBack').onclick = abort;
     try {
-      say('Starting camera…', ''); fillTo(0);
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+      say('Starting camera…', ''); dbg(''); fillTo(0);
+      const gum = navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+      gum.then((s) => { if (cancelled || !running) s.getTracks().forEach((t) => t.stop()); }).catch(() => {});   // never leave the camera on
+      stream = await ab(gum);
       video.srcObject = stream;
+      video.muted = true; video.playsInline = true;
+      try { video.setAttribute('playsinline', ''); video.setAttribute('muted', ''); } catch (_) {}
+      try { const pp = video.play(); if (pp && pp.catch) pp.catch(() => {}); } catch (_) {}
       say('Getting Face ID ready…', 'The first time can take a few seconds');
-      await loadModels(); await waitForVideo(video);
+      for (;;) {
+        try { await ab(prepare(video)); break; }
+        catch (e) {
+          if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
+          say(e.message, 'Tap Try again, or go back'); g('fidSvg').classList.add('bad');
+          if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
+          g('fidSvg').classList.remove('bad'); say('Getting Face ID ready…', '');
+        }
+      }
       for (;;) {
         g('fidSvg').classList.remove('bad'); g('fidCheck').classList.remove('on'); g('fidRetry').style.display = 'none'; fillTo(0);
         try {
           const res = mode === 'enroll' ? await enrollFlow(video) : await verifyFlow(video);
-          fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); buzz([20, 40, 20]);
+          fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); dbg(''); buzz([20, 40, 20]);
           await sleep(900);
           return res;
         } catch (e) {
           if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
           g('fidSvg').classList.add('bad'); ticksOn(0, 60, true); g('fidStage').classList.add('fid-shake'); buzz([60, 40, 60]);
           setTimeout(() => g('fidStage').classList.remove('fid-shake'), 500);
-          say(e.message, 'Tap Try again, or cancel'); arrow(null);
+          say(e.message, 'Tap Try again, or go back'); arrow(null);
           if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
         }
       }
     } finally {
+      ab = (p) => p; chooseResolve = null;
       if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
       ov.classList.remove('show'); running = false;
     }
@@ -725,6 +782,11 @@ async function routeAfterAuth(isNew, viaPasskey, viaFace) {
     }
     if (me.twofa_pref === 'fingerprint' && !viaPasskey && sessionStorage.getItem('drozo_fp_ok_' + me.id) !== '1') {
       ['authStep1', 'authStepOnboarding'].forEach(hide);
+      if ((await passkeyCount()) === 0) {   // marked as fingerprint, but no passkey is registered (e.g. set up with an older version)
+        alert('No fingerprint is registered for this account yet. Please choose how you want to protect it again.');
+        try { await setPref(null); } catch (_) {}
+        showOnboardingChoice(); return;
+      }
       if (!(await requireFingerprint())) { await backToStep1(); return; }
       sessionStorage.setItem('drozo_fp_ok_' + me.id, '1');
       const a2 = (await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;   // the passkey sign-in refreshed the session
@@ -786,7 +848,8 @@ async function handleStep1Submit(e) {
 // ---------- passkeys (Face ID / Touch ID on this device, handled by Supabase Auth) ----------
 function passkeyError(e) {
   const m = errMsg(e), code = (e && (e.code || e.name)) || '';
-  if (/passkey_disabled/.test(code + m)) return 'Passkeys are not turned on in Supabase yet (Authentication > Passkeys).';
+  if (/passkey_disabled|not enabled|disabled/i.test(code + m)) return 'Passkeys are switched off in Supabase (Authentication > Passkeys). Turn on "Enable Passkey authentication".';
+  if (/domain|origin|rp_?id|relying/i.test(code + m)) return 'The passkey settings in Supabase do not match this website. Relying Party ID must be gte-02.github.io and the origin https://gte-02.github.io.';
   if (/NotAllowed|cancel|abort/i.test(code + m)) return 'Cancelled. Nothing was changed.';
   if (/not_found|not found|webauthn_credential/i.test(code + m)) return 'No passkey was found for this site. Sign in with your password, then add one in Security Settings.';
   return m;
@@ -845,13 +908,13 @@ async function verifyFaceModel() {
     if (!row) { alert('No face is registered for this account. Set it up again in Security Settings.'); return null; }
     if (!row.match_found) { alert('Face did not match (score ' + Number(row.distance).toFixed(2) + ', needs under 0.55).'); return false; }
     return true;
-  } catch (e) { if (!isCancel(e)) alert('Face check: ' + errMsg(e)); return false; }
+  } catch (e) { if (isCancel(e)) return 'cancel'; alert('Face check: ' + errMsg(e)); return false; }
 }
 async function requireFace() {
   for (;;) {
     const ok = await verifyFaceModel();
     if (ok === true) return true;
-    if (ok === null || !confirm('The face check did not pass. Try again?')) return false;
+    if (ok === 'cancel' || ok === null || !confirm('The face check did not pass. Try again?')) return false;
   }
 }
 async function startFaceEnrollment() {
@@ -927,7 +990,7 @@ async function startFingerprintEnrollment() {
 async function requireFingerprint() {
   for (;;) {
     try {
-      if (typeof sb.auth.signInWithPasskey !== 'function') throw new Error('older library');
+      if (typeof sb.auth.signInWithPasskey !== 'function') throw new Error('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.');
       const { error } = await sb.auth.signInWithPasskey();
       if (error) throw error;
       const { data: { user } } = await sb.auth.getUser();
@@ -935,7 +998,7 @@ async function requireFingerprint() {
       await sb.auth.signOut();
       alert('That fingerprint is linked to a different account.');
       return false;
-    } catch (e) { if (!confirm('The fingerprint check did not pass. Try again?')) return false; }
+    } catch (e) { if (!confirm('The fingerprint check did not pass.\n\nReason: ' + passkeyError(e) + '\n\nTry again?')) return false; }
   }
 }
 
@@ -1083,9 +1146,12 @@ function unlockSanctuaryUI() {
   area.appendChild(out);
 
   checkAndDisplayIdPassNav();
+  lastApptSig = '';
   loadAppointment(); loadDispatchedDocuments(); loadCloudVaultFiles();
   if (apptTimer) clearInterval(apptTimer);
-  apptTimer = setInterval(loadAppointment, 10000);
+  let tick = 0;
+  apptTimer = setInterval(() => { loadAppointment(); if (++tick % 4 === 0) loadDispatchedDocuments(); }, 3000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && me) { loadAppointment(); loadDispatchedDocuments(); } });
 }
 
 async function logout() {
@@ -1103,6 +1169,9 @@ function focusSection(id) {
 }
 
 // ---------- security settings ----------
+async function passkeyCount() {   // null = cannot tell (library too old, or passkeys switched off)
+  try { if (!(sb.auth.passkey && sb.auth.passkey.list)) return null; const r = await sb.auth.passkey.list(); return r.error ? null : (r.data || []).length; } catch (_) { return null; }
+}
 async function refreshPasskeyCard() {
   const t = $('passkeyStatusText'); if (!t || !me) return;
   let n = null;
@@ -1113,13 +1182,15 @@ function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; 
 function closeSecurityModal() { hide('securityManagementModal'); }
 
 async function executeSwitch2FAMethod() {
-  if (!confirm('Remove your current 2FA and set it up again?')) return;
+  if (!confirm('Reset ALL your security (authenticator app, face, fingerprint) and set it up again?')) return;
   try {
     const lf = (await sb.auth.mfa.listFactors()).data;
     for (const f of ((lf && lf.all) || [])) {
       const { error } = await sb.auth.mfa.unenroll({ factorId: f.id });
       if (error) throw error;
     }
+    try { await sb.rpc('reset_my_face'); } catch (_) {}
+    try { if (sb.auth.passkey && sb.auth.passkey.list) { const pl = await sb.auth.passkey.list(); for (const k of ((pl && pl.data) || [])) await sb.auth.passkey.delete({ passkeyId: k.id }); } } catch (_) {}
     await setPref(null);
     localStorage.setItem('drozo_force_setup_wizard', me.id);
     await logout();
@@ -1135,25 +1206,58 @@ async function executeChangePassword() {
   $('newSecPassword').value = ''; closeSecurityModal();
 }
 
-// ---------- appointments ----------
+// ---------- appointments: book with or without the AI; the channel is chosen ONCE; an admin starts the meeting ----------
+const ACTIVE = ['PENDING', 'CLAIMED', 'CONFIRMED'];
+const CHANNEL_LABEL = { discord: '🎮 Discord voice chat', video: '🎥 Jitsi video call' };
+let lastApptSig = '', bookingDraft = { channel: null };
+
 async function loadAppointment() {
   if (!me) return;
   try {
     const { data, error } = await sb.from('appointments').select('*').eq('patient_id', me.id).order('created_at', { ascending: false }).limit(1);
     if (error) throw error;
-    currentAppt = (data && data[0]) || null;
-    if (currentAppt) selectedChannel = currentAppt.channel;
+    const next = (data && data[0]) || null;
+    const sig = next ? [next.id, next.status, next.channel, next.meeting_started_at || '', next.slot_label].join('|') : 'none';
+    currentAppt = next;
+    if (sig !== lastApptSig) { lastApptSig = sig; syncAppointmentStatus(); }   // only redraw when something changed (keeps the form usable)
   } catch (_) {}
-  syncAppointmentStatus();
 }
-const ACTIVE = ['PENDING', 'CLAIMED', 'CONFIRMED'];
+function defaultWhen() { const d = new Date(Date.now() + 86400000); d.setHours(16, 0, 0, 0); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+function slotLabelFrom(v) { return new Date(v).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
 
-async function bookAppointment() {
-  if (currentAppt && ACTIVE.includes(currentAppt.status)) { appendChatMessage('Drozo AI', 'You already have an active appointment. See your schedule.', 'bot'); return; }
-  const { error } = await sb.from('appointments').insert({ channel: selectedChannel });
-  if (error) { appendChatMessage('Drozo AI', 'Sorry, I could not book that: ' + escapeHtml(errMsg(error)), 'bot'); return; }
+function renderBookingForm(note) {
+  const card = $('scheduleList'), count = $('appointmentCount');
+  if (count) count.innerText = '0 Active';
+  card.innerHTML = '<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">' +
+    (note ? '<div class="text-[11px] text-slate-500">' + escapeHtml(note) + '</div>' : '') +
+    '<div class="text-xs font-bold text-slate-800">Book an appointment</div>' +
+    '<div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Preferred date & time</label><input type="datetime-local" id="bookWhen" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" /></div>' +
+    '<div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">How do you want to meet? You can choose only once.</label><div class="grid grid-cols-2 gap-2">' +
+    '<button type="button" id="bookDiscord" onclick="pickBookingChannel(\'discord\')" class="py-2 px-2 rounded-lg border text-xs font-bold transition">🎮 Discord</button>' +
+    '<button type="button" id="bookVideo" onclick="pickBookingChannel(\'video\')" class="py-2 px-2 rounded-lg border text-xs font-bold transition">🎥 Jitsi video</button></div></div>' +
+    '<button type="button" id="btnBook" onclick="submitBooking()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow">Book appointment</button></div>';
+  $('bookWhen').value = defaultWhen();
+  paintChannelButtons();
+}
+function paintChannelButtons() {
+  const on = 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm', off = 'bg-white border-slate-200 text-slate-600';
+  [['bookDiscord', 'discord'], ['bookVideo', 'video']].forEach(([id, ch]) => { const b = $(id); if (b) b.className = 'py-2 px-2 rounded-lg border text-xs font-bold transition ' + (bookingDraft.channel === ch ? on : off); });
+}
+function pickBookingChannel(ch) { bookingDraft.channel = ch; paintChannelButtons(); }
+async function submitBooking() {
+  if (!bookingDraft.channel) { alert('Choose Discord or Jitsi video first. You can only choose once.'); return; }
+  const when = $('bookWhen').value;
+  if (!when || new Date(when).getTime() < Date.now() - 60000) { alert('Pick a date and time in the future.'); return; }
+  if (!confirm('Book with ' + CHANNEL_LABEL[bookingDraft.channel] + '?\n\nThe channel cannot be changed after booking.')) return;
+  await bookWithChannel(bookingDraft.channel, slotLabelFrom(when));
+}
+async function bookWithChannel(channel, slotLabel) {
+  if (currentAppt && ACTIVE.includes(currentAppt.status)) { alert('You already have an active appointment.'); return false; }
+  const { error } = await sb.from('appointments').insert({ channel: channel, slot_label: slotLabel });
+  if (error) { alert(/duplicate|unique|one_active/i.test(errMsg(error)) ? 'You already have an active appointment.' : 'Could not book: ' + errMsg(error)); return false; }
+  bookingDraft.channel = null; lastApptSig = '';
   await loadAppointment();
-  appendChatMessage('Drozo AI', 'Appointment requested. A therapist will confirm it shortly and you will see the join link here.', 'bot');
+  return true;
 }
 
 function syncAppointmentStatus() {
@@ -1161,31 +1265,26 @@ function syncAppointmentStatus() {
   if (!card) return;
   const a = currentAppt, title = 'Mindfulness & Cognitive Restructure';
   if (!a || a.status === 'CANCELLED' || a.status === 'COMPLETED') {
-    if (count) count.innerText = '0 Active';
-    const note = !a ? 'No Active Appointments' : (a.status === 'COMPLETED' ? 'Last session completed' : 'Last appointment was cancelled');
-    card.innerHTML = '<div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-2"><span class="text-2xl block">🗓️</span><div class="text-xs font-bold text-slate-700">' + note + '</div><p class="text-[11px] text-slate-400">Talk to the AI assistant to book a new slot.</p></div>';
-    return;
-  }
-  if (a.status === 'PENDING' || a.status === 'CLAIMED') {
-    if (count) count.innerText = '1 Active';
-    card.innerHTML = '<div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col gap-2"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml(a.slot_label) + '</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-white">' + (a.status === 'PENDING' ? 'Awaiting therapist' : 'Therapist assigned') + '</span></div><div class="pt-2 border-t border-amber-200/60 text-[11px] text-slate-500">Your join link appears here as soon as the therapist confirms.</div></div>';
+    renderBookingForm(!a ? '' : (a.status === 'COMPLETED' ? 'Your last session is complete. You can book another.' : 'Your last appointment was cancelled. You can book another.'));
     return;
   }
   if (count) count.innerText = '1 Active';
-  const dis = selectedChannel === 'discord', vid = selectedChannel === 'video';
-  card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-3"><div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml(a.slot_label) + '</div></div><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Confirmed</span></div><div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-2"><span class="text-[11px] font-bold text-slate-700 block">Select Preferred Session Channel:</span><div class="grid grid-cols-2 gap-2"><button type="button" onclick="setSessionChannel(\'discord\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (dis ? 'bg-indigo-50 border-indigo-400 text-indigo-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎮</span> Discord VC</button><button type="button" onclick="setSessionChannel(\'video\')" class="py-1.5 px-2 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1.5 ' + (vid ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600') + '"><span>🎥</span> Video Call</button></div></div><div class="pt-1"><button type="button" onclick="launchSessionMeeting()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord VC Room' : 'Video Call') + '</button></div></div>';
-}
-async function setSessionChannel(mode) {
-  selectedChannel = mode;
-  if (currentAppt) {
-    const { error } = await sb.rpc('set_my_channel', { appt: currentAppt.id, ch: mode });
-    if (!error) currentAppt.channel = mode;
+  const chan = '<div class="text-[11px] text-slate-600 mt-1">' + CHANNEL_LABEL[a.channel] + ' <span class="text-slate-400">(chosen when booking, locked)</span></div>';
+  const head = (badgeCls, badge) => '<div class="flex justify-between items-start"><div><div class="font-bold text-slate-800 text-sm">' + title + '</div><div class="text-[11px] text-slate-500 mt-0.5">' + escapeHtml(a.slot_label) + '</div>' + chan + '</div><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeCls + '">' + badge + '</span></div>';
+  if (a.status === 'PENDING' || a.status === 'CLAIMED') {
+    card.innerHTML = '<div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 flex flex-col gap-2">' + head('bg-amber-500 text-white', a.status === 'PENDING' ? 'Awaiting therapist' : 'Therapist assigned') + '<div class="pt-2 border-t border-amber-200/60 text-[11px] text-slate-500">This page updates by itself. Your join button appears when the meeting starts.</div></div>';
+    return;
   }
-  syncAppointmentStatus();
+  if (!a.meeting_started_at) {
+    card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col gap-2">' + head('bg-emerald-600 text-white', 'Confirmed') + '<div class="pt-2 border-t border-emerald-200/60 text-[11px] text-slate-500">Waiting for the host to start the meeting. This page updates by itself.</div></div>';
+    return;
+  }
+  const dis = a.channel === 'discord';
+  card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 flex flex-col gap-3">' + head('bg-rose-600 text-white animate-pulse', '● LIVE') + '<button type="button" onclick="launchSessionMeeting()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord voice chat' : 'Jitsi video call') + ' now</button></div>';
 }
 function launchSessionMeeting() {
-  if (selectedChannel === 'discord') window.open(DISCORD_INVITE_URL, '_blank');
-  else if (currentAppt) window.open('https://meet.jit.si/drozo-' + currentAppt.id, '_blank');
+  if (!currentAppt || !currentAppt.meeting_started_at) { alert('The host has not started the meeting yet.'); return; }
+  window.open(currentAppt.channel === 'discord' ? DISCORD_INVITE_URL : 'https://meet.jit.si/drozo-' + currentAppt.id, '_blank');
 }
 
 // ---------- clinical documents ----------
@@ -1213,6 +1312,7 @@ async function loadDispatchedDocuments() {
 }
 
 // ---------- AI chat ----------
+let chatSlot = '';
 function toggleAiBot() { $('aiChatDrawer').classList.toggle('hidden'); }
 function handleChatSubmit(e) {
   e.preventDefault();
@@ -1223,9 +1323,21 @@ function handleChatSubmit(e) {
   input.value = '';
   setTimeout(() => {
     const low = val.toLowerCase();
-    if (low.includes('book') || low.includes('schedule')) bookAppointment();
-    else appendChatMessage('Drozo AI', 'I hear you. Let us take a deep, steady breath and explore this together.', 'bot');
-  }, 500);
+    if (low.includes('book') || low.includes('schedule') || low.includes('appointment')) askChannelInChat(val);
+    else appendChatMessage('Drozo AI', 'I hear you. Let us take a deep, steady breath and explore this together. You can also say "book a session" whenever you are ready.', 'bot');
+  }, 400);
+}
+function askChannelInChat(text) {
+  if (currentAppt && ACTIVE.includes(currentAppt.status)) { appendChatMessage('Drozo AI', 'You already have an active appointment. See your schedule.', 'bot'); return; }
+  const t = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i.exec(text);
+  chatSlot = (/today/i.test(text) ? 'Today' : 'Tomorrow') + ', ' + (t ? t[1] + ':' + (t[2] || '00') + ' ' + t[3].toUpperCase() : '4:00 PM');
+  appendChatMessage('Drozo AI', 'Happy to book <strong>' + escapeHtml(chatSlot) + '</strong>. How would you like to meet? <strong>You can choose only once.</strong><div class="flex gap-2 mt-2"><button type="button" onclick="chatPickChannel(\'discord\')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-[11px]">🎮 Discord</button><button type="button" onclick="chatPickChannel(\'video\')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px]">🎥 Jitsi video</button></div>', 'bot');
+}
+async function chatPickChannel(ch) {
+  if (!chatSlot) return;
+  const ok = await bookWithChannel(ch, chatSlot);
+  chatSlot = '';
+  if (ok) appendChatMessage('Drozo AI', 'Booked with ' + CHANNEL_LABEL[ch] + '. A therapist will confirm it, and your join button appears in your schedule when the meeting starts.', 'bot');
 }
 function appendChatMessage(sender, html, type) {
   const box = $('chatMessages');

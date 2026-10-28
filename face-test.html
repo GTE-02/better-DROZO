@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Face ID check</title>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1118;color:#e8eef5;margin:0;padding:20px;max-width:560px;margin:auto}
+  h1{font-size:20px;margin:0 0 4px} p.s{color:#8a98a8;font-size:13px;margin:0 0 16px}
+  .row{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid #1d2937;border-radius:12px;margin-bottom:8px;background:#0f1722}
+  .ic{width:22px;text-align:center;font-size:16px}.t{font-size:14px;font-weight:600}.d{font-size:12px;color:#8a98a8;margin-top:2px;word-break:break-word}
+  .ok .ic{color:#34d399}.bad .ic{color:#f87171}.run .ic{color:#fbbf24}
+  button{padding:12px 20px;border-radius:12px;border:0;background:#34d399;color:#04140d;font-weight:700;font-size:14px;cursor:pointer;margin:6px 0 14px}
+  video{width:100%;max-height:260px;border-radius:14px;background:#000;transform:scaleX(-1);display:none}
+  #report{white-space:pre-wrap;font:12px ui-monospace,Menlo,monospace;background:#0f1722;border:1px solid #1d2937;border-radius:12px;padding:12px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+<h1>Face ID check</h1>
+<p class="s">Tap the button, allow the camera, and look at the screen for about 10 seconds. Then send a screenshot of this page.</p>
+<button id="go">Start check</button>
+<video id="v" autoplay playsinline muted></video>
+<div id="steps"></div>
+<div id="report"></div>
+<script>
+(function () {
+  var URLS = ['https://vladmandic.github.io/face-api/model/', 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/'];
+  var $ = function (id) { return document.getElementById(id); };
+  var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var lines = [];
+  function step(key, title) {
+    var el = document.createElement('div'); el.className = 'row run';
+    el.innerHTML = '<div class="ic">…</div><div><div class="t"></div><div class="d"></div></div>';
+    el.querySelector('.t').textContent = title; $('steps').appendChild(el);
+    return {
+      ok: function (d) { el.className = 'row ok'; el.querySelector('.ic').textContent = '✓'; el.querySelector('.d').textContent = d || ''; lines.push('OK   ' + title + (d ? ' - ' + d : '')); },
+      bad: function (d) { el.className = 'row bad'; el.querySelector('.ic').textContent = '✕'; el.querySelector('.d').textContent = d || ''; lines.push('FAIL ' + title + (d ? ' - ' + d : '')); },
+      info: function (d) { el.querySelector('.d').textContent = d; }
+    };
+  }
+  function timeout(p, ms, msg) { return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error(msg)); }, ms); })]); }
+
+  async function main() {
+    $('go').disabled = true; $('steps').innerHTML = ''; lines = []; $('report').style.display = 'none';
+    lines.push('Browser: ' + navigator.userAgent);
+    var s = step('lib', '1. Face library loaded');
+    if (typeof faceapi === 'undefined') { s.bad('The face library did not download. Check the internet connection or a content blocker.'); return finish(); }
+    s.ok('face-api ' + ((faceapi.version && (faceapi.version.faceapi || faceapi.version)) || ''));
+
+    s = step('engine', '2. Face engine (graphics)');
+    try { await timeout(faceapi.tf.ready(), 15000, 'engine start timed out'); s.ok('engine: ' + faceapi.tf.getBackend()); }
+    catch (e) { s.bad(e.message); }
+
+    s = step('models', '3. Face models download');
+    var loaded = false, t0 = Date.now();
+    for (var i = 0; i < URLS.length && !loaded; i++) {
+      s.info('trying source ' + (i + 1) + '…');
+      try {
+        await timeout(Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(URLS[i]), faceapi.nets.faceLandmark68Net.loadFromUri(URLS[i]), faceapi.nets.faceRecognitionNet.loadFromUri(URLS[i])]), 30000, 'timed out');
+        loaded = true; s.ok('source ' + (i + 1) + ' worked in ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s');
+      } catch (e) { lines.push('     source ' + (i + 1) + ' failed: ' + e.message); }
+    }
+    if (!loaded) { s.bad('Both download sources failed. Check the internet connection or a content blocker.'); return finish(); }
+
+    s = step('cam', '4. Camera picture');
+    var v = $('v'), stream;
+    try {
+      stream = await timeout(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false }), 20000, 'No answer to the camera permission prompt.');
+      v.srcObject = stream; v.muted = true; v.playsInline = true; v.style.display = 'block';
+      try { await v.play(); } catch (_) {}
+      var t1 = Date.now();
+      while (!(v.videoWidth > 0 && v.readyState >= 2)) { if (Date.now() - t1 > 10000) throw new Error('The camera opened but no picture arrived.'); await sleep(100); }
+      s.ok(v.videoWidth + ' x ' + v.videoHeight + ', picture after ' + ((Date.now() - t1) / 1000).toFixed(1) + ' s');
+    } catch (e) { s.bad(e.name === 'NotAllowedError' ? 'Camera permission was refused. Allow the camera for this site in Safari settings.' : e.message); return finish(stream); }
+
+    var OPTS = function () { return new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }); };
+    s = step('warm', '5. First detection (warm-up)');
+    try { var w0 = Date.now(); await timeout(faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor(), 30000, 'The engine took longer than 30 s.'); s.ok('took ' + ((Date.now() - w0) / 1000).toFixed(1) + ' s'); }
+    catch (e) { s.bad(e.message); return finish(stream); }
+
+    s = step('live', '6. Live scan (10 seconds, look at the screen and move a little)');
+    var n = 0, found = 0, yaws = [], tilts = [], widths = [], t2 = Date.now(), descs = [];
+    while (Date.now() - t2 < 10000) {
+      var q = await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks();
+      n++;
+      if (q) {
+        found++; var p = q.landmarks.positions;
+        yaws.push((p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x));
+        var ey = 0; for (var k = 36; k < 48; k++) ey += p[k].y; ey /= 12; tilts.push((p[30].y - ey) / (p[8].y - ey));
+        widths.push(q.detection.box.width / v.videoWidth);
+        if (descs.length < 2 && n % 6 === 0) { var f = await faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor(); if (f) descs.push(Array.from(f.descriptor)); }
+      }
+      s.info('frames ' + n + ' · face seen in ' + found + ' · ' + (n / ((Date.now() - t2) / 1000)).toFixed(1) + ' fps');
+      await sleep(0);
+    }
+    var secs = (Date.now() - t2) / 1000, fps = n / secs, pct = Math.round(100 * found / Math.max(1, n));
+    var mm = function (a) { return a.length ? Math.min.apply(null, a).toFixed(2) + ' to ' + Math.max.apply(null, a).toFixed(2) : 'n/a'; };
+    var avgW = widths.length ? (widths.reduce(function (a, b) { return a + b; }, 0) / widths.length) : 0;
+    var detail = fps.toFixed(1) + ' fps · face seen in ' + pct + '% of frames · turn ' + mm(yaws) + ' · tilt ' + mm(tilts) + ' · face width ' + Math.round(avgW * 100) + '% of picture';
+    if (pct < 60) s.bad(detail + '. The face was often not found: more light, face the camera, move closer.');
+    else if (fps < 1.5) s.bad(detail + '. Too slow: this device is struggling with the engine.');
+    else s.ok(detail);
+
+    s = step('same', '7. Same face gives the same numbers');
+    if (descs.length === 2) {
+      var d = 0; for (var j = 0; j < 128; j++) { var x = descs[0][j] - descs[1][j]; d += x * x; } d = Math.sqrt(d);
+      (d < 0.4 ? s.ok : s.bad)('distance between two scans of you: ' + d.toFixed(2) + ' (should be under 0.40)');
+    } else s.bad('Could not take two scans of your face. See step 6.');
+    finish(stream);
+  }
+  function finish(stream) {
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    $('go').disabled = false; $('go').textContent = 'Run again';
+    var bad = lines.filter(function (l) { return l.indexOf('FAIL') === 0; });
+    lines.push(bad.length ? 'RESULT: ' + bad.length + ' problem(s) found, see the red lines above.' : 'RESULT: everything works on this device.');
+    $('report').textContent = lines.join('\n'); $('report').style.display = 'block';
+  }
+  $('go').addEventListener('click', function () { main().catch(function (e) { lines.push('FAIL unexpected: ' + e.message); finish(); }); });
+})();
+</script>
+</body>
+</html>
