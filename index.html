@@ -964,7 +964,10 @@ async function signInWithFace() {
     if (error) {
       const st = error.context && error.context.status;
       if (st === 429) throw new Error('Too many attempts. Please wait a few minutes and try again.');
-      if (st === 404 || /relay|fetch|Failed to send/i.test((error.name || '') + ' ' + errMsg(error))) throw new Error('Face sign-in is not available yet: the "face-login" function is not deployed in Supabase.');
+      const kind = (error.name || '') + ' ' + errMsg(error);
+      if (st === 404) throw new Error('The "face-login" function was not found in your Supabase project.\n\nIn Supabase: Edge Functions, Deploy a new function, Via Editor, name it exactly face-login, paste the code, and press Deploy.');
+      if (/Relay/i.test(kind)) throw new Error('Supabase could not start the face-login function. Open Supabase, Edge Functions, face-login, Logs to see why.');
+      if (/Fetch|Failed to send/i.test(kind)) throw new Error('Could not reach the face-login function (the browser or network blocked it).\n\nIf you just deployed it, wait a minute and reload. Make sure its name is exactly face-login and that you updated it to the newest code.');
       throw new Error('Face not recognised.\n\nCheck that:\n1. Face sign-in is switched on for this account (sign in with your password, then open ⚙️ Security Settings).\n2. You registered your face there.\n3. For the best result, type your email above first, then press this button.');
     }
     if (!data || !data.token_hash) throw new Error('Face not recognised.');
