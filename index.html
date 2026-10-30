@@ -414,7 +414,7 @@
     if (typeof supabase === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>'); }
   </script>
   <script>
-// ===== DrozoMind Face ID v5 (faster, finds your face more often): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
+// ===== DrozoMind Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
 // The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
 // signing in is a quick look plus a small, random head nudge to prove you are a live person.
 const FaceID = (function () {
@@ -451,8 +451,8 @@ const FaceID = (function () {
     '.fid-arrow{position:absolute;font-size:38px;line-height:1;color:#34d399;opacity:0;transition:opacity .2s}.fid-arrow.on{opacity:1;animation:fidNudge 1s infinite}' +
     '@keyframes fidNudge{50%{transform:translate(var(--nx,0),var(--ny,0))}}' +
     '#fidAl{left:-3%;top:44%;--nx:-8px}#fidAr{right:-3%;top:44%;--nx:8px}#fidAu{top:-3%;left:46%;--ny:-8px}#fidAd{bottom:-3%;left:46%;--ny:8px}' +
-    '.fid-back{position:absolute;top:max(18px,env(safe-area-inset-top));left:16px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:600;cursor:pointer}.fid-dbg{font-size:11px;opacity:.35;min-height:14px;font-variant-numeric:tabular-nums}.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
-    '.fid-btns{display:flex;gap:10px;min-height:42px}.fid-btn{padding:11px 24px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:600;cursor:pointer}.fid-btn.main{background:#fff;color:#000;border-color:#fff}';
+    '.fid-back{position:absolute;z-index:5;top:max(18px,env(safe-area-inset-top));left:16px;padding:13px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-x{position:absolute;z-index:6;top:0;right:0;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(20,28,40,.9);color:#fff;font-size:20px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-dbg{font-size:11px;opacity:.35;min-height:14px;font-variant-numeric:tabular-nums}.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
+    '.fid-btns{display:flex;gap:10px;min-height:42px}.fid-btn{padding:14px 30px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-btn.main{background:#fff;color:#000;border-color:#fff}';
 
   function ensureUI() {
     if (uiReady && g('fidOv')) return;
@@ -465,7 +465,7 @@ const FaceID = (function () {
     const w = document.createElement('div');
     w.id = 'fidOv';
     w.innerHTML = '<button type="button" class="fid-back" id="fidBack">&#8249; Back</button><div class="fid-title" id="fidTitle">Face ID</div>' +
-      '<div class="fid-stage" id="fidStage"><div class="fid-vid"><video id="fidVideo" autoplay playsinline muted></video></div>' +
+      '<div class="fid-stage" id="fidStage"><button type="button" class="fid-x" id="fidX" aria-label="Close">&#10005;</button><div class="fid-vid"><video id="fidVideo" autoplay playsinline muted></video></div>' +
       '<svg class="fid-svg" id="fidSvg" viewBox="0 0 100 100">' + ticks + '</svg>' +
       '<div class="fid-check" id="fidCheck"><svg width="86" height="86" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" style="stroke-width:2.2"></path></svg></div>' +
       '<div class="fid-arrow" id="fidAl">&#8592;</div><div class="fid-arrow" id="fidAr">&#8594;</div><div class="fid-arrow" id="fidAu">&#8593;</div><div class="fid-arrow" id="fidAd">&#8595;</div></div>' +
@@ -474,6 +474,7 @@ const FaceID = (function () {
     document.body.appendChild(w);
     uiReady = true;
   }
+  const HINT_NOFACE = 'Put your face in the circle';
   const frameTimes = [];
   function noteFrame() { frameTimes.push(Date.now()); while (frameTimes.length > 8) frameTimes.shift(); }
   function fps() { if (frameTimes.length < 3) return ''; const s = (frameTimes[frameTimes.length - 1] - frameTimes[0]) / 1000; return s > 0 ? ((frameTimes.length - 1) / s).toFixed(1) + ' fps' : ''; }
@@ -537,13 +538,13 @@ const FaceID = (function () {
   }
   // one look at the camera: either a usable face, or a hint for the person
   async function look(v) {
-    if ((++dark % 12) === 1 && brightness(v) < 40) return { hint: 'It is too dark. Face a light.' };
+    if ((++dark % 12) === 1 && brightness(v) < 40) return { hint: 'Too dark. Face a light or a window.' };
     const q = await quick(v); noteFrame();
-    if (!q) return { hint: 'Move your face into the circle' };
+    if (!q) return { hint: HINT_NOFACE };
     const b = q.detection.box, vw = v.videoWidth, vh = v.videoHeight;
     if (b.width < vw * 0.24) return { hint: 'Move a little closer' };
-    if (b.width > vw * 0.82) return { hint: 'Move a little farther away' };
-    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.24 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.24) return { hint: 'Center your face' };
+    if (b.width > vw * 0.82) return { hint: 'Move back a little' };
+    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.24 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.24) return { hint: 'Move to the middle of the circle' };
     return { q: q };
   }
 
@@ -555,7 +556,7 @@ const FaceID = (function () {
       if (cancelled) throw new Error('Cancelled');
       await sleep(0);
       const L = await look(v);
-      if (!L.q) { nofaceRun++; dbg('looking for a face… ' + fps()); if (nofaceRun > 2 || L.hint !== 'Move your face into the circle') { say(L.hint, ''); arrow(null); } if (nofaceRun > 2) stable = 0; await sleep(60); continue; }
+      if (!L.q) { nofaceRun++; dbg('looking for a face… ' + fps()); if (nofaceRun > 2 || L.hint !== HINT_NOFACE) { say(L.hint, ''); arrow(null); } if (nofaceRun > 2) stable = 0; await sleep(60); continue; }
       nofaceRun = 0;
       const p = L.q.landmarks.positions;
       dbg('face found · ' + fps() + ' · turn ' + yawOf(p).toFixed(2) + ' · tilt ' + pitchOf(p).toFixed(2));
@@ -577,21 +578,21 @@ const FaceID = (function () {
   async function enrollFlow(v) {
     const ys = [], ps = [];
     const A = await capture(v, {
-      say: 'Look straight at the camera', sub: 'Step 1 of 2', frames: 4, timeout: 25000,
+      say: 'Look at the camera', sub: 'Step 1 of 2', frames: 4, timeout: 25000,
       test: (p) => Math.abs(yawOf(p)) < 0.24,
       tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); fillTo(ys.length / 40); }
     });
-    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    if (!A) throw new Error("We couldn't see your face. Try again with more light.");
     fillTo(0); await sleep(250);
     const n = { yaw: mean(ys), pitch: mean(ps) };
     const samples = [{ pose: 'front', v: avg(A) }], got = new Map();
-    say('Now slowly roll your head in a circle', 'Step 2 of 2. Keep your face in the frame'); buzz(15);
+    say('Move your head slowly in a big circle', 'Step 2 of 2 · like drawing a circle with your nose'); buzz(15);
     const t0 = Date.now(); let last = -1, run = 0, miss = 0;
     while (Date.now() - t0 < 60000 && got.size < 9) {
       if (cancelled) throw new Error('Cancelled');
       await sleep(0);
       const L = await look(v);
-      if (!L.q) { miss++; if (miss > 2 || L.hint !== 'Move your face into the circle') { say(L.hint, ''); arrow(null); } await sleep(60); continue; }
+      if (!L.q) { miss++; if (miss > 2 || L.hint !== HINT_NOFACE) { say(L.hint, ''); arrow(null); } await sleep(60); continue; }
       miss = 0;
       const d = dirOf(L.q.landmarks.positions, n);
       const m = Math.hypot(d.x, d.y);
@@ -600,7 +601,7 @@ const FaceID = (function () {
       const cur = Math.atan2(d.x, -d.y) * 180 / Math.PI;
       for (let s = 0; s < 12; s++) { if (got.has(s)) continue; const gap = Math.abs((((s * 30 + 15) - cur + 540) % 360) - 180); if (gap < bestGap) { bestGap = gap; want = s * 30 + 15; } }
       const dirKey = want === null ? null : (want >= 315 || want < 45 ? 'u' : want < 135 ? 'r' : want < 225 ? 'd' : 'l');
-      if (m < 0.5) { say('Now slowly roll your head in a circle', 'Step 2 of 2. Keep your face in the frame'); arrow(dirKey); last = -1; await sleep(30); continue; }
+      if (m < 0.5) { say('Move your head slowly in a big circle', 'Step 2 of 2 · like drawing a circle with your nose'); arrow(dirKey); last = -1; await sleep(30); continue; }
       arrow(dirKey);
       const sec = sectorOf(d);
       if (got.has(sec)) { last = sec; run = 0; continue; }
@@ -613,8 +614,8 @@ const FaceID = (function () {
     }
     arrow(null);
     const right = got.has(2) || got.has(3) || got.has(4), left = got.has(8) || got.has(9) || got.has(10);
-    if (got.size < 6 || !right || !left) throw new Error('Move your head in a bigger, slower circle and try again.');
-    for (const s of samples) if (dist(samples[0].v, s.v) > 0.9) throw new Error('Please keep only your own face in view and try again.');
+    if (got.size < 6 || !right || !left) throw new Error('Move your head in a bigger, slower circle.');
+    for (const s of samples) if (dist(samples[0].v, s.v) > 0.9) throw new Error('Only one face please. Try again.');
     return { poses: samples };
   }
 
@@ -623,22 +624,22 @@ const FaceID = (function () {
     let done = 0; const total = 8; const ys = [], ps = [];
     const tick = () => { done++; fillTo(done / total); };
     const A = await capture(v, {
-      say: 'Look at the camera', frames: 4, timeout: 25000,
+      say: 'Look at the camera', sub: 'Step 1 of 3', frames: 4, timeout: 25000,
       test: (p) => Math.abs(yawOf(p)) < 0.24,
       tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); tick(); }
     });
-    if (!A) throw new Error('No clear face found. Face the camera in good light.');
+    if (!A) throw new Error("We couldn't see your face. Try again with more light.");
     const n = { yaw: mean(ys), pitch: mean(ps) };
     const side = Math.random() < 0.5 ? 'left' : 'right';
     const T = await capture(v, {
-      say: 'Now turn your head slightly ' + side, sub: 'Just a little, to confirm it is really you', noDescriptor: true, frames: 1, timeout: 14000, arrow: side === 'left' ? 'l' : 'r',
+      say: 'Turn your head a little to the ' + side, sub: 'Step 2 of 3 · just a small turn', noDescriptor: true, frames: 1, timeout: 14000, arrow: side === 'left' ? 'l' : 'r',
       test: (p) => { const d = dirOf(p, n); return side === 'left' ? d.x < -0.4 : d.x > 0.4; },
       tick: tick
     });
-    if (!T) throw new Error('Liveness check failed: turn your head slightly when asked.');
-    const B = await capture(v, { say: 'Great. Look at the camera again', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.65; }, tick: tick });
-    if (!B) throw new Error('Liveness check failed: look back at the camera.');
-    if (dist(avg(A), avg(B)) > 0.5) throw new Error('The face changed during the check. Try again.');
+    if (!T) throw new Error("We didn't see you turn your head. Turn a little when asked.");
+    const B = await capture(v, { say: 'Good. Now look at the camera again', sub: 'Step 3 of 3', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.65; }, tick: tick });
+    if (!B) throw new Error('Please look back at the camera after turning.');
+    if (dist(avg(A), avg(B)) > 0.5) throw new Error('The picture changed during the check. Please try again.');
     return { v: avg(A.concat(B)), live: true };
   }
 
@@ -651,56 +652,71 @@ const FaceID = (function () {
       r.onclick = () => resolve('retry');
     });
   }
+  let innerDone = Promise.resolve();
   async function run(mode) {
     if (running) throw new Error('Face ID is already open.');
     if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
-    running = true; cancelled = false; chooseResolve = null; ensureUI();
-    let abortRej;
+    running = true;
+    const mine = { stopped: false };
+    let ov = null, abortRej;
     const cancelP = new Promise((_, rej) => { abortRej = rej; }); cancelP.catch(() => {});
-    ab = (p) => Promise.race([p, cancelP]);
-    const abort = () => { cancelled = true; abortRej(new Error('Cancelled')); if (chooseResolve) chooseResolve('cancel'); };
-    const ov = g('fidOv'), video = g('fidVideo');
-    ov.classList.add('show');
-    g('fidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
-    g('fidCancel').onclick = abort; g('fidBack').onclick = abort;
+    let onKey = null;
     try {
-      say('Starting camera…', ''); dbg(''); fillTo(0);
-      const gum = navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
-      gum.then((s) => { if (cancelled || !running) s.getTracks().forEach((t) => t.stop()); }).catch(() => {});   // never leave the camera on
-      stream = await ab(gum);
-      video.srcObject = stream;
-      video.muted = true; video.playsInline = true;
-      try { video.setAttribute('playsinline', ''); video.setAttribute('muted', ''); } catch (_) {}
-      try { const pp = video.play(); if (pp && pp.catch) pp.catch(() => {}); } catch (_) {}
-      say('Getting Face ID ready…', 'The first time can take a few seconds');
-      for (;;) {
-        try { await ab(prepare(video)); break; }
-        catch (e) {
-          if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
-          say(e.message, 'Tap Try again, or go back'); g('fidSvg').classList.add('bad');
-          if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
-          g('fidSvg').classList.remove('bad'); say('Getting Face ID ready…', '');
+      await Promise.race([innerDone, sleep(3000)]);               // a cancelled scan finishes unwinding first
+      cancelled = false; chooseResolve = null; ensureUI();
+      ab = (p) => Promise.race([p, cancelP]);
+      const abort = () => { cancelled = true; abortRej(new Error('Cancelled')); if (chooseResolve) chooseResolve('cancel'); };
+      onKey = (e) => { if (e && e.key === 'Escape') abort(); };
+      ov = g('fidOv');
+      const video = g('fidVideo');
+      ov.classList.add('show');
+      g('fidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
+      g('fidCancel').onclick = abort; g('fidBack').onclick = abort; g('fidX').onclick = abort;
+      document.addEventListener('keydown', onKey);
+      const inner = (async () => {
+        say('Starting camera…', ''); dbg(''); fillTo(0);
+        const gum = navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
+        gum.then((s) => { if (mine.stopped || cancelled) s.getTracks().forEach((t) => t.stop()); }).catch(() => {});   // never leave the camera on
+        stream = await ab(gum);
+        video.srcObject = stream;
+        video.muted = true; video.playsInline = true;
+        try { video.setAttribute('playsinline', ''); video.setAttribute('muted', ''); } catch (_) {}
+        try { const pp = video.play(); if (pp && pp.catch) pp.catch(() => {}); } catch (_) {}
+        say('Getting Face ID ready…', 'The first time can take a few seconds');
+        for (;;) {
+          try { await ab(prepare(video)); break; }
+          catch (e) {
+            if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
+            say(e.message, 'Tap Try again, or go back'); g('fidSvg').classList.add('bad');
+            if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
+            g('fidSvg').classList.remove('bad'); say('Getting Face ID ready…', '');
+          }
         }
-      }
-      for (;;) {
-        g('fidSvg').classList.remove('bad'); g('fidCheck').classList.remove('on'); g('fidRetry').style.display = 'none'; fillTo(0);
-        try {
-          const res = mode === 'enroll' ? await enrollFlow(video) : await verifyFlow(video);
-          fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); dbg(''); buzz([20, 40, 20]);
-          await sleep(900);
-          return res;
-        } catch (e) {
-          if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
-          g('fidSvg').classList.add('bad'); ticksOn(0, 60, true); g('fidStage').classList.add('fid-shake'); buzz([60, 40, 60]);
-          setTimeout(() => g('fidStage').classList.remove('fid-shake'), 500);
-          say(e.message, 'Tap Try again, or go back'); arrow(null);
-          if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
+        for (;;) {
+          g('fidSvg').classList.remove('bad'); g('fidCheck').classList.remove('on'); g('fidRetry').style.display = 'none'; fillTo(0);
+          try {
+            const res = mode === 'enroll' ? await enrollFlow(video) : await verifyFlow(video);
+            fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); dbg(''); buzz([20, 40, 20]);
+            await sleep(900);
+            return res;
+          } catch (e) {
+            if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
+            g('fidSvg').classList.add('bad'); ticksOn(0, 60, true); g('fidStage').classList.add('fid-shake'); buzz([60, 40, 60]);
+            setTimeout(() => g('fidStage').classList.remove('fid-shake'), 500);
+            say(e.message, 'Tap Try again, or go back'); arrow(null);
+            if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
+          }
         }
-      }
+      })();
+      innerDone = inner.then(() => {}, () => {});
+      return await Promise.race([inner, cancelP]);
     } finally {
+      mine.stopped = true;
+      if (onKey) document.removeEventListener('keydown', onKey);
       ab = (p) => p; chooseResolve = null;
       if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
-      ov.classList.remove('show'); running = false;
+      if (ov) ov.classList.remove('show');
+      running = false;
     }
   }
   return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg, dirOf: dirOf, sectorOf: sectorOf } };
@@ -780,13 +796,13 @@ async function routeAfterAuth(isNew, viaPasskey, viaFace) {
     }
     const factors = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
     const forced = localStorage.getItem('drozo_force_setup_wizard') === me.id;
-    if (isNew || forced || (!me.twofa_pref && !(viaPasskey || viaFace)) || (me.twofa_pref === 'totp' && !factors.length)) {
+    if (isNew || forced || (!me.twofa_pref && !(viaPasskey || viaFace || faceLoginDone)) || (me.twofa_pref === 'totp' && !factors.length)) {
       localStorage.removeItem('drozo_force_setup_wizard');
       showOnboardingChoice();
       return;
     }
     if (me.twofa_pref === 'drozo_guard' && sessionStorage.getItem('drozo_guard_ok_' + me.id) !== '1') { startDrozoGuard2FA(false); return; }
-    if (me.twofa_pref === 'face' && !viaFace && sessionStorage.getItem('drozo_face_ok_' + me.id) !== '1') {
+    if (me.twofa_pref === 'face' && !(viaFace || faceLoginDone) && sessionStorage.getItem('drozo_face_ok_' + me.id) !== '1') {
       ['authStep1', 'authStepOnboarding'].forEach(hide);
       if (!(await requireFace())) { await backToStep1(); return; }
       sessionStorage.setItem('drozo_face_ok_' + me.id, '1');
@@ -901,6 +917,7 @@ const b64e = (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
 const b64d = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 const isCancel = (e) => /cancel|abort|NotAllowed/i.test(((e && (e.name || '')) + ' ' + errMsg(e)));
 
+let faceLoginDone = false;   // set after a successful face sign-in, so the face is not asked for a second time
 async function enrollFaceModel() {
   try {
     const r = await FaceID.run('enroll');
@@ -917,7 +934,7 @@ async function verifyFaceModel() {
     if (error) throw error;
     const row = data && data[0];
     if (!row) { alert('No face is registered for this account. Set it up again in Security Settings.'); return null; }
-    if (!row.match_found) { alert('Face did not match (score ' + Number(row.distance).toFixed(2) + ', needs under 0.55).'); return false; }
+    if (!row.match_found) { alert('That did not match (score ' + Number(row.distance).toFixed(2) + ', needs under 0.55).\n\nTry again with more light and your face in the middle. If it keeps failing, open ⚙️ Security Settings and tap "Register / redo my face".'); return false; }
     return true;
   } catch (e) { if (isCancel(e)) return 'cancel'; alert('Face check: ' + errMsg(e)); return false; }
 }
@@ -941,13 +958,20 @@ async function signInWithFace() {
   if (busy) return;
   busy = true;
   try {
-    const typed = ($('loginEmail').value || '').trim().toLowerCase();   // email typed = checks only that account (safest)
+    const typed = ($('loginEmail').value || '').trim().toLowerCase();   // email typed = only that account's face is checked (most reliable)
     const r = await FaceID.run('verify');
     const { data, error } = await sb.functions.invoke('face-login', { body: { probe: r.v, email: typed || undefined } });
-    if (error || !data || !data.token_hash) throw new Error('Face not recognised, or face-only sign-in is not turned on for that account.');
+    if (error) {
+      const st = error.context && error.context.status;
+      if (st === 429) throw new Error('Too many attempts. Please wait a few minutes and try again.');
+      if (st === 404 || /relay|fetch|Failed to send/i.test((error.name || '') + ' ' + errMsg(error))) throw new Error('Face sign-in is not available yet: the "face-login" function is not deployed in Supabase.');
+      throw new Error('Face not recognised.\n\nCheck that:\n1. Face sign-in is switched on for this account (sign in with your password, then open ⚙️ Security Settings).\n2. You registered your face there.\n3. For the best result, type your email above first, then press this button.');
+    }
+    if (!data || !data.token_hash) throw new Error('Face not recognised.');
     let v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'email' });
     if (v.error) v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
     if (v.error) throw v.error;
+    faceLoginDone = true;
     await routeAfterAuth(false, false, true);
   } catch (e) { if (!isCancel(e)) alert(errMsg(e)); }
   finally { busy = false; }
@@ -957,19 +981,20 @@ function refreshFaceCard() {
   const b = $('btnFaceLogin'), t = $('faceStatusText');
   if (!b || !me) return;
   const staff = STAFF_ROLES.includes(me.role);
-  b.disabled = staff;
-  b.textContent = staff ? 'Face-only sign-in is not available for staff' : (me.face_login ? 'Face-only sign-in: ON (tap to turn off)' : 'Allow face-only sign-in');
-  if (t) t.textContent = 'Linked to ' + me.email + '. Your face is saved as numbers (a model), never as a picture.';
+  b.disabled = false;
+  b.textContent = me.face_login ? 'Face sign-in: ON (tap to turn off)' : (staff ? 'Allow face sign-in (face + authenticator code)' : 'Allow face-only sign-in');
+  if (t) t.textContent = 'Linked to ' + me.email + '. Your face is saved as numbers (a model), never as a picture.' + (staff ? ' Staff accounts also enter their authenticator code after the face scan.' : '');
 }
 async function enrollFaceFromSettings() { await enrollFaceModel(); refreshFaceCard(); }
 async function toggleFaceLogin() {
-  if (STAFF_ROLES.includes(me.role)) return;
+  const staff = STAFF_ROLES.includes(me.role);
+  const totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
   if (!me.face_login) {
     const has = await sb.rpc('has_my_face');
-    if (!has.data) { alert('Register your face first.'); return; }
-    const totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
-    const warn = totp.length ? '' : '\n\nYou have no authenticator app linked, so a face scan alone would be your only protection. Link one first for real safety.';
-    if (!confirm('Face-only sign-in lets a matching face scan sign in without a password. A photo of you could potentially fool a camera scan.' + warn + '\n\nTurn it on?')) return;
+    if (!has.data) { alert('Register your face first (tap "Register / redo my face").'); return; }
+    if (staff && !totp.length) { alert('For an admin or staff account, link an authenticator app first. After the face scan you will also enter its 6-digit code.'); return; }
+    const warn = staff ? '\n\nAfter the face scan you will still enter your authenticator code.' : (totp.length ? '' : '\n\nYou have no authenticator app linked, so a face scan alone would be your only protection. Linking one is safer.');
+    if (!confirm('Face sign-in lets a matching face scan start your sign-in without a password. A photo of you could potentially fool a camera scan.' + warn + '\n\nTurn it on?')) return;
   }
   const { error } = await sb.from('profiles').update({ face_login: !me.face_login }).eq('id', me.id);
   if (error) { alert('Could not change this: ' + errMsg(error)); return; }
