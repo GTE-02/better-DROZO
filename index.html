@@ -167,28 +167,13 @@
         <input type="password" id="newSecPassword" autocomplete="new-password" placeholder="Enter new password (min. 8 chars)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         <button type="button" onclick="executeChangePassword()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Save New Password ✓</button>
       </div>
-      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>👤</span> Face ID / Touch ID Sign-In</div>
-          <span class="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-bold px-2 py-0.5 rounded-full">Passkey</span>
+          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>✅</span> Your sign-in check</div>
+          <span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-full">After password</span>
         </div>
-        <p class="text-[11px] text-slate-500" id="passkeyStatusText">Add a passkey on this device to sign in with your face or fingerprint.</p>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="addPasskey()" class="py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Add on this device</button>
-          <button type="button" onclick="removePasskeys()" class="py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition">Remove all</button>
-        </div>
-      </div>
-      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 font-bold text-xs text-slate-800"><span>🙂</span> Face ID (AI face model)</div>
-          <span class="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-bold px-2 py-0.5 rounded-full">Face</span>
-        </div>
-        <p class="text-[11px] text-slate-500" id="faceStatusText"></p>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="enrollFaceFromSettings()" class="py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Register / redo my face</button>
-          <button type="button" onclick="removeFace()" class="py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition">Delete my face</button>
-        </div>
-        <button type="button" id="btnFaceLogin" onclick="toggleFaceLogin()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition disabled:opacity-50">Allow face-only sign-in</button>
+        <p class="text-[11px] text-slate-500">After you enter your password you are asked for: <strong id="chosenMethodText" class="text-slate-800">…</strong></p>
+        <p class="text-[11px] text-slate-400">To change it, use "Reset all security" above.</p>
       </div>
       <div class="text-center pt-1"><button type="button" onclick="closeSecurityModal()" class="text-xs text-slate-400 hover:underline">Cancel</button></div>
     </div>
@@ -271,9 +256,6 @@
           <input type="password" id="loginPass" autocomplete="new-password" required onkeydown="if(event.key === 'Enter') handleStep1Submit(event)" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
         <button type="button" onclick="handleStep1Submit(event)" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
-        <div class="relative py-1"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div><div class="relative flex justify-center text-[10px] uppercase font-bold text-slate-400"><span class="bg-white px-2">or</span></div></div>
-        <button type="button" onclick="signInWithPasskeyBtn()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>👤</span> Sign in with passkey (device Face ID / Touch ID)</button>
-        <button type="button" onclick="signInWithFace()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"><span>🙂</span> Sign in with my face (AI scan)</button>
       </div>
     </div>
 
@@ -385,8 +367,16 @@
         <button type="button" onclick="openApprovalSimulator()" class="w-full py-2.5 px-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5"><span>📲</span> Open on Phone</button>
       </div>
       <div class="pt-1 text-xs text-left">
-        <button type="button" onclick="backToStep1()" class="text-slate-400 hover:text-white transition">← Change credentials</button>
+        <button type="button" onclick="backToStep1()" class="text-slate-400 hover:text-white transition">&#8249; Back to sign in</button>
       </div>
+    </div>
+
+    <div id="authStepFingerprint" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
+      <div class="text-4xl">👆</div>
+      <h3 class="text-base font-extrabold text-slate-900">Fingerprint check</h3>
+      <p class="text-xs text-slate-500" id="fpStepMsg">Touch the sensor or use Face ID when your device asks.</p>
+      <button type="button" id="fpRetryBtn" onclick="retryFingerprintStep()" class="hidden w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">Try again</button>
+      <button type="button" onclick="cancelFingerprintStep()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">&#8249; Back to sign in</button>
     </div>
 
     <div id="authStep3Standard" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 hidden text-center">
@@ -400,7 +390,7 @@
         <button type="button" onclick="handleStandardTOTP(event)" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow">Verify & Sign In →</button>
       </div>
       <div class="pt-2 text-xs text-left">
-        <button type="button" onclick="backToStep1()" class="text-slate-400 hover:underline">← Change credentials</button>
+        <button type="button" onclick="backToStep1()" class="text-slate-400 hover:underline">&#8249; Back to sign in</button>
       </div>
     </div>
   </div>
@@ -881,36 +871,6 @@ function passkeyError(e) {
   if (/not_found|not found|webauthn_credential/i.test(code + m)) return 'No passkey was found for this site. Sign in with your password, then add one in Security Settings.';
   return m;
 }
-async function signInWithPasskeyBtn() {
-  if (busy) return;
-  if (typeof sb.auth.signInWithPasskey !== 'function') { alert('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.'); return; }
-  busy = true;
-  try {
-    const { error } = await sb.auth.signInWithPasskey();
-    if (error) throw error;
-    await routeAfterAuth(false, true);
-  } catch (e) { alert(passkeyError(e)); }
-  finally { busy = false; }
-}
-async function addPasskey() {
-  if (typeof sb.auth.registerPasskey !== 'function') { alert('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.'); return; }
-  try {
-    const { error } = await sb.auth.registerPasskey();
-    if (error) throw error;
-    alert('Passkey saved and linked to ' + me.email + '. Next time you can sign in with the passkey button.');
-    refreshPasskeyCard();
-  } catch (e) { alert(passkeyError(e)); }
-}
-async function removePasskeys() {
-  if (!confirm('Remove all passkeys from your account?')) return;
-  try {
-    const { data, error } = await sb.auth.passkey.list();
-    if (error) throw error;
-    for (const p of (data || [])) { const r = await sb.auth.passkey.delete({ passkeyId: p.id }); if (r.error) throw r.error; }
-    alert('Passkeys removed.');
-  } catch (e) { alert(passkeyError(e)); }
-}
-
 // ---------- Face ID (AI face model saved in Supabase) + device fingerprint ----------
 const FP_KEY = 'drozo_fp_cred_';
 const b64e = (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
@@ -954,65 +914,7 @@ async function startFaceEnrollment() {
   } else showOnboardingChoice();
 }
 
-async function signInWithFace() {
-  if (busy) return;
-  busy = true;
-  try {
-    const typed = ($('loginEmail').value || '').trim().toLowerCase();   // email typed = only that account's face is checked (most reliable)
-    const r = await FaceID.run('verify');
-    const { data, error } = await sb.functions.invoke('face-login', { body: { probe: r.v, email: typed || undefined } });
-    if (error) {
-      const st = error.context && error.context.status;
-      if (st === 429) throw new Error('Too many attempts. Please wait a few minutes and try again.');
-      const kind = (error.name || '') + ' ' + errMsg(error);
-      if (st === 404) throw new Error('The "face-login" function was not found in your Supabase project.\n\nIn Supabase: Edge Functions, Deploy a new function, Via Editor, name it exactly face-login, paste the code, and press Deploy.');
-      if (/Relay/i.test(kind)) throw new Error('Supabase could not start the face-login function. Open Supabase, Edge Functions, face-login, Logs to see why.');
-      if (/Fetch|Failed to send/i.test(kind)) throw new Error('Could not reach the face-login function (the browser or network blocked it).\n\nIf you just deployed it, wait a minute and reload. Make sure its name is exactly face-login and that you updated it to the newest code.');
-      throw new Error('Face not recognised.\n\nCheck that:\n1. Face sign-in is switched on for this account (sign in with your password, then open ⚙️ Security Settings).\n2. You registered your face there.\n3. For the best result, type your email above first, then press this button.');
-    }
-    if (!data || !data.token_hash) throw new Error('Face not recognised.');
-    let v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'email' });
-    if (v.error) v = await sb.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
-    if (v.error) throw v.error;
-    faceLoginDone = true;
-    await routeAfterAuth(false, false, true);
-  } catch (e) { if (!isCancel(e)) alert(errMsg(e)); }
-  finally { busy = false; }
-}
-
-function refreshFaceCard() {
-  const b = $('btnFaceLogin'), t = $('faceStatusText');
-  if (!b || !me) return;
-  const staff = STAFF_ROLES.includes(me.role);
-  b.disabled = false;
-  b.textContent = me.face_login ? 'Face sign-in: ON (tap to turn off)' : (staff ? 'Allow face sign-in (face + authenticator code)' : 'Allow face-only sign-in');
-  if (t) t.textContent = 'Linked to ' + me.email + '. Your face is saved as numbers (a model), never as a picture.' + (staff ? ' Staff accounts also enter their authenticator code after the face scan.' : '');
-}
-async function enrollFaceFromSettings() { await enrollFaceModel(); refreshFaceCard(); }
-async function toggleFaceLogin() {
-  const staff = STAFF_ROLES.includes(me.role);
-  const totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
-  if (!me.face_login) {
-    const has = await sb.rpc('has_my_face');
-    if (!has.data) { alert('Register your face first (tap "Register / redo my face").'); return; }
-    if (staff && !totp.length) { alert('For an admin or staff account, link an authenticator app first. After the face scan you will also enter its 6-digit code.'); return; }
-    const warn = staff ? '\n\nAfter the face scan you will still enter your authenticator code.' : (totp.length ? '' : '\n\nYou have no authenticator app linked, so a face scan alone would be your only protection. Linking one is safer.');
-    if (!confirm('Face sign-in lets a matching face scan start your sign-in without a password. A photo of you could potentially fool a camera scan.' + warn + '\n\nTurn it on?')) return;
-  }
-  const { error } = await sb.from('profiles').update({ face_login: !me.face_login }).eq('id', me.id);
-  if (error) { alert('Could not change this: ' + errMsg(error)); return; }
-  me.face_login = !me.face_login; refreshFaceCard();
-}
-async function removeFace() {
-  if (!confirm('Delete your saved face model?')) return;
-  const { error } = await sb.rpc('reset_my_face');
-  if (error) { alert('Could not delete: ' + errMsg(error)); return; }
-  me.face_login = false;
-  if (me.twofa_pref === 'face') { try { await setPref(null); } catch (_) {} }
-  sessionStorage.removeItem('drozo_face_ok_' + me.id);
-  refreshFaceCard(); alert('Face model deleted.');
-}
-
+// the face-login function, called without any extra headers (a "simple" request the browser sends without a pre-check)
 async function startFingerprintEnrollment() {
   hide('authStepOnboarding');
   try {
@@ -1026,19 +928,39 @@ async function startFingerprintEnrollment() {
   } catch (e) { if (!isCancel(e)) alert('Fingerprint setup: ' + passkeyError(e)); showOnboardingChoice(); }
 }
 // the fingerprint step signs in with the passkey: Supabase checks it on the server, and we make sure it belongs to THIS account
+let fpCancel = null, fpRetry = null;
+function cancelFingerprintStep() { if (fpCancel) fpCancel(); }
+function retryFingerprintStep() { if (fpRetry) fpRetry(); }
 async function requireFingerprint() {
-  for (;;) {
-    try {
-      if (typeof sb.auth.signInWithPasskey !== 'function') throw new Error('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.');
-      const { error } = await sb.auth.signInWithPasskey();
-      if (error) throw error;
-      const { data: { user } } = await sb.auth.getUser();
-      if (user && user.id === me.id) return true;
-      await sb.auth.signOut();
-      alert('That fingerprint is linked to a different account.');
-      return false;
-    } catch (e) { if (!confirm('The fingerprint check did not pass.\n\nReason: ' + passkeyError(e) + '\n\nTry again?')) return false; }
-  }
+  show('authStepFingerprint');
+  const msg = $('fpStepMsg'), retry = $('fpRetryBtn');
+  try {
+    for (;;) {
+      msg.textContent = 'Touch the sensor or use Face ID when your device asks.'; retry.classList.add('hidden');
+      const cancelP = new Promise((res) => { fpCancel = () => res('cancel'); });
+      const attempt = (async () => {
+        if (typeof sb.auth.signInWithPasskey !== 'function') throw new Error('This browser loaded an older Supabase library. Reload the page (hold Shift) and try again.');
+        const { error } = await sb.auth.signInWithPasskey();
+        if (error) throw error;
+        const { data: { user } } = await sb.auth.getUser();
+        if (user && me && user.id === me.id) return 'ok';
+        await sb.auth.signOut();
+        return 'other';
+      })();
+      attempt.catch(() => {});
+      let r;
+      try { r = await Promise.race([attempt, cancelP]); }
+      catch (e) {
+        msg.textContent = 'The fingerprint check did not pass. ' + passkeyError(e); retry.classList.remove('hidden');
+        const next = await new Promise((res) => { fpRetry = () => res('retry'); fpCancel = () => res('cancel'); });
+        if (next === 'cancel') return false;
+        continue;
+      }
+      if (r === 'cancel') { const lateSignOut = async () => { try { await sb.auth.signOut(); } catch (_) {} }; attempt.then(lateSignOut, lateSignOut); return false; }   // if the device prompt is completed later (even with an error), sign out again
+      if (r === 'other') { alert('That fingerprint is linked to a different account.'); return false; }
+      return true;
+    }
+  } finally { fpCancel = null; fpRetry = null; hide('authStepFingerprint'); }
 }
 
 function showOnboardingChoice() {
@@ -1211,13 +1133,8 @@ function focusSection(id) {
 async function passkeyCount() {   // null = cannot tell (library too old, or passkeys switched off)
   try { if (!(sb.auth.passkey && sb.auth.passkey.list)) return null; const r = await sb.auth.passkey.list(); return r.error ? null : (r.data || []).length; } catch (_) { return null; }
 }
-async function refreshPasskeyCard() {
-  const t = $('passkeyStatusText'); if (!t || !me) return;
-  let n = null;
-  try { if (sb.auth.passkey && sb.auth.passkey.list) { const r = await sb.auth.passkey.list(); if (!r.error) n = (r.data || []).length; } } catch (_) {}
-  t.textContent = 'Linked to ' + me.email + (n === null ? '.' : ': ' + n + ' passkey' + (n === 1 ? '' : 's') + ' saved.') + ' Your fingerprint or face never leaves the device.';
-}
-function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; refreshFaceCard(); refreshPasskeyCard(); show('securityManagementModal'); }
+function methodLabel(p) { return ({ totp: 'a 6-digit code from your authenticator app', drozo_guard: 'approval on your phone (Drozo Guard)', face: 'a Face ID scan', fingerprint: 'your fingerprint / Touch ID', none: 'nothing (password only)' })[p] || 'not chosen yet'; }
+function openSecurityModal() { $('secUserEmailDisplay').textContent = me.email; const c = $('chosenMethodText'); if (c) c.textContent = methodLabel(me.twofa_pref); show('securityManagementModal'); }
 function closeSecurityModal() { hide('securityManagementModal'); }
 
 async function executeSwitch2FAMethod() {
