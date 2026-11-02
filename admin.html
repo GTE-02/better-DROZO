@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo Admin Console - Root Control</title>
+  <title>Drozo Therapy | Admin</title>
   <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } } } } };</script>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -19,11 +21,11 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#052317] border border-[#0d4f34] p-6 rounded-3xl shadow-xl gap-4">
       <div>
         <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">ACCESS GRANTED • ROOT LEVEL</span>
-        <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-2 mt-0.5"><span>🛡️</span> Drozo Security & Admin Console</h1>
+        <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 mt-1"><svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg> Drozo Therapy <span class="text-emerald-300 font-bold">Admin</span></h1>
         <p class="text-xs text-emerald-300/80 mt-1">Platform management, session lifecycle, and patient clinical outcome dispatch.</p>
       </div>
       <div class="flex items-center gap-3">
-        <a href="./index.html" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0a3825] border border-emerald-500/40 text-emerald-300 hover:bg-[#0d4f34] transition">← Back to Sanctuary</a>
+        <a href="./index.html" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0a3825] border border-emerald-500/40 text-emerald-300 hover:bg-[#0d4f34] transition">&#8249; Back to Drozo Therapy</a>
         <button onclick="logoutAdmin()" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-950/70 border border-rose-800 text-rose-200 hover:bg-rose-900 transition">Lock Session</button>
       </div>
     </div>
@@ -111,7 +113,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-bold uppercase text-emerald-400 mb-1">Prescribed Action Items</label>
-          <textarea id="docActionItems" rows="2" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl p-3 text-xs text-white focus:outline-none leading-relaxed">Daily DrozoMind guided reflections. Practice 4-7-8 breathing twice daily.</textarea>
+          <textarea id="docActionItems" rows="2" class="w-full bg-[#021810] border border-[#0d4f34] rounded-xl p-3 text-xs text-white focus:outline-none leading-relaxed">Daily guided reflections. Practice 4-7-8 breathing twice daily.</textarea>
         </div>
         <div class="flex justify-end pt-2">
           <button type="button" onclick="dispatchClinicalDocument()" class="py-2.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg"><span>🚀</span> Generate & Dispatch to Client Portal</button>
@@ -245,7 +247,7 @@ async function dispatchClinicalDocument() {
   const { error } = await sb.from('clinical_docs').insert({
     patient_id: sel.value, patient_label: sel.options[sel.selectedIndex].textContent,
     category: $('docDiagnosis').value, notes: notes, actions: actions,
-    therapist: me.role === 'admin' ? 'DrozoMind Admin' : me.email.split('@')[0]
+    therapist: me.role === 'admin' ? 'Drozo Therapy Admin' : me.email.split('@')[0]
   });
   if (error) { alert('Could not dispatch: ' + errMsg(error)); return; }
   alert('Clinical Outcome Dispatched! It appears in that patient\'s 30-Day History.');

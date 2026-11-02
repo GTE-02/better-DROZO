@@ -3,50 +3,206 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drozo Mind- Therapy</title>
+  <title>Drozo Therapy | Private online support</title>
+  <meta name="description" content="Drozo Therapy: book sessions, talk to an AI assistant and keep your documents in one calm, protected place." />
   <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+      colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } }
+    } } };
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; scroll-behavior: smooth; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=JetBrains+Mono:wght@400;600&display=swap');
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f7faf8; color: #12261f; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .gone { display: none !important; }
+    .hero-bg { background: radial-gradient(900px 420px at 88% -8%, #d8f3e6 0%, rgba(216,243,230,0) 62%), radial-gradient(700px 360px at -8% 6%, #e7f6ef 0%, rgba(231,246,239,0) 58%), #f7faf8; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .chev { transform: rotate(180deg); }
+    .chev { transition: transform .2s ease; }
+    .lift { transition: transform .18s ease, box-shadow .18s ease; }
+    .lift:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -18px rgba(15,112,82,.35); }
+    .rounded-2xl { border-radius: 1.25rem; }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(24px,-18px) scale(1.08); } }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .shine { position: relative; overflow: hidden; }
+    .shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); transform: translateX(-120%); transition: transform .7s ease; }
+    .shine:hover::after { transform: translateX(120%); }
+    .mood { transition: transform .15s ease, background .15s ease; }
+    .mood:hover { transform: translateY(-4px) scale(1.08); }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } * { animation: none !important; } }
     .mono { font-family: 'JetBrains Mono', monospace; }
     #idCaptureReader { width: 100% !important; height: 100% !important; overflow: hidden; border-radius: 1rem; }
     #idCaptureReader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 1rem; }
     #qrCanvasContainer img, #qrCanvasContainer canvas { margin: 0 auto; display: block; border-radius: 0.75rem; width: 160px !important; height: 160px !important; }
   </style>
+  <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative">
 
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-        <span class="text-2xl">🧠</span>
-        <span class="text-xl font-extrabold text-slate-900 tracking-tight">Drozo<span class="text-emerald-600">Mind</span></span>
-      </div>
-      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-        <button type="button" onclick="focusSection('schedule-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">My Schedule</button>
-        <button type="button" onclick="focusSection('history-card')" class="hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100">Session History</button>
-        <button type="button" id="navMyIdPassBtn" onclick="openMyIdPassModal()" class="hidden hover:text-emerald-600 transition font-bold py-1 px-2 rounded-lg hover:bg-slate-100 flex items-center gap-1.5"><span>🪪</span> My ID Pass</button>
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <a href="#top" onclick="goHome(event)" class="flex items-center gap-2.5 shrink-0"><svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg><span class="text-xl font-extrabold text-slate-900 tracking-tight">Drozo <span class="text-emerald-600">Therapy</span></span></a>
+      <nav id="navPublic" class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+        <a href="#how" class="hover:text-emerald-700 transition">How it works</a>
+        <a href="#features" class="hover:text-emerald-700 transition">What you get</a>
+        <a href="#faq" class="hover:text-emerald-700 transition">Questions</a>
       </nav>
-      <div class="flex items-center gap-3" id="navAuthArea">
-        <button id="btnOpenLogin" onclick="openLoginModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow">Sign In</button>
+      <nav id="navPortal" class="gone hidden md:flex items-center gap-2 text-sm font-semibold text-slate-600">
+        <button type="button" onclick="focusSection('schedule-card')" class="px-3 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition">My schedule</button>
+        <button type="button" onclick="focusSection('history-card')" class="px-3 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition">Session history</button>
+        <button type="button" onclick="toggleAiBot()" class="px-3 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition">AI assistant</button>
+        <button type="button" id="navMyIdPassBtn" onclick="openMyIdPassModal()" class="hidden px-3 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition">My ID pass</button>
+      </nav>
+      <div class="flex items-center gap-2.5" id="navAuthArea">
+        <button id="btnOpenLogin" type="button" onclick="openLoginModal()" class="px-4 py-2 rounded-full text-sm font-bold text-emerald-700 border border-emerald-200 hover:bg-emerald-50 transition">Sign in</button>
+        <button id="btnGetStarted" type="button" onclick="openQuiz()" class="px-5 py-2 rounded-full text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm">Get started</button>
       </div>
     </div>
   </header>
 
-  <div id="portalContent" class="transition duration-300">
+  <div id="top"></div>
+
+  <!-- ================= PUBLIC HOME PAGE ================= -->
+  <div id="landing">
+    <section class="hero-bg relative overflow-hidden">
+      <div class="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-200/50 blur-3xl" style="animation: drift 14s ease-in-out infinite"></div>
+      <div class="pointer-events-none absolute top-40 right-0 w-80 h-80 rounded-full bg-teal-200/40 blur-3xl" style="animation: drift 18s ease-in-out infinite reverse"></div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-16 grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Private, protected online support</span>
+          <h1 class="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.05]">Support that fits <span class="serif italic font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">into your day.</span></h1>
+          <p class="mt-5 text-lg text-slate-600 max-w-xl leading-relaxed">Drozo Therapy brings caring support to you. Book a session, talk to our AI assistant any time, and keep everything behind a sign-in that only you can open.</p>
+          <ul class="mt-6 space-y-2.5 text-slate-700 text-[15px]">
+            <li class="flex items-start gap-3"><span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">✓</span> Sign in with Face ID, your fingerprint or an authenticator app</li>
+            <li class="flex items-start gap-3"><span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">✓</span> Meet on Discord or a Jitsi video call, whichever you prefer</li>
+            <li class="flex items-start gap-3"><span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">✓</span> Your session documents in one calm place</li>
+          </ul>
+          <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
+            <button type="button" onclick="openQuiz()" class="shine px-8 py-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-base font-extrabold shadow-lg shadow-emerald-600/25 transition">Get started</button>
+            <a href="#how" class="px-8 py-4 rounded-full border border-slate-300 hover:border-emerald-400 hover:bg-white text-slate-700 text-base font-bold text-center transition">See how it works</a>
+          </div>
+          <p class="mt-4 text-sm text-slate-500">Already a member? <button type="button" onclick="openLoginModal()" class="font-bold text-emerald-700 hover:underline">Sign in</button></p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute -inset-5 bg-emerald-200/40 rounded-[2.5rem] blur-2xl"></div>
+          <div class="hidden sm:flex absolute -left-8 top-12 z-20 items-center gap-2 bg-white rounded-2xl shadow-xl border border-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-800" style="animation: floaty 5s ease-in-out infinite">🔒 Face ID protected</div>
+          <div class="hidden sm:flex absolute -right-6 bottom-20 z-20 items-center gap-2 bg-white rounded-2xl shadow-xl border border-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-800" style="animation: floaty 6s ease-in-out infinite .8s">🗓️ Book in minutes</div>
+          <div class="hidden sm:flex absolute -right-2 -top-4 z-20 items-center gap-2 bg-emerald-600 text-white rounded-2xl shadow-xl px-3.5 py-2.5 text-xs font-bold" style="animation: floaty 7s ease-in-out infinite .3s">🌿 You set the pace</div>
+          <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-100 p-5 sm:p-6 space-y-4 max-w-md mx-auto lg:ml-auto">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl">🌿</div><div><div class="text-sm font-extrabold text-slate-900">Your next session</div><div class="text-xs text-slate-500">Example of your dashboard</div></div></div>
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white">Confirmed</span>
+            </div>
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+              <div class="text-xs font-bold text-emerald-800 uppercase tracking-wide">Tomorrow</div>
+              <div class="text-2xl font-extrabold text-slate-900 mt-0.5">4:00 PM</div>
+              <div class="text-xs text-slate-600 mt-1">🎥 Jitsi video call · chosen when you book</div>
+            </div>
+            <div class="space-y-2 text-[13px]">
+              <div class="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 px-3.5 py-2.5">How are you feeling today?</div>
+              <div class="max-w-[85%] ml-auto rounded-2xl rounded-br-md bg-emerald-600 text-white px-3.5 py-2.5">A bit stressed, but better than yesterday.</div>
+              <div class="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 px-3.5 py-2.5">That is good to hear. Let us take one slow breath together.</div>
+            </div>
+            <div class="flex items-center gap-3 rounded-2xl border border-slate-200 px-3.5 py-3"><div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center">🙂</div><div class="text-xs"><div class="font-bold text-slate-900">Protected with Face ID</div><div class="text-slate-500">Checked every time you sign in</div></div><span class="ml-auto text-emerald-600 font-extrabold">✓</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white border-y border-slate-200/70">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="flex items-start gap-3"><div class="text-2xl">🔐</div><div><div class="text-sm font-extrabold text-slate-900">Protected sign-in</div><div class="text-xs text-slate-500 mt-0.5">Face ID, fingerprint or an authenticator app</div></div></div>
+        <div class="flex items-start gap-3"><div class="text-2xl">🎥</div><div><div class="text-sm font-extrabold text-slate-900">Discord or video</div><div class="text-xs text-slate-500 mt-0.5">Meet on the channel you prefer</div></div></div>
+        <div class="flex items-start gap-3"><div class="text-2xl">🤖</div><div><div class="text-sm font-extrabold text-slate-900">AI assistant</div><div class="text-xs text-slate-500 mt-0.5">Talk or book whenever you like</div></div></div>
+        <div class="flex items-start gap-3"><div class="text-2xl">📄</div><div><div class="text-sm font-extrabold text-slate-900">Your documents</div><div class="text-xs text-slate-500 mt-0.5">Session notes saved for you</div></div></div>
+      </div>
+    </section>
+
+    <section class="py-5 overflow-hidden border-b border-slate-200/70 bg-emerald-50/60" aria-label="Things people come for support with"><div class="flex gap-3 w-max" style="animation: marquee 40s linear infinite"><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Stress and anxiety</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Sleep</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Relationships</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Low mood</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Work or school pressure</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Big life changes</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Feeling stuck</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Self-confidence</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Stress and anxiety</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Sleep</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Relationships</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Low mood</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Work or school pressure</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Big life changes</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Feeling stuck</span><span class="shrink-0 px-4 py-2 rounded-full bg-white border border-emerald-100 text-sm font-semibold text-emerald-800">Self-confidence</span></div></section>
+
+    <section id="how" class="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+      <div class="max-w-2xl"><div class="text-xs font-extrabold tracking-widest text-emerald-700 uppercase">How it works</div><h2 class="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Three simple steps</h2></div>
+      <div class="mt-10 grid md:grid-cols-3 gap-6">
+        <div class="reveal lift bg-white rounded-3xl border border-slate-200 p-7"><div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-extrabold flex items-center justify-center">1</div><h3 class="mt-5 text-lg font-extrabold text-slate-900">Tell us what you need</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Answer two quick questions so we know how to help and how you would like to meet.</p></div>
+        <div class="reveal lift bg-white rounded-3xl border border-slate-200 p-7"><div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-extrabold flex items-center justify-center">2</div><h3 class="mt-5 text-lg font-extrabold text-slate-900">Create a protected account</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Choose how to guard it: Face ID, your fingerprint, or an authenticator app.</p></div>
+        <div class="reveal lift bg-white rounded-3xl border border-slate-200 p-7"><div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-extrabold flex items-center justify-center">3</div><h3 class="mt-5 text-lg font-extrabold text-slate-900">Book and meet</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Pick a time and Discord or a video call. Your host starts the meeting and your join button appears.</p></div>
+      </div>
+    </section>
+
+    <section id="features" class="bg-white border-y border-slate-200/70">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+        <div class="max-w-2xl"><div class="text-xs font-extrabold tracking-widest text-emerald-700 uppercase">What you get</div><h2 class="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Made to feel calm and safe</h2></div>
+        <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">🙂</div><h3 class="mt-4 font-extrabold text-slate-900">Face ID that guides you</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">No buttons to press. The camera finds you and tells you what to do, step by step. Your face is saved as numbers, never as a picture.</p></div>
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">👆</div><h3 class="mt-4 font-extrabold text-slate-900">Fingerprint or authenticator</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Prefer your fingerprint or a 6-digit code? Choose the check that suits you.</p></div>
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">💬</div><h3 class="mt-4 font-extrabold text-slate-900">Book with or without the AI</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Use the booking form, or just tell the assistant when you would like to meet.</p></div>
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">🎯</div><h3 class="mt-4 font-extrabold text-slate-900">A choice you make once</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Pick Discord or Jitsi when you book. It stays the same, so nothing gets mixed up on the day.</p></div>
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">🚪</div><h3 class="mt-4 font-extrabold text-slate-900">Your host opens the room</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">You join only once your host has started the meeting. The page updates by itself.</p></div>
+          <div class="reveal lift rounded-3xl bg-emerald-50/60 border border-emerald-100 p-7"><div class="text-3xl">📄</div><h3 class="mt-4 font-extrabold text-slate-900">Documents after each session</h3><p class="mt-2 text-sm text-slate-600 leading-relaxed">Read or print your session summary and action items any time.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center reveal">
+      <div class="text-xs font-extrabold tracking-widest text-emerald-700 uppercase">A quick check-in</div>
+      <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">How are you feeling right now?</h2>
+      <div class="mt-8 flex justify-center gap-3 sm:gap-4 flex-wrap" id="moodRow">
+        <button type="button" onclick="moodPick(0)" class="mood w-16 h-16 rounded-2xl bg-white border border-slate-200 text-3xl shadow-sm" aria-label="Very low">😞</button>
+        <button type="button" onclick="moodPick(1)" class="mood w-16 h-16 rounded-2xl bg-white border border-slate-200 text-3xl shadow-sm" aria-label="Low">😕</button>
+        <button type="button" onclick="moodPick(2)" class="mood w-16 h-16 rounded-2xl bg-white border border-slate-200 text-3xl shadow-sm" aria-label="Okay">😐</button>
+        <button type="button" onclick="moodPick(3)" class="mood w-16 h-16 rounded-2xl bg-white border border-slate-200 text-3xl shadow-sm" aria-label="Good">🙂</button>
+        <button type="button" onclick="moodPick(4)" class="mood w-16 h-16 rounded-2xl bg-white border border-slate-200 text-3xl shadow-sm" aria-label="Great">😄</button>
+      </div>
+      <div id="moodReply" class="mt-6 min-h-[96px] text-slate-600 text-[15px] leading-relaxed max-w-xl mx-auto" aria-live="polite"></div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+      <div class="rounded-[2rem] bg-emerald-700 text-white px-8 py-12 sm:px-14 sm:py-16 grid md:grid-cols-[1fr_auto] gap-8 items-center">
+        <div><h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Ready when you are.</h2><p class="mt-3 text-emerald-100 max-w-xl">It takes about a minute to get started. You choose the pace.</p></div>
+        <button type="button" onclick="openQuiz()" class="px-8 py-4 rounded-full bg-white text-emerald-800 font-extrabold hover:bg-emerald-50 transition shadow-lg">Get started</button>
+      </div>
+    </section>
+
+    <section id="faq" class="reveal max-w-3xl mx-auto px-4 sm:px-6 pb-20">
+      <div class="text-xs font-extrabold tracking-widest text-emerald-700 uppercase">Questions</div><h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Good to know</h2>
+      <div class="mt-8 space-y-3">
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">What is Drozo Therapy?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">An online place where you can book sessions, chat with an AI assistant, and keep your session documents together behind a protected sign-in.</p></details>
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">Is the AI assistant a therapist?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">No. It offers gentle conversation and helps you book a session. It does not diagnose and it does not replace professional care.</p></details>
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">How does sign-in work?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">You enter your email and password. Then you complete the check you chose: Face ID, your fingerprint, a code from an authenticator app, or approval on your phone.</p></details>
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">Can I change Discord or video after booking?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">The channel is chosen once, when you book. To use the other one, ask your host to cancel and then book a new session.</p></details>
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">How is my face used?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">Face ID saves a numeric model of your face, not a photo, to check it is you. "Reset all security" in your settings removes it.</p></details>
+        <details class="bg-white rounded-2xl border border-slate-200 px-5 py-4"><summary class="flex items-center justify-between gap-4 font-bold text-slate-900">Is Drozo Therapy for emergencies?<svg class="chev w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5 10 12l4.5-4.5-1.1-1.1L10 9.8 6.6 6.4z"/></svg></summary><p class="mt-3 text-sm text-slate-600 leading-relaxed">No. If you may be in danger or are thinking about hurting yourself, contact your local emergency number or a crisis line straight away.</p></details>
+      </div>
+    </section>
+  <div class="md:hidden fixed bottom-4 inset-x-4 z-30"><button type="button" onclick="openQuiz()" class="shine w-full py-4 rounded-full bg-emerald-600 text-white font-extrabold shadow-2xl shadow-emerald-700/30">Get started</button></div>
+  </div>
+  <!-- ================= END PUBLIC HOME PAGE ================= -->
+
+  <div id="portalContent" class="gone">
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confidentially Sandboxed
+        <div class="rounded-3xl bg-gradient-to-br from-emerald-700 to-emerald-500 text-white p-7 sm:p-9 shadow-lg">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/15" id="welcomeShield">🔒 Protected</div>
+          <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">Welcome back, <span id="welcomeName">friend</span></h1>
+          <p class="mt-2 text-emerald-50 text-sm sm:text-base max-w-xl">Your sessions, documents and the AI assistant are all here. Take your time.</p>
+          <p class="mt-2 text-xs text-emerald-100" id="welcomeTopics"></p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button type="button" onclick="focusSection('schedule-card')" class="px-5 py-2.5 rounded-full bg-white text-emerald-800 text-sm font-extrabold hover:bg-emerald-50 transition">Book an appointment</button>
+            <button type="button" onclick="toggleAiBot()" class="px-5 py-2.5 rounded-full border border-white/50 text-white text-sm font-bold hover:bg-white/10 transition">Talk to the assistant</button>
           </div>
-          <h1 class="text-2xl font-bold text-slate-900">Welcome to your personal Sanctuary</h1>
-          <p class="text-sm text-slate-500 mt-1">Your sessions, clinical wellness notes, and AI conversational exercises are ready. Click the assistant icon on the bottom right to talk or schedule.</p>
         </div>
 
         <div id="cloud-vault-card" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -103,9 +259,9 @@
             <div class="p-3 rounded-lg border border-slate-100 bg-slate-50 flex justify-between items-center">
               <div>
                 <div class="font-semibold text-slate-700">Initial Wellness Assessment</div>
-                <div class="text-[10px] text-slate-400">Completed • Water_Chugger/Owner</div>
+                <div class="text-[10px] text-slate-400">Completed • Drozo Therapy Care Team</div>
               </div>
-              <button onclick="renderCustomPDF('PAT_Current', 'Initial Wellness Assessment', 'Water_Chugger/Owner', 'Initial baseline wellness assessment established.', 'Daily reflections.')" class="text-emerald-600 hover:underline font-bold text-[11px] flex items-center gap-1">
+              <button onclick="renderCustomPDF('PAT_Current', 'Initial Wellness Assessment', 'Drozo Therapy Care Team', 'Initial baseline wellness assessment established.', 'Daily reflections.')" class="text-emerald-600 hover:underline font-bold text-[11px] flex items-center gap-1">
                 <span>📄</span> Download PDF
               </button>
             </div>
@@ -234,12 +390,28 @@
     </div>
   </div>
 
-  <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+  <div id="quizModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="h-1.5 bg-slate-100"><div id="quizBar" class="h-1.5 bg-emerald-600 transition-all duration-300" style="width:33%"></div></div>
+      <div class="p-7 sm:p-8">
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg><span class="text-sm font-extrabold text-slate-900">Drozo <span class="text-emerald-600">Therapy</span></span></div><button type="button" onclick="closeQuiz()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none" aria-label="Close">&times;</button></div>
+        <h3 id="quizTitle" class="mt-6 text-2xl font-extrabold tracking-tight text-slate-900"></h3>
+        <p id="quizHint" class="mt-1 text-sm text-slate-500"></p>
+        <div id="quizBody" class="mt-6"></div>
+        <div class="mt-8 flex items-center justify-between gap-3">
+          <button type="button" onclick="quizBack()" class="px-5 py-3 rounded-full border border-slate-300 text-slate-700 text-sm font-bold hover:bg-slate-50">&#8249; Back</button>
+          <button type="button" id="quizNextBtn" onclick="quizNext()" class="px-7 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold shadow">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="authModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
 
     <div id="authStep1" class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="text-center">
-        <span class="text-3xl">🧠</span>
-        <h3 class="text-lg font-extrabold text-slate-900 mt-2" id="authHeaderTitle">Sign In to DrozoMind</h3>
+        <div class="mx-auto w-12 h-12"><svg viewBox="0 0 40 40" width="48" height="48" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg></div>
+        <h3 class="text-lg font-extrabold text-slate-900 mt-2" id="authHeaderTitle">Sign In to Drozo Therapy</h3>
         <p class="text-xs text-slate-500 mt-1" id="authHeaderSubtitle">Please sign in to access your confidential sanctuary.</p>
       </div>
       <div class="flex border-b border-slate-200 mb-2">
@@ -256,6 +428,7 @@
           <input type="password" id="loginPass" autocomplete="new-password" required onkeydown="if(event.key === 'Enter') handleStep1Submit(event)" class="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600" />
         </div>
         <button type="button" onclick="handleStep1Submit(event)" id="btnSubmitStep1" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Continue to 2FA Verification →</button>
+        <button type="button" onclick="closeAuthModal()" class="w-full text-xs text-slate-400 hover:text-slate-600 font-semibold">&#8249; Back to home</button>
       </div>
     </div>
 
@@ -395,8 +568,13 @@
     </div>
   </div>
 
-  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-    &copy; 2026 DrozoMind Sanctuary. All rights reserved.
+  <footer class="bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid md:grid-cols-[1.2fr_1fr] gap-8">
+      <div><div class="flex items-center gap-2.5"><svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg><span class="text-lg font-extrabold text-slate-900">Drozo <span class="text-emerald-600">Therapy</span></span></div>
+        <p class="mt-3 text-sm text-slate-500 max-w-md">Private, protected online support. Drozo Therapy is not an emergency service. If you may be in danger, contact your local emergency number or a crisis line right away.</p></div>
+      <div class="text-sm text-slate-600 grid grid-cols-2 gap-2 content-start"><a href="#how" class="hover:text-emerald-700">How it works</a><a href="#features" class="hover:text-emerald-700">What you get</a><a href="#faq" class="hover:text-emerald-700">Questions</a><button type="button" onclick="openLoginModal()" class="text-left hover:text-emerald-700">Sign in</button></div>
+    </div>
+    <div class="border-t border-slate-100 py-4 text-center text-xs text-slate-400">&copy; 2026 Drozo Therapy. All rights reserved.</div>
   </footer>
 
   <script>
@@ -404,7 +582,7 @@
     if (typeof supabase === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>'); }
   </script>
   <script>
-// ===== DrozoMind Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
+// ===== Drozo Therapy Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
 // The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
 // signing in is a quick look plus a small, random head nudge to prove you are a live person.
 const FaceID = (function () {
@@ -714,7 +892,7 @@ const FaceID = (function () {
 
   </script>
   <script>
-// DrozoMind front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
+// Drozo Therapy front-end (Supabase edition). Accounts, 2FA and data live in Supabase; row-level security enforces access.
 if (!(window.DROZO_CONFIG && window.DROZO_CONFIG.url && window.DROZO_CONFIG.anon)) { alert('config.js is missing or empty. Create it next to index.html with your Supabase Project URL and anon key.'); }
 const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
 const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
@@ -745,14 +923,41 @@ const liveDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dubai', da
 
 window.addEventListener('DOMContentLoaded', async () => {
   $('aiWelcomeMsg').innerHTML = 'Hello! I am your AI therapy assistant. Today is <strong>' + escapeHtml(liveDate) + '</strong>. You can speak freely with me or say: <em>"Book a session for tomorrow at 4 PM"</em>.';
-  lockPortal();
+  lockPortal(); initReveal();
   try {
     const { data } = await sb.auth.getSession();
-    if (data && data.session) await routeAfterAuth(false); else openLoginModal();
-  } catch (_) { openLoginModal(); }
+    if (data && data.session) await routeAfterAuth(false); else showLanding();
+  } catch (_) { showLanding(); }
 });
 
-function lockPortal() { const p = $('portalContent'); if (p) p.classList.add('blur-sm', 'pointer-events-none', 'select-none'); }
+function lockPortal() {
+  const p = $('portalContent'), l = $('landing');
+  if (p) p.classList.add('gone'); if (l) l.classList.remove('gone');
+  if ($('navPortal')) $('navPortal').classList.add('gone'); if ($('navPublic')) $('navPublic').classList.remove('gone');
+}
+function initReveal() {
+  try {
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    if (!('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('in')); return; }
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { threshold: 0.12 });
+    els.forEach((e) => io.observe(e));
+    setTimeout(() => els.forEach((e) => e.classList.add('in')), 2500);   // never leave anything hidden
+  } catch (_) { document.querySelectorAll('.reveal').forEach((e) => e.classList.add('in')); }
+}
+const MOOD_REPLIES = [
+  'I am sorry it feels heavy right now. You do not have to carry it alone. If you ever feel unsafe, please contact your local emergency number or a crisis line straight away. When you are ready, we are here.',
+  'That sounds hard. A small step can help, like one slow breath, or talking it through with someone.',
+  'Thanks for checking in. Steady days are a good time to look after yourself.',
+  'Glad things feel a little brighter. Keep doing what is helping.',
+  'That is lovely to hear. Enjoy it, and come back any time.'
+];
+function moodPick(i) {
+  const r = $('moodReply'); if (!r) return;
+  r.innerHTML = '<p>' + MOOD_REPLIES[i] + '</p>' + (i <= 2 ? '<button type="button" onclick="openQuiz()" class="mt-4 px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold shadow">Talk to us</button>' : '');
+}
+function showLanding() { lockPortal(); hide('authModal'); }
+function closeAuthModal() { hide('authModal'); }
+function goHome(e) { if (e) e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // ---------- profile + routing ----------
 async function loadMe() {
@@ -822,7 +1027,7 @@ function switchAuthTab(mode) {
   const reg = mode === 'register';
   $('tabLoginBtn').className = reg ? 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600' : 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600';
   $('tabRegisterBtn').className = reg ? 'flex-1 pb-2 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600' : 'flex-1 pb-2 text-xs font-bold text-slate-400 hover:text-slate-600';
-  $('authHeaderTitle').innerText = reg ? 'Register New Account' : 'Sign In to DrozoMind';
+  $('authHeaderTitle').innerText = reg ? 'Register New Account' : 'Sign In to Drozo Therapy';
   $('authHeaderSubtitle').innerText = reg ? 'Create credentials to access your sandboxed therapy sanctuary.' : 'Please sign in to access your confidential sanctuary.';
   $('btnSubmitStep1').innerText = reg ? 'Create Account & Setup 2FA →' : 'Continue to 2FA Verification →';
   $('loginEmail').value = ''; $('loginPass').value = '';
@@ -997,7 +1202,7 @@ async function startAuthenticatorEnrollment() {
     for (const f of ((lf && lf.all) || [])) {
       if (f.factor_type === 'totp' && f.status === 'unverified') await sb.auth.mfa.unenroll({ factorId: f.id });
     }
-    const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'DrozoMind-' + Date.now() });
+    const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Drozo Therapy-' + Date.now() });
     if (error) throw error;
     pendingFactorId = data.id;
     $('enrollTotpSecretText').innerText = data.totp.secret;
@@ -1080,8 +1285,10 @@ function unlockSanctuaryUI() {
   if (pollTimer) clearInterval(pollTimer);
   localStorage.setItem('drozo_active_session', me.email);
   hide('authModal');
-  const portal = $('portalContent');
-  if (portal) portal.classList.remove('blur-sm', 'pointer-events-none', 'select-none');
+  const portal = $('portalContent'), land = $('landing');
+  if (portal) portal.classList.remove('gone'); if (land) land.classList.add('gone');
+  if ($('navPublic')) $('navPublic').classList.add('gone'); if ($('navPortal')) $('navPortal').classList.remove('gone');
+  try { window.scrollTo(0, 0); } catch (_) {}
 
   const area = $('navAuthArea');
   area.innerHTML = '';
@@ -1107,6 +1314,9 @@ function unlockSanctuaryUI() {
   area.appendChild(out);
 
   checkAndDisplayIdPassNav();
+  const wn = $('welcomeName'); if (wn) wn.textContent = me.email.split('@')[0];
+  const ws = $('welcomeShield'); if (ws) ws.textContent = '🔒 ' + ({ face: 'Protected with Face ID', fingerprint: 'Protected with your fingerprint', totp: 'Protected with an authenticator app', drozo_guard: 'Protected with Drozo Guard', none: 'Password only: add a second check in ⚙️ Settings' })[me.twofa_pref || 'none'];
+  const wt = $('welcomeTopics'); if (wt) { let tp = []; try { tp = JSON.parse(localStorage.getItem('drozo_intake_topics') || '[]'); } catch (_) {} wt.textContent = tp.length ? 'You told us you would like support with: ' + tp.join(', ') : ''; }
   lastApptSig = '';
   loadAppointment(); loadDispatchedDocuments(); loadCloudVaultFiles();
   if (apptTimer) clearInterval(apptTimer);
@@ -1162,6 +1372,39 @@ async function executeChangePassword() {
   $('newSecPassword').value = ''; closeSecurityModal();
 }
 
+// ---------- Get started quiz (before creating an account) ----------
+const QUIZ_TOPICS = ['Stress and anxiety', 'Low mood', 'Relationships', 'Sleep', 'Work or school pressure', 'Something else'];
+let quizStep = 1, quizTopics = [], quizChannel = '';
+function openQuiz() { quizStep = 1; quizTopics = []; quizChannel = ''; renderQuiz(); show('quizModal'); }
+function closeQuiz() { hide('quizModal'); }
+function quizBack() { if (quizStep <= 1) { closeQuiz(); return; } quizStep--; renderQuiz(); }
+function quizNext() {
+  if (quizStep === 1 && !quizTopics.length) { alert('Pick at least one, or choose "Something else".'); return; }
+  if (quizStep === 2 && !quizChannel) { alert('Choose how you would like to meet. You choose once, when you book.'); return; }
+  if (quizStep === 3) {
+    localStorage.setItem('drozo_intake_topics', JSON.stringify(quizTopics)); localStorage.setItem('drozo_intake_channel', quizChannel);
+    closeQuiz(); openLoginModal(); switchAuthTab('register'); return;
+  }
+  quizStep++; renderQuiz();
+}
+function quizToggleTopic(i) { const t = QUIZ_TOPICS[i], k = quizTopics.indexOf(t); if (k >= 0) quizTopics.splice(k, 1); else quizTopics.push(t); renderQuiz(); }
+function quizPickChannel(c) { quizChannel = c; renderQuiz(); }
+function renderQuiz() {
+  const body = $('quizBody'), chip = (on) => 'w-full text-left px-4 py-3.5 rounded-2xl border-2 text-sm font-bold transition ' + (on ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-slate-200 text-slate-700 hover:border-emerald-300');
+  $('quizBar').style.width = (quizStep * 33.4) + '%';
+  $('quizNextBtn').textContent = quizStep === 3 ? 'Create my account' : 'Continue';
+  if (quizStep === 1) {
+    $('quizTitle').textContent = 'What would you like support with?'; $('quizHint').textContent = 'Choose all that apply.';
+    body.innerHTML = '<div class="grid sm:grid-cols-2 gap-3">' + QUIZ_TOPICS.map((t, i) => '<button type="button" onclick="quizToggleTopic(' + i + ')" class="' + chip(quizTopics.includes(t)) + '">' + t + '</button>').join('') + '</div>';
+  } else if (quizStep === 2) {
+    $('quizTitle').textContent = 'How would you like to meet?'; $('quizHint').textContent = 'You choose once, when you book, so pick the one you are most comfortable with.';
+    body.innerHTML = '<div class="grid gap-3"><button type="button" onclick="quizPickChannel(\'discord\')" class="' + chip(quizChannel === 'discord') + '">🎮 Discord voice chat</button><button type="button" onclick="quizPickChannel(\'video\')" class="' + chip(quizChannel === 'video') + '">🎥 Jitsi video call</button></div>';
+  } else {
+    $('quizTitle').textContent = 'Great. Let us create your account.'; $('quizHint').textContent = 'Next you will choose a password, then how to protect your account.';
+    body.innerHTML = '<div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm text-slate-700 space-y-1.5"><div><b>Support with:</b> ' + quizTopics.join(', ') + '</div><div><b>Meeting on:</b> ' + (quizChannel === 'video' ? 'Jitsi video call' : 'Discord voice chat') + '</div><div class="text-xs text-slate-500 pt-1">You can still change your mind before you book.</div></div>';
+  }
+}
+
 // ---------- appointments: book with or without the AI; the channel is chosen ONCE; an admin starts the meeting ----------
 const ACTIVE = ['PENDING', 'CLAIMED', 'CONFIRMED'];
 const CHANNEL_LABEL = { discord: '🎮 Discord voice chat', video: '🎥 Jitsi video call' };
@@ -1193,6 +1436,7 @@ function renderBookingForm(note) {
     '<button type="button" id="bookVideo" onclick="pickBookingChannel(\'video\')" class="py-2 px-2 rounded-lg border text-xs font-bold transition">🎥 Jitsi video</button></div></div>' +
     '<button type="button" id="btnBook" onclick="submitBooking()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow">Book appointment</button></div>';
   $('bookWhen').value = defaultWhen();
+  if (!bookingDraft.channel) { const ic = localStorage.getItem('drozo_intake_channel'); if (ic === 'discord' || ic === 'video') bookingDraft.channel = ic; }
   paintChannelButtons();
 }
 function paintChannelButtons() {
@@ -1449,7 +1693,7 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
   const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dubai' });
   const css = "body{font-family:'Helvetica Neue',Arial,sans-serif;padding:40px;color:#1e293b}.header{border-bottom:2px solid #10b981;padding-bottom:20px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-end}.logo{font-size:26px;font-weight:800;color:#0f172a}.logo span{color:#059669}.info-table{width:100%;border-collapse:collapse;margin-bottom:30px}.info-table td{padding:12px;border:1px solid #cbd5e1;font-size:14px}.info-table td:nth-child(odd){font-weight:bold;background:#f8fafc;width:22%;color:#475569}.content{line-height:1.8;font-size:15px}.signature-block{margin-top:50px}.signature{font-family:'Brush Script MT',cursive;font-size:32px}p{white-space:pre-line}";
   const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Clinical Outcome - ' + e(patient) + '</title><style>' + css + '</style></head><body>' +
-    '<div class="header"><div class="logo">Drozo<span>Mind</span></div><div>Official Outcome Record</div></div>' +
+    '<div class="header"><div class="logo">Drozo <span>Therapy</span></div><div>Official Outcome Record</div></div>' +
     '<table class="info-table"><tr><td>Patient Reference</td><td>' + e(patient) + '</td><td>Date</td><td>' + e(date) + '</td></tr><tr><td>Therapist</td><td>' + e(therapist) + '</td><td>Category</td><td>' + e(type) + '</td></tr></table>' +
     '<div class="content"><h3>Clinical Encounter Breakdown</h3><p>' + e(notes) + '</p><h3>Prescribed Action Items</h3><p>' + e(actions) + '</p></div>' +
     '<div class="signature-block"><div class="signature">' + e(String(therapist || '').split('/')[0]) + '</div><div>Electronically Signed</div></div></body></html>';

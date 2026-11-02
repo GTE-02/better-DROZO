@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Drozo Guard Authenticator</title>
+<title>Drozo Therapy | Guard</title>
 <script src="config.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } } } } };</script>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <style>
@@ -16,7 +18,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 <body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
 
 <header class="flex items-center justify-between py-3 border-b border-slate-800">
-  <div class="flex items-center gap-2"><span class="text-xl">🛡️</span><span class="text-xs font-black tracking-widest uppercase">Drozo Guard</span></div>
+  <div class="flex items-center gap-2"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg><span class="text-sm font-extrabold tracking-tight">Drozo Therapy <span class="text-emerald-400">Guard</span></span></div>
   <div id="guardPill" class="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">SIGNED OUT</div>
 </header>
 
@@ -43,7 +45,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
     <div class="p-4 rounded-3xl bg-slate-900 border border-sky-500/30 space-y-4">
       <div class="text-xs font-extrabold uppercase tracking-wide">🔐 Sign-In Request</div>
       <div class="p-3 rounded-2xl bg-black/40 border border-slate-800 text-[11px] text-sky-400 mono truncate" id="userEmailDisplay"></div>
-      <p class="text-[11px] text-slate-400 text-center">Are you trying to sign in to DrozoMind right now?</p>
+      <p class="text-[11px] text-slate-400 text-center">Are you trying to sign in to Drozo Therapy right now?</p>
       <div class="grid grid-cols-2 gap-3">
         <button type="button" id="btnDeny" class="py-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs">✕ Deny</button>
         <button type="button" id="btnApprove" class="py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">✓ Approve</button>
@@ -52,7 +54,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
   </section>
 </main>
 
-<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono"><span>Drozo Guard</span><span id="bioTag">Standard</span></footer>
+<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono"><span>Drozo Therapy Guard</span><span id="bioTag">Standard</span></footer>
 
 <div id="enrollModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
   <div class="text-5xl">🔒</div>
@@ -74,7 +76,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background
 </div>
 
 <script>
-// ===== DrozoMind Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
+// ===== Drozo Therapy Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
 // The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
 // signing in is a quick look plus a small, random head nudge to prove you are a live person.
 const FaceID = (function () {
