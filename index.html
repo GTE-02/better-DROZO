@@ -1483,7 +1483,12 @@ function syncAppointmentStatus() {
   card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 flex flex-col gap-3">' + head('bg-rose-600 text-white animate-pulse', '● LIVE') + '<button type="button" onclick="launchSessionMeeting()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord voice chat' : 'Jitsi video call') + ' now</button></div>';
 }
 function launchSessionMeeting() {
-  if (!currentAppt || !currentAppt.meeting_started_at) { alert('The host has not started the meeting yet.'); return; }
+	if (typeof currentAppt !== 'undefined' && currentAppt && currentAppt.channel === 'discord') {
+		window.open(typeof DISCORD_INVITE_URL !== 'undefined' ? DISCORD_INVITE_URL : 'https://discord.gg', '_blank');
+		return;
+	}
+	window.openVmPickerModal();
+}
   window.open(currentAppt.channel === 'discord' ? DISCORD_INVITE_URL : 'https://meet.jit.si/drozo-' + currentAppt.id, '_blank');
 }
 
@@ -1696,7 +1701,148 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
     '<div class="header"><div class="logo">Drozo <span>Therapy</span></div><div>Official Outcome Record</div></div>' +
     '<table class="info-table"><tr><td>Patient Reference</td><td>' + e(patient) + '</td><td>Date</td><td>' + e(date) + '</td></tr><tr><td>Therapist</td><td>' + e(therapist) + '</td><td>Category</td><td>' + e(type) + '</td></tr></table>' +
     '<div class="content"><h3>Clinical Encounter Breakdown</h3><p>' + e(notes) + '</p><h3>Prescribed Action Items</h3><p>' + e(actions) + '</p></div>' +
-    '<div class="signature-block"><div class="signature">' + e(String(therapist || '').split('/')[0]) + '</div><div>Electronically Signed</div></div></body></html>';
+    '<div class="signature-block"><div class="signature">' + e(String(therapist || '').split('/')[0]) + '</div><div>Electronically Signed</div></div>
+<!-- ================= DUAL-OS VM SELECTION MODAL ================= -->
+<div id="vmPickerModal" class="fixed inset-0 z-[2147483640] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+  <div class="relative w-full max-w-xl p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-white">
+    <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+      <div>
+        <h3 class="text-base font-extrabold tracking-tight">Select Meeting Sandbox OS</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Isolated virtual environment for your Jitsi session</p>
+      </div>
+      <button type="button" onclick="window.closeVmPickerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm transition">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+      <!-- Linux Option -->
+      <div onclick="window.startVmStream('linux')" class="group p-5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-900/30 hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-3xl">🐧</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">FAST & READY</span>
+          </div>
+          <div class="font-bold text-sm text-slate-100 group-hover:text-emerald-400 transition">Debian Linux VM</div>
+          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full HD 1080p kiosk stream. Instant connection with ultra-low latency.</p>
+        </div>
+        <button type="button" class="mt-4 w-full py-2 bg-emerald-600 group-hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">Launch Linux VM →</button>
+      </div>
+
+      <!-- Windows Option -->
+      <div onclick="window.startVmStream('windows')" class="group p-5 rounded-2xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-indigo-500 transition cursor-pointer flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-3xl">🪟</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">DOCKURR</span>
+          </div>
+          <div class="font-bold text-sm text-slate-100 group-hover:text-indigo-400 transition">Windows 11 VM</div>
+          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full Windows 11 sandbox environment running on web terminal port 8006.</p>
+        </div>
+        <button type="button" class="mt-4 w-full py-2 bg-slate-700 group-hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition">Launch Windows 11 →</button>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button type="button" onclick="window.closeVmPickerModal()" class="text-xs text-slate-500 hover:text-slate-300 transition">Cancel and return to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FULLSCREEN ACTIVE VM STREAM VIEWER ================= -->
+<div id="vmPlayerModal" class="fixed inset-0 z-[2147483645] hidden flex-col bg-slate-950 text-white">
+  <div class="flex justify-between items-center px-6 py-3 bg-slate-900 border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div>
+        <h2 class="text-xs font-extrabold tracking-wide uppercase text-slate-200">Active Sanctuary VM Session</h2>
+        <span id="vmActiveOsBadge" class="text-[10px] text-emerald-400 font-semibold font-mono">Running: Linux 1080p</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="button" id="btnToggleVmOs" onclick="window.toggleVmOs()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition border border-slate-700">Switch to Windows 11</button>
+      <button type="button" onclick="window.closeVmPlayer('Disconnected from VM session.')" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow">Stop & Exit to Dashboard</button>
+    </div>
+  </div>
+
+  <div class="flex-1 w-full h-full bg-black relative">
+    <iframe id="drozoVmIframe" src="" class="w-full h-full border-0" allow="camera; microphone; fullscreen; display-capture"></iframe>
+  </div>
+</div>
+
+<script>
+window.isVmActive = false;
+window.currentVmOs = 'linux';
+
+window.openVmPickerModal = function() {
+  const m = document.getElementById('vmPickerModal');
+  if (m) {
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+  }
+};
+
+window.closeVmPickerModal = function() {
+  const m = document.getElementById('vmPickerModal');
+  if (m) {
+    m.classList.add('hidden');
+    m.style.display = 'none';
+  }
+};
+
+window.startVmStream = function(os) {
+  window.currentVmOs = os;
+  window.closeVmPickerModal();
+  const player = document.getElementById('vmPlayerModal');
+  const iframe = document.getElementById('drozoVmIframe');
+  const badge = document.getElementById('vmActiveOsBadge');
+  const toggleBtn = document.getElementById('btnToggleVmOs');
+  
+  if (os === 'linux') {
+    iframe.src = 'http://localhost:6080/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2&show_dot=true';
+    if (badge) badge.innerText = 'Running: Linux Full HD (noVNC)';
+    if (toggleBtn) toggleBtn.innerText = 'Switch to Windows 11';
+  } else {
+    iframe.src = 'http://localhost:8006';
+    if (badge) badge.innerText = 'Running: Windows 11 (KVM/QEMU)';
+    if (toggleBtn) toggleBtn.innerText = 'Switch to Debian Linux';
+  }
+
+  if (player) {
+    player.classList.remove('hidden');
+    player.style.display = 'flex';
+  }
+  window.isVmActive = true;
+};
+
+window.toggleVmOs = function() {
+  window.startVmStream(window.currentVmOs === 'linux' ? 'windows' : 'linux');
+};
+
+window.closeVmPlayer = function(reason) {
+  const player = document.getElementById('vmPlayerModal');
+  const iframe = document.getElementById('drozoVmIframe');
+  if (iframe) iframe.src = '';
+  if (player) {
+    player.classList.add('hidden');
+    player.style.display = 'none';
+  }
+  window.isVmActive = false;
+  if (reason) alert(reason);
+};
+
+// Polling loop: If the Admin terminates the meeting in admin.html, gracefully exit the VM
+setInterval(() => {
+  if (window.isVmActive && typeof currentAppt !== 'undefined' && currentAppt) {
+    if (!currentAppt.meeting_started_at || currentAppt.status === 'COMPLETED' || currentAppt.status === 'CANCELLED') {
+      window.closeVmPlayer('The therapist or admin has ended the session. VM has safely shut down.');
+      if (typeof syncAppointmentStatus === 'function') syncAppointmentStatus();
+    }
+  }
+}, 2000);
+</script>
+<!-- ================= END DUAL-OS VM LOGIC ================= -->
+
+</body></html>';
   const win = window.open('', '_blank');
   if (!win) { alert('Please allow pop-ups to view the PDF.'); return; }
   win.document.write(html);
@@ -1706,5 +1852,146 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
 }
 
   </script>
+
+<!-- ================= DUAL-OS VM SELECTION MODAL ================= -->
+<div id="vmPickerModal" class="fixed inset-0 z-[2147483640] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+  <div class="relative w-full max-w-xl p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-white">
+    <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+      <div>
+        <h3 class="text-base font-extrabold tracking-tight">Select Meeting Sandbox OS</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Isolated virtual environment for your Jitsi session</p>
+      </div>
+      <button type="button" onclick="window.closeVmPickerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm transition">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+      <!-- Linux Option -->
+      <div onclick="window.startVmStream('linux')" class="group p-5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-900/30 hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-3xl">🐧</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">FAST & READY</span>
+          </div>
+          <div class="font-bold text-sm text-slate-100 group-hover:text-emerald-400 transition">Debian Linux VM</div>
+          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full HD 1080p kiosk stream. Instant connection with ultra-low latency.</p>
+        </div>
+        <button type="button" class="mt-4 w-full py-2 bg-emerald-600 group-hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">Launch Linux VM →</button>
+      </div>
+
+      <!-- Windows Option -->
+      <div onclick="window.startVmStream('windows')" class="group p-5 rounded-2xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-indigo-500 transition cursor-pointer flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-3xl">🪟</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">DOCKURR</span>
+          </div>
+          <div class="font-bold text-sm text-slate-100 group-hover:text-indigo-400 transition">Windows 11 VM</div>
+          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full Windows 11 sandbox environment running on web terminal port 8006.</p>
+        </div>
+        <button type="button" class="mt-4 w-full py-2 bg-slate-700 group-hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition">Launch Windows 11 →</button>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button type="button" onclick="window.closeVmPickerModal()" class="text-xs text-slate-500 hover:text-slate-300 transition">Cancel and return to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FULLSCREEN ACTIVE VM STREAM VIEWER ================= -->
+<div id="vmPlayerModal" class="fixed inset-0 z-[2147483645] hidden flex-col bg-slate-950 text-white">
+  <div class="flex justify-between items-center px-6 py-3 bg-slate-900 border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div>
+        <h2 class="text-xs font-extrabold tracking-wide uppercase text-slate-200">Active Sanctuary VM Session</h2>
+        <span id="vmActiveOsBadge" class="text-[10px] text-emerald-400 font-semibold font-mono">Running: Linux 1080p</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="button" id="btnToggleVmOs" onclick="window.toggleVmOs()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition border border-slate-700">Switch to Windows 11</button>
+      <button type="button" onclick="window.closeVmPlayer('Disconnected from VM session.')" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow">Stop & Exit to Dashboard</button>
+    </div>
+  </div>
+
+  <div class="flex-1 w-full h-full bg-black relative">
+    <iframe id="drozoVmIframe" src="" class="w-full h-full border-0" allow="camera; microphone; fullscreen; display-capture"></iframe>
+  </div>
+</div>
+
+<script>
+window.isVmActive = false;
+window.currentVmOs = 'linux';
+
+window.openVmPickerModal = function() {
+  const m = document.getElementById('vmPickerModal');
+  if (m) {
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+  }
+};
+
+window.closeVmPickerModal = function() {
+  const m = document.getElementById('vmPickerModal');
+  if (m) {
+    m.classList.add('hidden');
+    m.style.display = 'none';
+  }
+};
+
+window.startVmStream = function(os) {
+  window.currentVmOs = os;
+  window.closeVmPickerModal();
+  const player = document.getElementById('vmPlayerModal');
+  const iframe = document.getElementById('drozoVmIframe');
+  const badge = document.getElementById('vmActiveOsBadge');
+  const toggleBtn = document.getElementById('btnToggleVmOs');
+  
+  if (os === 'linux') {
+    iframe.src = 'http://localhost:6080/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2&show_dot=true';
+    if (badge) badge.innerText = 'Running: Linux Full HD (noVNC)';
+    if (toggleBtn) toggleBtn.innerText = 'Switch to Windows 11';
+  } else {
+    iframe.src = 'http://localhost:8006';
+    if (badge) badge.innerText = 'Running: Windows 11 (KVM/QEMU)';
+    if (toggleBtn) toggleBtn.innerText = 'Switch to Debian Linux';
+  }
+
+  if (player) {
+    player.classList.remove('hidden');
+    player.style.display = 'flex';
+  }
+  window.isVmActive = true;
+};
+
+window.toggleVmOs = function() {
+  window.startVmStream(window.currentVmOs === 'linux' ? 'windows' : 'linux');
+};
+
+window.closeVmPlayer = function(reason) {
+  const player = document.getElementById('vmPlayerModal');
+  const iframe = document.getElementById('drozoVmIframe');
+  if (iframe) iframe.src = '';
+  if (player) {
+    player.classList.add('hidden');
+    player.style.display = 'none';
+  }
+  window.isVmActive = false;
+  if (reason) alert(reason);
+};
+
+// Polling loop: If the Admin terminates the meeting in admin.html, gracefully exit the VM
+setInterval(() => {
+  if (window.isVmActive && typeof currentAppt !== 'undefined' && currentAppt) {
+    if (!currentAppt.meeting_started_at || currentAppt.status === 'COMPLETED' || currentAppt.status === 'CANCELLED') {
+      window.closeVmPlayer('The therapist or admin has ended the session. VM has safely shut down.');
+      if (typeof syncAppointmentStatus === 'function') syncAppointmentStatus();
+    }
+  }
+}, 2000);
+</script>
+<!-- ================= END DUAL-OS VM LOGIC ================= -->
+
 </body>
 </html>

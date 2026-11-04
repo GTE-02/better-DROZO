@@ -272,5 +272,49 @@ async function logoutAdmin() {
 boot();
 
   </script>
+
+<!-- ================= ADMIN VM CONTROLLER ================= -->
+<script>
+window.terminatePatientVMAndCall = async function(apptId) {
+  if (!confirm("Are you sure you want to stop this VM session?\n\nThis will shut down the patient's remote VM stream and return them to the base dashboard.")) return;
+  try {
+    const { error } = await sb.from('appointments').update({
+      meeting_started_at: null,
+      status: 'COMPLETED'
+    }).eq('id', apptId);
+    
+    if (error) throw error;
+    
+    try {
+      await sb.from('vm_sessions').update({ status: 'terminated' }).eq('status', 'active');
+    } catch (_) {}
+
+    alert("✓ Session Ended: VM terminated and patient returned to dashboard.");
+    if (typeof loadAppointments === 'function') loadAppointments();
+    else location.reload();
+  } catch (err) {
+    alert("Could not terminate session: " + (err.message || err));
+  }
+};
+
+// Wire the red Stop button across appointment cards in Admin
+document.addEventListener('DOMContentLoaded', () => {
+  const attachStopBtns = () => {
+    document.querySelectorAll('button').forEach(btn => {
+      const txt = btn.innerText.trim();
+      if ((txt.includes('End Meeting') || txt.includes('Stop Meeting') || txt.includes('Complete')) && !btn.dataset.vmWired) {
+        btn.dataset.vmWired = 'true';
+        btn.style.backgroundColor = '#e11d48';
+        btn.style.color = '#ffffff';
+        btn.innerText = '🛑 Stop VM & End Meeting';
+      }
+    });
+  };
+  attachStopBtns();
+  setInterval(attachStopBtns, 2500);
+});
+</script>
+<!-- ================= END ADMIN VM CONTROLLER ================= -->
+
 </body>
 </html>
