@@ -1697,6 +1697,8 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
     '<table class="info-table"><tr><td>Patient Reference</td><td>' + e(patient) + '</td><td>Date</td><td>' + e(date) + '</td></tr><tr><td>Therapist</td><td>' + e(therapist) + '</td><td>Category</td><td>' + e(type) + '</td></tr></table>' +
     '<div class="content"><h3>Clinical Encounter Breakdown</h3><p>' + e(notes) + '</p><h3>Prescribed Action Items</h3><p>' + e(actions) + '</p></div>' +
     '<div class="signature-block"><div class="signature">' + e(String(therapist || '').split('/')[0]) + '</div><div>Electronically Signed</div></div>
+
+
 <!-- START VM MODAL -->
 
 <!-- ================= SAFE VM MODAL INTEGRATION ================= -->
@@ -1711,13 +1713,13 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;">
-      <div onclick="window.startCloudflareVm('linux')" style="padding:16px; border-radius:16px; border:2px solid rgba(16,185,129,0.5); background:rgba(6,78,59,0.25); cursor:pointer; transition: 0.2s;">
+      <div onclick="window.startCloudflareVm('linux')" style="padding:16px; border-radius:16px; border:2px solid rgba(16,185,129,0.5); background:rgba(6,78,59,0.25); cursor:pointer;">
         <span style="font-size:26px;">🐧</span>
         <div style="font-weight:bold; font-size:14px; margin-top:8px;">Debian Linux</div>
         <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">High-definition 1080p remote stream.</p>
       </div>
 
-      <div onclick="window.startCloudflareVm('windows')" style="padding:16px; border-radius:16px; border:1px solid #334155; background:rgba(30,41,59,0.4); cursor:pointer; transition: 0.2s;">
+      <div onclick="window.startCloudflareVm('windows')" style="padding:16px; border-radius:16px; border:1px solid #334155; background:rgba(30,41,59,0.4); cursor:pointer;">
         <span style="font-size:26px;">🪟</span>
         <div style="font-weight:bold; font-size:14px; margin-top:8px;">Windows 11</div>
         <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">Running via background container.</p>
@@ -1734,7 +1736,7 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
 <div id="cfVmViewer" style="display:none; position:fixed; inset:0; z-index:9999999; flex-direction:column; background:#020617;">
   <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:#0f172a; border-bottom:1px solid #1e293b; color:white;">
     <div style="display:flex; align-items:center; gap:8px;">
-      <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block; animation: pulse 2s infinite;"></span>
+      <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
       <span style="font-size:12px; font-weight:800; letter-spacing:0.05em; color:#10b981;">ACTIVE REMOTE VM SESSION</span>
     </div>
     <button type="button" onclick="window.stopCloudflareVm('Session closed.')" style="background:#e11d48; color:white; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">Exit VM & Return to Dashboard</button>
@@ -1758,6 +1760,7 @@ window.startCloudflareVm = async function(os) {
         if (data && data[0] && data[0].vm_url) streamUrl = data[0].vm_url;
       }
     } catch (_) {}
+    // Fallback if Supabase record isn't found
     if (!streamUrl) streamUrl = 'https://backgrounds-properties-corporations-valuable.trycloudflare.com/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2';
   } else {
     streamUrl = 'http://localhost:8006';
@@ -1777,7 +1780,7 @@ window.stopCloudflareVm = function(msg) {
   if (msg) alert(msg);
 };
 
-// Strict Event Delegation: Hijacks Jitsi clicks instantly without breaking Auth
+// Strict Event Delegation: Hijacks Jitsi clicks instantly WITHOUT modifying existing code
 document.addEventListener('DOMContentLoaded', () => {
   document.body.addEventListener('click', (e) => {
     const btn = e.target.closest('button, a');
@@ -1785,14 +1788,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const txt = (btn.innerText || '').toLowerCase();
     
     if (txt.includes('join jitsi') || txt.includes('join video call') || txt.includes('join meeting')) {
-      // Allow Discord links to bypass the VM
+      // Allow Discord channel invites to pass through normally
       if (typeof currentAppt !== 'undefined' && currentAppt && currentAppt.channel === 'discord') return;
       
       e.preventDefault();
-      e.stopImmediatePropagation();
+      e.stopImmediatePropagation(); // Kills the old broken launchSessionMeeting() function in its tracks
       document.getElementById('cfVmModal').style.display = 'flex';
     }
-  }, true); // useCapture = true ensures this runs before React/inline handlers
+  }, true); // useCapture = true ensures this fires FIRST
 
   // Auto-Shutdown Polling via Supabase
   setInterval(async () => {
@@ -1931,6 +1934,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- END VM MODAL -->
-</body>
-</html>
