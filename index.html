@@ -1483,12 +1483,7 @@ function syncAppointmentStatus() {
   card.innerHTML = '<div class="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 flex flex-col gap-3">' + head('bg-rose-600 text-white animate-pulse', '● LIVE') + '<button type="button" onclick="launchSessionMeeting()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex justify-center items-center gap-2 shadow"><span>' + (dis ? '🎮' : '🎥') + '</span> Join ' + (dis ? 'Discord voice chat' : 'Jitsi video call') + ' now</button></div>';
 }
 function launchSessionMeeting() {
-	if (typeof currentAppt !== 'undefined' && currentAppt && currentAppt.channel === 'discord') {
-		window.open(typeof DISCORD_INVITE_URL !== 'undefined' ? DISCORD_INVITE_URL : 'https://discord.gg', '_blank');
-		return;
-	}
-	window.openVmPickerModal();
-}
+  if (!currentAppt || !currentAppt.meeting_started_at) { alert('The host has not started the meeting yet.'); return; }
   window.open(currentAppt.channel === 'discord' ? DISCORD_INVITE_URL : 'https://meet.jit.si/drozo-' + currentAppt.id, '_blank');
 }
 
@@ -1702,146 +1697,118 @@ function renderCustomPDF(patient, type, therapist, notes, actions) {
     '<table class="info-table"><tr><td>Patient Reference</td><td>' + e(patient) + '</td><td>Date</td><td>' + e(date) + '</td></tr><tr><td>Therapist</td><td>' + e(therapist) + '</td><td>Category</td><td>' + e(type) + '</td></tr></table>' +
     '<div class="content"><h3>Clinical Encounter Breakdown</h3><p>' + e(notes) + '</p><h3>Prescribed Action Items</h3><p>' + e(actions) + '</p></div>' +
     '<div class="signature-block"><div class="signature">' + e(String(therapist || '').split('/')[0]) + '</div><div>Electronically Signed</div></div>
-<!-- ================= DUAL-OS VM SELECTION MODAL ================= -->
-<div id="vmPickerModal" class="fixed inset-0 z-[2147483640] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-  <div class="relative w-full max-w-xl p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-white">
-    <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+<!-- START VM MODAL -->
+
+<!-- ================= SAFE VM MODAL INTEGRATION ================= -->
+<div id="cfVmModal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(2,6,23,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;">
+  <div style="width:100%; max-width:520px; background:#0f172a; border:1px solid #1e293b; border-radius:24px; padding:24px; color:#ffffff; font-family:sans-serif;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:12px;">
       <div>
-        <h3 class="text-base font-extrabold tracking-tight">Select Meeting Sandbox OS</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Isolated virtual environment for your Jitsi session</p>
+        <h3 style="margin:0; font-size:16px; font-weight:800;">Select Meeting Sandbox OS</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:#94a3b8;">Isolated virtual machine workspace</p>
       </div>
-      <button type="button" onclick="window.closeVmPickerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm transition">✕</button>
+      <button type="button" onclick="document.getElementById('cfVmModal').style.display='none'" style="background:#1e293b; color:#94a3b8; border:0; width:32px; height:32px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-      <!-- Linux Option -->
-      <div onclick="window.startVmStream('linux')" class="group p-5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-900/30 hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-3xl">🐧</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">FAST & READY</span>
-          </div>
-          <div class="font-bold text-sm text-slate-100 group-hover:text-emerald-400 transition">Debian Linux VM</div>
-          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full HD 1080p kiosk stream. Instant connection with ultra-low latency.</p>
-        </div>
-        <button type="button" class="mt-4 w-full py-2 bg-emerald-600 group-hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">Launch Linux VM →</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;">
+      <div onclick="window.startCloudflareVm('linux')" style="padding:16px; border-radius:16px; border:2px solid rgba(16,185,129,0.5); background:rgba(6,78,59,0.25); cursor:pointer; transition: 0.2s;">
+        <span style="font-size:26px;">🐧</span>
+        <div style="font-weight:bold; font-size:14px; margin-top:8px;">Debian Linux</div>
+        <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">High-definition 1080p remote stream.</p>
       </div>
 
-      <!-- Windows Option -->
-      <div onclick="window.startVmStream('windows')" class="group p-5 rounded-2xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-indigo-500 transition cursor-pointer flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-3xl">🪟</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">DOCKURR</span>
-          </div>
-          <div class="font-bold text-sm text-slate-100 group-hover:text-indigo-400 transition">Windows 11 VM</div>
-          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full Windows 11 sandbox environment running on web terminal port 8006.</p>
-        </div>
-        <button type="button" class="mt-4 w-full py-2 bg-slate-700 group-hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition">Launch Windows 11 →</button>
+      <div onclick="window.startCloudflareVm('windows')" style="padding:16px; border-radius:16px; border:1px solid #334155; background:rgba(30,41,59,0.4); cursor:pointer; transition: 0.2s;">
+        <span style="font-size:26px;">🪟</span>
+        <div style="font-weight:bold; font-size:14px; margin-top:8px;">Windows 11</div>
+        <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">Running via background container.</p>
       </div>
     </div>
-
-    <div class="text-center">
-      <button type="button" onclick="window.closeVmPickerModal()" class="text-xs text-slate-500 hover:text-slate-300 transition">Cancel and return to dashboard</button>
+    
+    <div style="text-align:center;">
+      <button type="button" onclick="document.getElementById('cfVmModal').style.display='none'" style="background:none; border:none; color:#64748b; font-size:12px; cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ================= FULLSCREEN ACTIVE VM STREAM VIEWER ================= -->
-<div id="vmPlayerModal" class="fixed inset-0 z-[2147483645] hidden flex-col bg-slate-950 text-white">
-  <div class="flex justify-between items-center px-6 py-3 bg-slate-900 border-b border-slate-800">
-    <div class="flex items-center gap-3">
-      <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-      <div>
-        <h2 class="text-xs font-extrabold tracking-wide uppercase text-slate-200">Active Sanctuary VM Session</h2>
-        <span id="vmActiveOsBadge" class="text-[10px] text-emerald-400 font-semibold font-mono">Running: Linux 1080p</span>
-      </div>
+<!-- FULLSCREEN ACTIVE VM STREAM VIEWER -->
+<div id="cfVmViewer" style="display:none; position:fixed; inset:0; z-index:9999999; flex-direction:column; background:#020617;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:#0f172a; border-bottom:1px solid #1e293b; color:white;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block; animation: pulse 2s infinite;"></span>
+      <span style="font-size:12px; font-weight:800; letter-spacing:0.05em; color:#10b981;">ACTIVE REMOTE VM SESSION</span>
     </div>
-
-    <div class="flex items-center gap-3">
-      <button type="button" id="btnToggleVmOs" onclick="window.toggleVmOs()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition border border-slate-700">Switch to Windows 11</button>
-      <button type="button" onclick="window.closeVmPlayer('Disconnected from VM session.')" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow">Stop & Exit to Dashboard</button>
-    </div>
+    <button type="button" onclick="window.stopCloudflareVm('Session closed.')" style="background:#e11d48; color:white; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">Exit VM & Return to Dashboard</button>
   </div>
-
-  <div class="flex-1 w-full h-full bg-black relative">
-    <iframe id="drozoVmIframe" src="" class="w-full h-full border-0" allow="camera; microphone; fullscreen; display-capture"></iframe>
-  </div>
+  <iframe id="cfVmFrame" src="" style="width:100%; height:100%; border:none;" allow="camera; microphone; fullscreen; display-capture"></iframe>
 </div>
 
 <script>
-window.isVmActive = false;
-window.currentVmOs = 'linux';
+window.isCloudflareVmOpen = false;
 
-window.openVmPickerModal = function() {
-  const m = document.getElementById('vmPickerModal');
-  if (m) {
-    m.classList.remove('hidden');
-    m.style.display = 'flex';
-  }
-};
+window.startCloudflareVm = async function(os) {
+  document.getElementById('cfVmModal').style.display = 'none';
+  const viewer = document.getElementById('cfVmViewer');
+  const frame = document.getElementById('cfVmFrame');
 
-window.closeVmPickerModal = function() {
-  const m = document.getElementById('vmPickerModal');
-  if (m) {
-    m.classList.add('hidden');
-    m.style.display = 'none';
-  }
-};
-
-window.startVmStream = function(os) {
-  window.currentVmOs = os;
-  window.closeVmPickerModal();
-  const player = document.getElementById('vmPlayerModal');
-  const iframe = document.getElementById('drozoVmIframe');
-  const badge = document.getElementById('vmActiveOsBadge');
-  const toggleBtn = document.getElementById('btnToggleVmOs');
-  
+  let streamUrl = '';
   if (os === 'linux') {
-    iframe.src = 'http://localhost:6080/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2&show_dot=true';
-    if (badge) badge.innerText = 'Running: Linux Full HD (noVNC)';
-    if (toggleBtn) toggleBtn.innerText = 'Switch to Windows 11';
+    try {
+      if (window.sb) {
+        const { data } = await sb.from('vm_sessions').select('vm_url').eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+        if (data && data[0] && data[0].vm_url) streamUrl = data[0].vm_url;
+      }
+    } catch (_) {}
+    if (!streamUrl) streamUrl = 'https://backgrounds-properties-corporations-valuable.trycloudflare.com/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2';
   } else {
-    iframe.src = 'http://localhost:8006';
-    if (badge) badge.innerText = 'Running: Windows 11 (KVM/QEMU)';
-    if (toggleBtn) toggleBtn.innerText = 'Switch to Debian Linux';
+    streamUrl = 'http://localhost:8006';
   }
 
-  if (player) {
-    player.classList.remove('hidden');
-    player.style.display = 'flex';
-  }
-  window.isVmActive = true;
+  frame.src = streamUrl;
+  viewer.style.display = 'flex';
+  window.isCloudflareVmOpen = true;
 };
 
-window.toggleVmOs = function() {
-  window.startVmStream(window.currentVmOs === 'linux' ? 'windows' : 'linux');
+window.stopCloudflareVm = function(msg) {
+  const viewer = document.getElementById('cfVmViewer');
+  const frame = document.getElementById('cfVmFrame');
+  if (frame) frame.src = '';
+  if (viewer) viewer.style.display = 'none';
+  window.isCloudflareVmOpen = false;
+  if (msg) alert(msg);
 };
 
-window.closeVmPlayer = function(reason) {
-  const player = document.getElementById('vmPlayerModal');
-  const iframe = document.getElementById('drozoVmIframe');
-  if (iframe) iframe.src = '';
-  if (player) {
-    player.classList.add('hidden');
-    player.style.display = 'none';
-  }
-  window.isVmActive = false;
-  if (reason) alert(reason);
-};
-
-// Polling loop: If the Admin terminates the meeting in admin.html, gracefully exit the VM
-setInterval(() => {
-  if (window.isVmActive && typeof currentAppt !== 'undefined' && currentAppt) {
-    if (!currentAppt.meeting_started_at || currentAppt.status === 'COMPLETED' || currentAppt.status === 'CANCELLED') {
-      window.closeVmPlayer('The therapist or admin has ended the session. VM has safely shut down.');
-      if (typeof syncAppointmentStatus === 'function') syncAppointmentStatus();
+// Strict Event Delegation: Hijacks Jitsi clicks instantly without breaking Auth
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('click', (e) => {
+    const btn = e.target.closest('button, a');
+    if (!btn) return;
+    const txt = (btn.innerText || '').toLowerCase();
+    
+    if (txt.includes('join jitsi') || txt.includes('join video call') || txt.includes('join meeting')) {
+      // Allow Discord links to bypass the VM
+      if (typeof currentAppt !== 'undefined' && currentAppt && currentAppt.channel === 'discord') return;
+      
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      document.getElementById('cfVmModal').style.display = 'flex';
     }
-  }
-}, 2000);
-</script>
-<!-- ================= END DUAL-OS VM LOGIC ================= -->
+  }, true); // useCapture = true ensures this runs before React/inline handlers
 
+  // Auto-Shutdown Polling via Supabase
+  setInterval(async () => {
+    if (window.isCloudflareVmOpen && window.sb) {
+      try {
+        const { data } = await sb.from('vm_sessions').select('status').eq('status', 'active').limit(1);
+        if (!data || data.length === 0) {
+          window.stopCloudflareVm('The host or admin has ended the meeting. Returning to dashboard.');
+        }
+      } catch (_) {}
+    }
+  }, 2500);
+});
+</script>
+
+<!-- END VM MODAL -->
 </body></html>';
   const win = window.open('', '_blank');
   if (!win) { alert('Please allow pop-ups to view the PDF.'); return; }
@@ -1853,145 +1820,117 @@ setInterval(() => {
 
   </script>
 
-<!-- ================= DUAL-OS VM SELECTION MODAL ================= -->
-<div id="vmPickerModal" class="fixed inset-0 z-[2147483640] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-  <div class="relative w-full max-w-xl p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-white">
-    <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+<!-- START VM MODAL -->
+
+<!-- ================= SAFE VM MODAL INTEGRATION ================= -->
+<div id="cfVmModal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(2,6,23,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;">
+  <div style="width:100%; max-width:520px; background:#0f172a; border:1px solid #1e293b; border-radius:24px; padding:24px; color:#ffffff; font-family:sans-serif;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:12px;">
       <div>
-        <h3 class="text-base font-extrabold tracking-tight">Select Meeting Sandbox OS</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Isolated virtual environment for your Jitsi session</p>
+        <h3 style="margin:0; font-size:16px; font-weight:800;">Select Meeting Sandbox OS</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:#94a3b8;">Isolated virtual machine workspace</p>
       </div>
-      <button type="button" onclick="window.closeVmPickerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm transition">✕</button>
+      <button type="button" onclick="document.getElementById('cfVmModal').style.display='none'" style="background:#1e293b; color:#94a3b8; border:0; width:32px; height:32px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-      <!-- Linux Option -->
-      <div onclick="window.startVmStream('linux')" class="group p-5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 hover:bg-emerald-900/30 hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-3xl">🐧</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">FAST & READY</span>
-          </div>
-          <div class="font-bold text-sm text-slate-100 group-hover:text-emerald-400 transition">Debian Linux VM</div>
-          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full HD 1080p kiosk stream. Instant connection with ultra-low latency.</p>
-        </div>
-        <button type="button" class="mt-4 w-full py-2 bg-emerald-600 group-hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">Launch Linux VM →</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;">
+      <div onclick="window.startCloudflareVm('linux')" style="padding:16px; border-radius:16px; border:2px solid rgba(16,185,129,0.5); background:rgba(6,78,59,0.25); cursor:pointer; transition: 0.2s;">
+        <span style="font-size:26px;">🐧</span>
+        <div style="font-weight:bold; font-size:14px; margin-top:8px;">Debian Linux</div>
+        <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">High-definition 1080p remote stream.</p>
       </div>
 
-      <!-- Windows Option -->
-      <div onclick="window.startVmStream('windows')" class="group p-5 rounded-2xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-indigo-500 transition cursor-pointer flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-3xl">🪟</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">DOCKURR</span>
-          </div>
-          <div class="font-bold text-sm text-slate-100 group-hover:text-indigo-400 transition">Windows 11 VM</div>
-          <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Full Windows 11 sandbox environment running on web terminal port 8006.</p>
-        </div>
-        <button type="button" class="mt-4 w-full py-2 bg-slate-700 group-hover:bg-indigo-600 text-white font-bold rounded-xl text-xs transition">Launch Windows 11 →</button>
+      <div onclick="window.startCloudflareVm('windows')" style="padding:16px; border-radius:16px; border:1px solid #334155; background:rgba(30,41,59,0.4); cursor:pointer; transition: 0.2s;">
+        <span style="font-size:26px;">🪟</span>
+        <div style="font-weight:bold; font-size:14px; margin-top:8px;">Windows 11</div>
+        <p style="font-size:11px; color:#94a3b8; margin:4px 0 0;">Running via background container.</p>
       </div>
     </div>
-
-    <div class="text-center">
-      <button type="button" onclick="window.closeVmPickerModal()" class="text-xs text-slate-500 hover:text-slate-300 transition">Cancel and return to dashboard</button>
+    
+    <div style="text-align:center;">
+      <button type="button" onclick="document.getElementById('cfVmModal').style.display='none'" style="background:none; border:none; color:#64748b; font-size:12px; cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ================= FULLSCREEN ACTIVE VM STREAM VIEWER ================= -->
-<div id="vmPlayerModal" class="fixed inset-0 z-[2147483645] hidden flex-col bg-slate-950 text-white">
-  <div class="flex justify-between items-center px-6 py-3 bg-slate-900 border-b border-slate-800">
-    <div class="flex items-center gap-3">
-      <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-      <div>
-        <h2 class="text-xs font-extrabold tracking-wide uppercase text-slate-200">Active Sanctuary VM Session</h2>
-        <span id="vmActiveOsBadge" class="text-[10px] text-emerald-400 font-semibold font-mono">Running: Linux 1080p</span>
-      </div>
+<!-- FULLSCREEN ACTIVE VM STREAM VIEWER -->
+<div id="cfVmViewer" style="display:none; position:fixed; inset:0; z-index:9999999; flex-direction:column; background:#020617;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:#0f172a; border-bottom:1px solid #1e293b; color:white;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block; animation: pulse 2s infinite;"></span>
+      <span style="font-size:12px; font-weight:800; letter-spacing:0.05em; color:#10b981;">ACTIVE REMOTE VM SESSION</span>
     </div>
-
-    <div class="flex items-center gap-3">
-      <button type="button" id="btnToggleVmOs" onclick="window.toggleVmOs()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition border border-slate-700">Switch to Windows 11</button>
-      <button type="button" onclick="window.closeVmPlayer('Disconnected from VM session.')" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow">Stop & Exit to Dashboard</button>
-    </div>
+    <button type="button" onclick="window.stopCloudflareVm('Session closed.')" style="background:#e11d48; color:white; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;">Exit VM & Return to Dashboard</button>
   </div>
-
-  <div class="flex-1 w-full h-full bg-black relative">
-    <iframe id="drozoVmIframe" src="" class="w-full h-full border-0" allow="camera; microphone; fullscreen; display-capture"></iframe>
-  </div>
+  <iframe id="cfVmFrame" src="" style="width:100%; height:100%; border:none;" allow="camera; microphone; fullscreen; display-capture"></iframe>
 </div>
 
 <script>
-window.isVmActive = false;
-window.currentVmOs = 'linux';
+window.isCloudflareVmOpen = false;
 
-window.openVmPickerModal = function() {
-  const m = document.getElementById('vmPickerModal');
-  if (m) {
-    m.classList.remove('hidden');
-    m.style.display = 'flex';
-  }
-};
+window.startCloudflareVm = async function(os) {
+  document.getElementById('cfVmModal').style.display = 'none';
+  const viewer = document.getElementById('cfVmViewer');
+  const frame = document.getElementById('cfVmFrame');
 
-window.closeVmPickerModal = function() {
-  const m = document.getElementById('vmPickerModal');
-  if (m) {
-    m.classList.add('hidden');
-    m.style.display = 'none';
-  }
-};
-
-window.startVmStream = function(os) {
-  window.currentVmOs = os;
-  window.closeVmPickerModal();
-  const player = document.getElementById('vmPlayerModal');
-  const iframe = document.getElementById('drozoVmIframe');
-  const badge = document.getElementById('vmActiveOsBadge');
-  const toggleBtn = document.getElementById('btnToggleVmOs');
-  
+  let streamUrl = '';
   if (os === 'linux') {
-    iframe.src = 'http://localhost:6080/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2&show_dot=true';
-    if (badge) badge.innerText = 'Running: Linux Full HD (noVNC)';
-    if (toggleBtn) toggleBtn.innerText = 'Switch to Windows 11';
+    try {
+      if (window.sb) {
+        const { data } = await sb.from('vm_sessions').select('vm_url').eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+        if (data && data[0] && data[0].vm_url) streamUrl = data[0].vm_url;
+      }
+    } catch (_) {}
+    if (!streamUrl) streamUrl = 'https://backgrounds-properties-corporations-valuable.trycloudflare.com/vnc.html?autoconnect=true&resize=scale&quality=8&compression=2';
   } else {
-    iframe.src = 'http://localhost:8006';
-    if (badge) badge.innerText = 'Running: Windows 11 (KVM/QEMU)';
-    if (toggleBtn) toggleBtn.innerText = 'Switch to Debian Linux';
+    streamUrl = 'http://localhost:8006';
   }
 
-  if (player) {
-    player.classList.remove('hidden');
-    player.style.display = 'flex';
-  }
-  window.isVmActive = true;
+  frame.src = streamUrl;
+  viewer.style.display = 'flex';
+  window.isCloudflareVmOpen = true;
 };
 
-window.toggleVmOs = function() {
-  window.startVmStream(window.currentVmOs === 'linux' ? 'windows' : 'linux');
+window.stopCloudflareVm = function(msg) {
+  const viewer = document.getElementById('cfVmViewer');
+  const frame = document.getElementById('cfVmFrame');
+  if (frame) frame.src = '';
+  if (viewer) viewer.style.display = 'none';
+  window.isCloudflareVmOpen = false;
+  if (msg) alert(msg);
 };
 
-window.closeVmPlayer = function(reason) {
-  const player = document.getElementById('vmPlayerModal');
-  const iframe = document.getElementById('drozoVmIframe');
-  if (iframe) iframe.src = '';
-  if (player) {
-    player.classList.add('hidden');
-    player.style.display = 'none';
-  }
-  window.isVmActive = false;
-  if (reason) alert(reason);
-};
-
-// Polling loop: If the Admin terminates the meeting in admin.html, gracefully exit the VM
-setInterval(() => {
-  if (window.isVmActive && typeof currentAppt !== 'undefined' && currentAppt) {
-    if (!currentAppt.meeting_started_at || currentAppt.status === 'COMPLETED' || currentAppt.status === 'CANCELLED') {
-      window.closeVmPlayer('The therapist or admin has ended the session. VM has safely shut down.');
-      if (typeof syncAppointmentStatus === 'function') syncAppointmentStatus();
+// Strict Event Delegation: Hijacks Jitsi clicks instantly without breaking Auth
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.addEventListener('click', (e) => {
+    const btn = e.target.closest('button, a');
+    if (!btn) return;
+    const txt = (btn.innerText || '').toLowerCase();
+    
+    if (txt.includes('join jitsi') || txt.includes('join video call') || txt.includes('join meeting')) {
+      // Allow Discord links to bypass the VM
+      if (typeof currentAppt !== 'undefined' && currentAppt && currentAppt.channel === 'discord') return;
+      
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      document.getElementById('cfVmModal').style.display = 'flex';
     }
-  }
-}, 2000);
-</script>
-<!-- ================= END DUAL-OS VM LOGIC ================= -->
+  }, true); // useCapture = true ensures this runs before React/inline handlers
 
+  // Auto-Shutdown Polling via Supabase
+  setInterval(async () => {
+    if (window.isCloudflareVmOpen && window.sb) {
+      try {
+        const { data } = await sb.from('vm_sessions').select('status').eq('status', 'active').limit(1);
+        if (!data || data.length === 0) {
+          window.stopCloudflareVm('The host or admin has ended the meeting. Returning to dashboard.');
+        }
+      } catch (_) {}
+    }
+  }, 2500);
+});
+</script>
+
+<!-- END VM MODAL -->
 </body>
 </html>

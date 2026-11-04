@@ -273,48 +273,44 @@ boot();
 
   </script>
 
-<!-- ================= ADMIN VM CONTROLLER ================= -->
-<script>
-window.terminatePatientVMAndCall = async function(apptId) {
-  if (!confirm("Are you sure you want to stop this VM session?\n\nThis will shut down the patient's remote VM stream and return them to the base dashboard.")) return;
-  try {
-    const { error } = await sb.from('appointments').update({
-      meeting_started_at: null,
-      status: 'COMPLETED'
-    }).eq('id', apptId);
-    
-    if (error) throw error;
-    
-    try {
-      await sb.from('vm_sessions').update({ status: 'terminated' }).eq('status', 'active');
-    } catch (_) {}
+<!-- START ADMIN VM CONTROLS -->
 
-    alert("✓ Session Ended: VM terminated and patient returned to dashboard.");
-    if (typeof loadAppointments === 'function') loadAppointments();
-    else location.reload();
+<!-- ================= SAFE ADMIN VM CONTROLS ================= -->
+<script>
+window.terminateRemoteVmSession = async function() {
+  if (!confirm("Stop the remote VM session for this meeting?\n\nThis will close the patient's remote stream and return them to the base dashboard.")) return;
+  try {
+    if (window.sb) {
+      await sb.from('vm_sessions').update({ status: 'terminated' }).eq('status', 'active');
+    }
+    alert("✓ VM session terminated. Patient returned to dashboard.");
   } catch (err) {
-    alert("Could not terminate session: " + (err.message || err));
+    alert("Error stopping VM: " + err.message);
   }
 };
 
-// Wire the red Stop button across appointment cards in Admin
 document.addEventListener('DOMContentLoaded', () => {
-  const attachStopBtns = () => {
+  const wireStop = () => {
     document.querySelectorAll('button').forEach(btn => {
-      const txt = btn.innerText.trim();
-      if ((txt.includes('End Meeting') || txt.includes('Stop Meeting') || txt.includes('Complete')) && !btn.dataset.vmWired) {
+      const txt = (btn.innerText || '').toLowerCase();
+      if ((txt.includes('end meeting') || txt.includes('stop meeting')) && !btn.dataset.vmWired) {
         btn.dataset.vmWired = 'true';
+        btn.addEventListener('click', (e) => { 
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          window.terminateRemoteVmSession(); 
+        }, true);
         btn.style.backgroundColor = '#e11d48';
         btn.style.color = '#ffffff';
         btn.innerText = '🛑 Stop VM & End Meeting';
       }
     });
   };
-  attachStopBtns();
-  setInterval(attachStopBtns, 2500);
+  wireStop();
+  setInterval(wireStop, 3000);
 });
 </script>
-<!-- ================= END ADMIN VM CONTROLLER ================= -->
 
+<!-- END ADMIN VM CONTROLS -->
 </body>
 </html>
