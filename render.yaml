@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: better-drozo
+    env: docker
+    region: oregon
+    plan: free
+    buildCommand: ""
+    startCommand: ""
+    autoDeploy: true
