@@ -277,42 +277,4 @@ boot();
 
 <!-- START ADMIN VM CONTROLS -->
 
-<!-- ================= SAFE ADMIN VM CONTROLS ================= -->
-<script>
-window.terminateRemoteVmSession = async function() {
-  if (!confirm("Stop the remote VM session for this meeting?\n\nThis will close the patient's remote stream and return them to the base dashboard.")) return;
-  try {
-    if (window.sb) {
-      await sb.from('vm_sessions').update({ status: 'terminated' }).eq('status', 'active');
-    }
-    alert("✓ VM session terminated. Patient returned to dashboard.");
-  } catch (err) {
-    alert("Error stopping VM: " + err.message);
-  }
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-  const wireStop = () => {
-    document.querySelectorAll('button').forEach(btn => {
-      const txt = (btn.innerText || '').toLowerCase();
-      if ((txt.includes('end meeting') || txt.includes('stop meeting')) && !btn.dataset.vmWired) {
-        btn.dataset.vmWired = 'true';
-        btn.addEventListener('click', (e) => { 
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          window.terminateRemoteVmSession(); 
-        }, true);
-        btn.style.backgroundColor = '#e11d48';
-        btn.style.color = '#ffffff';
-        btn.innerText = '🛑 Stop VM & End Meeting';
-      }
-    });
-  };
-  wireStop();
-  setInterval(wireStop, 3000);
-});
-</script>
-
-<!-- END ADMIN VM CONTROLS -->
 </body>
-</html>
