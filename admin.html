@@ -6,7 +6,7 @@
   <title>Drozo Therapy | Admin</title>
   <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } } } } };</script>
+  <script>window.tailwind = window.tailwind || {}; tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } } } } };</script>
   <style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
@@ -272,9 +272,5 @@ async function logoutAdmin() {
 boot();
 
   </script>
-
-
-
-<!-- START ADMIN VM CONTROLS -->
-
 </body>
+</html>
