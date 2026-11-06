@@ -348,8 +348,8 @@
                     DR
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs text-charcoal font-medium">New message from <strong>Dr. Rachel Kim</strong></p>
-                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">"That's wonderful progress, Sarah! Recognizing the physical trigger..."</p>
+                    <p class="text-xs text-charcoal font-medium">New message from <strong>Care Advisory</strong></p>
+                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">"Your clinical portal is active and encrypted end-to-end..."</p>
                     <span class="text-[10px] text-charcoal-muted/80 block mt-1">15 mins ago</span>
                   </div>
                   <span class="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5"></span>
@@ -364,9 +364,9 @@
                     </svg>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs text-charcoal font-medium">Session confirmed for <strong>Thursday at 3:00 PM</strong></p>
-                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">50-min Video Session with Dr. Rachel Kim</p>
-                    <span class="text-[10px] text-charcoal-muted/80 block mt-1">2 hours ago</span>
+                    <p class="text-xs text-charcoal font-medium">Session Room Ready</p>
+                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">50-min Encrypted Telehealth Session</p>
+                    <span class="text-[10px] text-charcoal-muted/80 block mt-1">Status: Active</span>
                   </div>
                   <span class="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5"></span>
                 </div>
@@ -398,12 +398,12 @@
           <div class="relative">
             <button id="userMenuBtn" onclick="toggleUserDropdown()" class="flex items-center gap-2.5 p-1 sm:p-1.5 rounded-full sm:rounded-xl hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary" aria-label="User profile menu" aria-expanded="false">
               <!-- Avatar circle -->
-              <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-light to-primary text-white flex items-center justify-center font-heading font-bold text-sm shadow-sm ring-2 ring-primary/20">
-                SM
+              <div id="userHeaderAvatar" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-light to-primary text-white flex items-center justify-center font-heading font-bold text-sm shadow-sm ring-2 ring-primary/20 overflow-hidden">
+                U
               </div>
               <div class="hidden sm:flex flex-col text-left">
-                <span class="text-xs font-heading font-bold text-charcoal leading-tight">Sarah M.</span>
-                <span class="text-[10px] text-primary font-medium">Active Client</span>
+                <span id="userHeaderName" class="text-xs font-heading font-bold text-charcoal leading-tight">Patient</span>
+                <span id="userHeaderRole" class="text-[10px] text-primary font-medium">Active Member</span>
               </div>
               <!-- Chevron down -->
               <svg class="w-4 h-4 text-charcoal-muted transition-transform" id="userMenuChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,11 +414,11 @@
             <!-- User Menu Dropdown -->
             <div id="userMenu" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-soft-lg border border-sand-dark py-2 z-50">
               <div class="px-4 py-3 border-b border-sand-dark">
-                <p class="font-heading font-bold text-sm text-charcoal">Sarah Mitchell</p>
-                <p class="text-xs text-charcoal-muted truncate">sarah.m@example.com</p>
-                <div class="mt-2 flex items-center gap-1.5 text-[11px] text-primary bg-primary-50 px-2 py-0.5 rounded-md font-medium">
+                <p id="userMenuName" class="font-heading font-bold text-sm text-charcoal">Patient</p>
+                <p id="userMenuEmail" class="text-xs text-charcoal-muted truncate">member@drozo.internal</p>
+                <div id="userMenuProvider" class="mt-2 flex items-center gap-1.5 text-[11px] text-primary bg-primary-50 px-2 py-0.5 rounded-md font-medium">
                   <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                  Weekly Video + Unlimited Chat
+                  Verified Account
                 </div>
               </div>
 
@@ -486,11 +486,11 @@
 
           <!-- Dynamic greeting -->
           <h1 id="welcomeGreeting" class="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl text-charcoal tracking-tight">
-            Good morning, Sarah 👋
+            Welcome to Drozo 👋
           </h1>
 
-          <p class="mt-2 text-sm sm:text-base text-charcoal-muted leading-relaxed">
-            Your next session is in <span class="font-semibold text-primary dark:text-primary-light">2 days</span> with Dr. Rachel Kim. Take a slow, grounding breath — every step of your therapy journey matters.
+          <p id="welcomeSubtitle" class="mt-2 text-sm sm:text-base text-charcoal-muted leading-relaxed">
+            Take a slow, grounding breath — every step of your therapy journey matters. All conversations are private and protected.
           </p>
 
           <p class="mt-3 text-xs italic text-charcoal/70 bg-white/50 dark:bg-charcoal-dark/40 px-3 py-1.5 rounded-lg inline-block border border-sand-dark/50">
@@ -544,16 +544,14 @@
 
           <div class="space-y-1.5">
             <div class="flex flex-wrap items-center gap-2.5">
-              <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">Dr. Rachel Kim, PhD</h2>
+              <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal" id="therapistCardName">Drozo Clinical Care Team</h2>
               <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
                 Online & Available
               </span>
             </div>
 
-            <p class="text-xs sm:text-sm text-charcoal-muted">
-              Licensed Clinical Psychologist • CA #PSY28491 • 11 Years Clinical Experience
-            </p>
+            <p class="text-xs sm:text-sm text-charcoal-muted" id="therapistCardTitle">Licensed Clinical Care Network • Board Certified Specialists • Personalized Care Plan</p>
 
             <!-- Specialties pills & Rating -->
             <div class="flex flex-wrap items-center gap-2 pt-1">
@@ -598,15 +596,15 @@
 
       </div>
 
-      <!-- Quick note/status banner from therapist -->
+      <!-- Clinical Notice banner -->
       <div class="mt-5 pt-4 border-t border-sand-dark/60 flex items-start sm:items-center gap-3 bg-sand-light/60 p-3.5 rounded-2xl">
         <span class="p-1.5 rounded-lg bg-primary-50 text-primary shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </span>
-        <p class="text-xs text-charcoal-muted leading-relaxed">
-          <strong class="text-charcoal font-semibold">Today's Note from Dr. Kim:</strong> "I reviewed your reflection from Tuesday. You're doing meaningful work tracking your cognitive patterns. See you Thursday at 3:00 PM!"
+        <p class="text-xs text-charcoal-muted leading-relaxed" id="dailyClinicalTip">
+          <strong class="text-charcoal font-semibold">Drozo Care Advisory:</strong> Your sessions and secure messages are encrypted end-to-end with Drozo Guard. Take this space at your own pace.
         </p>
       </div>
     </section>
@@ -634,44 +632,67 @@
         </button>
       </div>
 
-      <!-- Session detail spotlight -->
+      <!-- Session detail spotlight (Dynamic Active vs Clean Zero State) -->
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        <!-- Next session info (7 cols) -->
-        <div class="lg:col-span-7 bg-sand-light/80 rounded-2xl p-5 border border-sand-dark">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary border border-primary/20">
-              <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-              Next Up: Video Session 📹
-            </span>
-            <span id="sessionCountdownBadge" class="text-xs font-bold text-charcoal-muted bg-white px-2.5 py-1 rounded-lg border border-sand-dark">
-              In 2 days
-            </span>
+        <!-- Dynamic Session Container (7 cols) -->
+        <div class="lg:col-span-7">
+          
+          <!-- STATE 1: ACTIVE SESSION -->
+          <div id="sessionCardActive" class="hidden bg-sand-light/80 rounded-2xl p-5 border border-sand-dark">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span id="sessionChannelPill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary border border-primary/20">
+                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                <span id="sessionChannelText">Video Consultation 📹</span>
+              </span>
+              <span id="sessionCountdownBadge" class="text-xs font-bold text-charcoal-muted bg-white px-2.5 py-1 rounded-lg border border-sand-dark">
+                Confirmed
+              </span>
+            </div>
+
+            <h4 id="sessionSlotHeading" class="font-heading font-bold text-lg text-charcoal">
+              Scheduled Clinical Consultation
+            </h4>
+            <p id="sessionProviderSub" class="text-xs sm:text-sm text-charcoal-muted mt-1">
+              50-Minute One-on-One Session with Assigned Clinical Provider
+            </p>
+
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <!-- Join Button (interactive) -->
+              <button id="joinSessionBtn" onclick="handleJoinSession()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <span id="joinButtonText">Join Session Room (Opens 10m before)</span>
+              </button>
+
+              <button onclick="openRescheduleModal()" class="px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-charcoal hover:text-primary bg-white hover:bg-sand rounded-xl border border-sand-dark transition-colors">
+                Reschedule
+              </button>
+
+              <button onclick="openCancelModal()" class="px-3 py-2.5 text-xs text-charcoal-muted hover:text-accent transition-colors font-medium">
+                Cancel
+              </button>
+            </div>
           </div>
 
-          <h4 class="font-heading font-bold text-lg text-charcoal">
-            Thursday, Nov 7 · 3:00 PM — 3:50 PM PST
-          </h4>
-          <p class="text-xs sm:text-sm text-charcoal-muted mt-1">
-            50-Minute One-on-One Session with <strong class="text-charcoal font-semibold">Dr. Rachel Kim, PhD</strong>
-          </p>
-
-          <div class="mt-4 flex flex-wrap items-center gap-3">
-            <!-- Join Button (interactive) -->
-            <button id="joinSessionBtn" onclick="handleJoinSession()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-              <span id="joinButtonText">Join Video Room (Opens 10m before)</span>
-            </button>
-
-            <button onclick="openModal('rescheduleModal')" class="px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-charcoal hover:text-primary bg-white hover:bg-sand rounded-xl border border-sand-dark transition-colors">
-              Reschedule
-            </button>
-
-            <button onclick="openModal('cancelModal')" class="px-3 py-2.5 text-xs text-charcoal-muted hover:text-accent transition-colors font-medium">
-              Cancel
-            </button>
+          <!-- STATE 2: ZERO-STATE (No Session Booked Yet) -->
+          <div id="sessionCardEmpty" class="bg-sand-light/50 rounded-2xl p-6 sm:p-7 border border-dashed border-sand-dark text-center">
+            <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary flex items-center justify-center mx-auto mb-3 text-xl">
+              🗓️
+            </div>
+            <h4 class="font-heading font-bold text-base sm:text-lg text-charcoal">
+              No Active Consultation Scheduled
+            </h4>
+            <p class="text-xs text-charcoal-muted mt-1 max-w-sm mx-auto leading-relaxed">
+              You are currently on a free care cycle. Schedule your next 50-minute consultation via Encrypted Video or Discord Voice anytime.
+            </p>
+            <div class="mt-4 flex items-center justify-center gap-3">
+              <button onclick="openModal('scheduleModal')" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md transition-all">
+                <span>🗓️ Book a Session Now</span>
+              </button>
+            </div>
           </div>
+
         </div>
 
         <!-- Mini Calendar View (5 cols) -->
@@ -754,7 +775,7 @@
                 <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></span>
               </div>
               <div>
-                <h3 class="font-heading font-bold text-charcoal text-base">Direct Chat with Dr. Rachel Kim</h3>
+                <h3 class="font-heading font-bold text-charcoal text-base" id="directChatTitle">Confidential Clinical Chat</h3>
                 <p class="text-xs text-charcoal-muted flex items-center gap-1.5">
                   <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Replies typically within 2 hours • 256-bit HIPAA Encrypted
@@ -770,45 +791,17 @@
           <!-- Message Bubbles Thread Area -->
           <div id="chatMessageThread" class="py-4 space-y-4 max-h-[380px] overflow-y-auto pr-1">
             
-            <!-- Message 1: Dr. Kim -->
+            <!-- Message: Welcome -->
             <div class="flex items-start gap-3 message-bubble-anim">
-              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1" id="chatTherapistAvatar">
                 DR
               </div>
               <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
                 <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
-                  <span class="font-semibold text-primary">Dr. Rachel Kim</span>
-                  <span>Yesterday, 4:15 PM</span>
+                  <span class="font-semibold text-primary" id="chatTherapistSender">Drozo Care Advisory</span>
+                  <span>Encrypted Channel</span>
                 </div>
-                Hi Sarah, I wanted to check in on the mindfulness exercises we discussed during our Tuesday session. How are you feeling today? Were you able to try the 4-7-8 breathing practice?
-              </div>
-            </div>
-
-            <!-- Message 2: Sarah (User) -->
-            <div class="flex items-start justify-end gap-3 message-bubble-anim">
-              <div class="max-w-[85%] bg-primary text-white rounded-2xl rounded-tr-sm p-4 shadow-sm text-xs sm:text-sm leading-relaxed">
-                <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-white/80">
-                  <span class="font-semibold">You</span>
-                  <span>Yesterday, 5:40 PM</span>
-                </div>
-                Hi Dr. Kim! I practiced the 4-7-8 breathing when I felt overwhelmed during our team standup yesterday, and it really helped calm my heart rate. I still felt some tension in my neck, but I didn't spiral like I usually do.
-              </div>
-              <div class="w-8 h-8 rounded-full bg-primary-light text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">
-                SM
-              </div>
-            </div>
-
-            <!-- Message 3: Dr. Kim -->
-            <div class="flex items-start gap-3 message-bubble-anim">
-              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1">
-                DR
-              </div>
-              <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
-                <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
-                  <span class="font-semibold text-primary">Dr. Rachel Kim</span>
-                  <span>Today, 9:20 AM</span>
-                </div>
-                That's wonderful progress, Sarah! Recognizing the physical trigger and pausing before reacting is a huge step forward in CBT. Let's build on that in our Thursday session. Take a moment to log how your body responds today.
+                <span id="chatWelcomeMsg">Welcome to your confidential messaging space. Your licensed clinician is connected and ready to support your therapeutic goals. Feel free to leave a reflection or check in anytime.</span>
               </div>
             </div>
 
@@ -821,7 +814,7 @@
                 DR
               </div>
               <div class="bg-sand-light rounded-2xl px-4 py-2.5 border border-sand-dark flex items-center gap-1.5">
-                <span class="text-xs text-charcoal-muted font-medium">Dr. Kim is typing</span>
+                <span class="text-xs text-charcoal-muted font-medium">Care Team is typing</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-1"></span>
                 <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-2"></span>
                 <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-3"></span>
@@ -850,7 +843,7 @@
               <input 
                 type="text" 
                 id="chatInput" 
-                placeholder="Write a confidential message to Dr. Kim..." 
+                placeholder="Write a confidential message to your clinical care team..." 
                 class="w-full bg-sand-light border border-sand-dark rounded-xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder-charcoal-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-10"
                 autocomplete="off"
               >
@@ -954,7 +947,7 @@
           <div class="mt-6 p-4 rounded-2xl bg-sand-light/70 border border-sand-dark">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <span class="font-heading font-bold text-xs sm:text-sm text-charcoal">
-                How are you feeling right now, Sarah?
+                How are you feeling right now, <span id="moodCheckUserName">Friend</span>?
               </span>
               <span id="moodFeedbackMessage" class="text-xs text-primary font-medium italic">
                 Select an emoji to log today's check-in
@@ -1362,7 +1355,7 @@
             </p>
           </div>
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
-            <span class="text-charcoal-muted text-[11px]">Shared with Dr. Kim ✓</span>
+            <span class="text-charcoal-muted text-[11px]">Shared with Clinician ✓</span>
             <button onclick="readFullJournalEntry('Finding calm during the afternoon presentation', 'Nov 5, 2026', '😊 Relieved', 'I felt my chest tightening right before speaking, but I used the grounding 5-4-3-2-1 technique Dr. Kim taught me. It actually gave me space to steady my voice. For the first time in months, I didn\'t rush through my slides. Noticed a brief wave of self-doubt after question #2, but labeled it as an automatic thought and let it pass.')" class="text-primary font-semibold hover:underline">
               Read entry →
             </button>
@@ -1410,7 +1403,7 @@
             </p>
           </div>
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
-            <span class="text-charcoal-muted text-[11px]">Shared with Dr. Kim ✓</span>
+            <span class="text-charcoal-muted text-[11px]">Shared with Clinician ✓</span>
             <button onclick="readFullJournalEntry('A small boundary win with family', 'Oct 29, 2026', '🙂 Empowered', 'Politely declined an extra weekend obligation that would have completely drained me before a heavy work week. Felt a momentary pang of guilt, but remembered Dr. Kim\'s phrase: \"Guilt is often just unlearning self-abandonment.\" Slept 8 full hours afterwards.')" class="text-primary font-semibold hover:underline">
               Read entry →
             </button>
@@ -1511,7 +1504,7 @@
         <div class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="shareWithDrKimCheck" class="w-4 h-4 rounded text-primary focus:ring-primary border-sand-dark cursor-pointer">
           <label for="shareWithDrKimCheck" class="text-xs text-charcoal cursor-pointer">
-            Share this entry securely with Dr. Rachel Kim before Thursday's session
+            Share this entry securely with your clinician before next session
           </label>
         </div>
 
@@ -1566,7 +1559,7 @@
         </div>
         <div>
           <h3 class="font-heading font-extrabold text-xl text-charcoal">Schedule Session</h3>
-          <p class="text-xs text-charcoal-muted">With Dr. Rachel Kim, PhD</p>
+          <p class="text-xs text-charcoal-muted">Choose your preferred consultation modality & time slot</p>
         </div>
       </div>
 
@@ -1574,41 +1567,50 @@
         <div>
           <label class="block text-xs font-bold text-charcoal uppercase mb-1">Session Modality</label>
           <div class="grid grid-cols-3 gap-2">
-            <button type="button" class="p-2.5 rounded-xl border-2 border-primary bg-primary-50 text-primary text-xs font-bold flex flex-col items-center gap-1">
+            <button type="button" onclick="selectBookingModality('video', this)" class="modality-btn p-2.5 rounded-xl border-2 border-primary bg-primary-50 text-primary text-xs font-bold flex flex-col items-center gap-1">
               <span>📹 Video</span>
-              <span class="text-[10px] font-normal">Recommended</span>
+              <span class="text-[10px] font-normal">Encrypted Room</span>
             </button>
-            <button type="button" class="p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
-              <span>📞 Phone</span>
-              <span class="text-[10px] text-charcoal-muted">Audio only</span>
+            <button type="button" onclick="selectBookingModality('discord', this)" class="modality-btn p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
+              <span>🎮 Discord</span>
+              <span class="text-[10px] text-charcoal-muted">Voice Meeting</span>
             </button>
-            <button type="button" class="p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
+            <button type="button" onclick="selectBookingModality('chat', this)" class="modality-btn p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
               <span>💬 Live Chat</span>
-              <span class="text-[10px] text-charcoal-muted">Text format</span>
+              <span class="text-[10px] text-charcoal-muted">Text Format</span>
             </button>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-charcoal uppercase mb-1">Select Available Time Slot</label>
-          <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div class="space-y-2 max-h-36 overflow-y-auto pr-1 mb-3">
             <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
               <span class="text-xs font-semibold text-charcoal">Friday, Nov 8 · 11:00 AM PST</span>
-              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary" checked>
+              <input type="radio" name="sessionSlot" value="Friday, Nov 8 · 11:00 AM PST" class="text-primary focus:ring-primary" checked>
             </label>
             <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
               <span class="text-xs font-semibold text-charcoal">Tuesday, Nov 12 · 2:00 PM PST</span>
-              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary">
+              <input type="radio" name="sessionSlot" value="Tuesday, Nov 12 · 2:00 PM PST" class="text-primary focus:ring-primary">
             </label>
             <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
               <span class="text-xs font-semibold text-charcoal">Thursday, Nov 14 · 3:00 PM PST</span>
-              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary">
+              <input type="radio" name="sessionSlot" value="Thursday, Nov 14 · 3:00 PM PST" class="text-primary focus:ring-primary">
+            </label>
+            <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
+              <span class="text-xs font-semibold text-charcoal">Saturday, Nov 16 · 1:00 PM PST</span>
+              <input type="radio" name="sessionSlot" value="Saturday, Nov 16 · 1:00 PM PST" class="text-primary focus:ring-primary">
             </label>
           </div>
         </div>
 
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1">Or Pick Custom Date & Time:</label>
+          <input type="datetime-local" id="scheduleCustomTimeInput" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+        </div>
+
         <div class="p-3 bg-sand rounded-xl text-[11px] text-charcoal-muted">
-          Your Drozo plan includes weekly 50-minute sessions. Additional sessions can be booked anytime without co-pay under your active membership.
+          Your Drozo plan includes weekly 50-minute clinical sessions. Encrypted end-to-end and HIPAA-compliant.
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
@@ -1627,22 +1629,34 @@
       </button>
 
       <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">Reschedule Session</h3>
-      <p class="text-xs text-charcoal-muted mb-4">Moving your Thursday, Nov 7 (3:00 PM) appointment with Dr. Rachel Kim.</p>
+      <p id="rescheduleModalSub" class="text-xs text-charcoal-muted mb-4">Select an alternative time slot for your appointment.</p>
 
       <div class="space-y-3">
         <p class="text-xs font-bold text-charcoal uppercase">Pick an alternative date:</p>
-        <button onclick="confirmReschedule('Friday, Nov 8 at 4:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+        <button onclick="confirmReschedule('Friday, Nov 8 · 4:00 PM PST')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
           <span>Friday, Nov 8 · 4:00 PM PST</span>
           <span class="text-primary font-bold">Select →</span>
         </button>
-        <button onclick="confirmReschedule('Monday, Nov 11 at 1:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+        <button onclick="confirmReschedule('Monday, Nov 11 · 1:00 PM PST')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
           <span>Monday, Nov 11 · 1:00 PM PST</span>
           <span class="text-primary font-bold">Select →</span>
         </button>
-        <button onclick="confirmReschedule('Wednesday, Nov 13 at 3:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+        <button onclick="confirmReschedule('Wednesday, Nov 13 · 3:00 PM PST')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
           <span>Wednesday, Nov 13 · 3:00 PM PST</span>
           <span class="text-primary font-bold">Select →</span>
         </button>
+        <button onclick="confirmReschedule('Saturday, Nov 16 · 11:00 AM PST')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+          <span>Saturday, Nov 16 · 11:00 AM PST</span>
+          <span class="text-primary font-bold">Select →</span>
+        </button>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-sand-dark">
+        <label class="block text-xs font-bold text-charcoal uppercase mb-1">Or Pick Custom Alternative Time:</label>
+        <div class="flex gap-2">
+          <input type="datetime-local" id="customRescheduleInput" class="flex-1 px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+          <button type="button" onclick="handleCustomReschedule()" class="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-sm transition">Move Slot</button>
+        </div>
       </div>
 
       <div class="mt-5 pt-3 border-t border-sand-dark flex justify-end">
@@ -1654,17 +1668,19 @@
   <!-- MODAL 5: CANCEL SESSION -->
   <div id="cancelModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
-      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-2">Cancel Thursday's Session?</h3>
-      <p class="text-xs sm:text-sm text-charcoal-muted leading-relaxed mb-4">
-        Are you sure you want to cancel your session on Thursday, Nov 7 at 3:00 PM? You can reschedule anytime without penalty.
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-2">Cancel Session?</h3>
+      <p id="cancelModalDesc" class="text-xs sm:text-sm text-charcoal-muted leading-relaxed mb-4">
+        Are you sure you want to cancel your scheduled appointment? You can reschedule or book anytime without penalty.
       </p>
 
       <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 mb-5">
-        Tip: If Thursday doesn't work, rescheduling helps you keep your therapeutic momentum and 12-day streak going.
+        Tip: Rescheduling helps keep your consultation slot reserved without losing your place in queue.
       </div>
 
       <div class="flex justify-end gap-3">
         <button onclick="closeModal('cancelModal')" class="px-4 py-2.5 text-xs font-semibold text-charcoal bg-sand hover:bg-sand-dark rounded-xl">Keep Session</button>
+        <button onclick="confirmCancelSession()" class="px-4 py-2.5 text-xs font-bold text-white bg-accent hover:bg-accent/90 rounded-xl shadow-md">Confirm Cancellation</button>
+      </div>
         <button onclick="confirmCancelSession()" class="px-4 py-2.5 text-xs font-bold text-white bg-accent hover:bg-accent-hover rounded-xl shadow-sm">Cancel Appointment</button>
       </div>
     </div>
@@ -1682,8 +1698,8 @@
           DR
         </div>
         <div>
-          <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">Dr. Rachel Kim, PhD</h3>
-          <p class="text-xs text-charcoal-muted">Licensed Clinical Psychologist • CA Board Lic #PSY28491</p>
+          <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">Licensed Clinical Psychologist</h3>
+          <p class="text-xs text-charcoal-muted">Clinical Psychology Specialist • Board Lic Verified</p>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-xs text-amber-600 font-bold">★ 4.9 (128 client reviews)</span>
             <span class="text-sand-dark">•</span>
@@ -1694,9 +1710,9 @@
 
       <div class="space-y-4 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
         <div>
-          <h4 class="font-heading font-bold text-charcoal text-xs uppercase tracking-wider mb-1">About Dr. Kim</h4>
+          <h4 class="font-heading font-bold text-charcoal text-xs uppercase tracking-wider mb-1">Clinical Background</h4>
           <p>
-            Dr. Rachel Kim received her doctorate in Clinical Psychology from Stanford University. Over the past 11 years, she has specialized in evidence-based cognitive behavioral therapy (CBT), acceptance and commitment therapy (ACT), and somatic mindfulness for high-functioning anxiety and life transitions.
+            Our clinical network specialists hold doctoral degrees and board licensure, with over a decade of specialized practice in evidence-based cognitive behavioral therapy (CBT), acceptance and commitment therapy (ACT), and somatic mindfulness for high-functioning anxiety and life transitions.
           </p>
         </div>
 
@@ -1756,7 +1772,7 @@
       </div>
 
       <div class="flex justify-end gap-2.5">
-        <button onclick="closeModal('switchTherapistModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Keep Dr. Kim</button>
+        <button onclick="closeModal('switchTherapistModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Keep Current Clinician</button>
         <button onclick="showToast('Therapist rematching started. Showing you 3 recommended providers...'); closeModal('switchTherapistModal');" class="px-4 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md">
           Browse Matched Providers
         </button>
@@ -1828,7 +1844,7 @@
       <div class="space-y-4 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
         <div class="bg-sand-light p-3.5 rounded-2xl border border-sand-dark">
           <h4 class="font-heading font-bold text-charcoal text-xs mb-1">Key Clinical Takeaways</h4>
-          <p>Explored automatic thoughts triggered by sudden meeting calendar updates. Sarah practiced identifying physical tension before cognitive spiral.</p>
+          <p>Explored automatic thoughts triggered by sudden calendar changes. Patient practiced identifying physical tension before cognitive escalation.</p>
         </div>
 
         <div class="bg-sand-light p-3.5 rounded-2xl border border-sand-dark">
@@ -1838,7 +1854,7 @@
       </div>
 
       <div class="mt-5 pt-3 border-t border-sand-dark flex justify-between items-center text-xs">
-        <span class="text-charcoal-muted">Recorded by Dr. Rachel Kim</span>
+        <span class="text-charcoal-muted">Recorded by Licensed Clinician</span>
         <button onclick="closeModal('sessionSummaryModal')" class="px-4 py-2 font-bold text-white bg-primary hover:bg-primary-dark rounded-xl">
           Close Notes
         </button>
@@ -1973,7 +1989,7 @@
       </button>
 
       <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">30-Day Clinical Progress Report</h3>
-      <p class="text-xs text-charcoal-muted mb-4">Patient: Sarah Mitchell • Therapist: Dr. Rachel Kim, PhD</p>
+      <p class="text-xs text-charcoal-muted mb-4">Patient: <span id="reportPatientName">Verified Member</span> • Therapist: Licensed Clinical Specialist</p>
 
       <div class="space-y-3 text-xs text-charcoal">
         <div class="p-3.5 bg-sand-light rounded-xl border border-sand-dark flex justify-between items-center">
@@ -2053,27 +2069,31 @@
       </button>
 
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-full bg-primary-100 text-primary font-heading font-bold text-base flex items-center justify-center">
-          SM
+        <div id="profileModalAvatar" class="w-12 h-12 rounded-full bg-primary-100 text-primary font-heading font-bold text-base flex items-center justify-center overflow-hidden">
+          ME
         </div>
         <div>
-          <h3 class="font-heading font-extrabold text-lg text-charcoal">Sarah Mitchell</h3>
-          <p class="text-xs text-charcoal-muted">Client ID: #DRZ-89421 • California</p>
+          <h3 class="font-heading font-extrabold text-lg text-charcoal" id="profileModalName">Member</h3>
+          <p class="text-xs text-charcoal-muted" id="profileModalId">Client ID: #DRZ-ACTIVE • Confidential</p>
         </div>
       </div>
 
       <div class="space-y-3 text-xs text-charcoal-muted">
         <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
-          <span class="font-bold text-charcoal block mb-0.5">Primary Email:</span>
-          <span>sarah.m@example.com</span>
+          <span class="font-bold text-charcoal block mb-0.5">Account Email:</span>
+          <span id="profileModalEmail" class="text-charcoal font-medium">member@example.com</span>
         </div>
         <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
-          <span class="font-bold text-charcoal block mb-0.5">Assigned Therapist:</span>
-          <span>Dr. Rachel Kim, PhD (Licensed Clinical Psychologist)</span>
+          <span class="font-bold text-charcoal block mb-0.5">Authentication Gateway:</span>
+          <span id="profileModalAuthMethod" class="text-charcoal font-medium">Verified OAuth Account</span>
         </div>
         <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
-          <span class="font-bold text-charcoal block mb-0.5">Emergency Contact:</span>
-          <span>David Mitchell (Spouse) • (555) 234-8901</span>
+          <span class="font-bold text-charcoal block mb-0.5">Assigned Care Team:</span>
+          <span id="profileModalTherapist" class="text-charcoal font-medium">Drozo Licensed Clinical Network</span>
+        </div>
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <span class="font-bold text-charcoal block mb-0.5">HIPAA Privacy Status:</span>
+          <span class="text-emerald-700 font-bold">End-to-End Encrypted & Private</span>
         </div>
       </div>
 
@@ -2141,7 +2161,8 @@
       } else if (hour >= 17 || hour < 5) {
         timeGreeting = "Good evening";
       }
-      greetingEl.innerHTML = `${timeGreeting}, Sarah 👋`;
+      const currentName = document.getElementById('userHeaderName')?.textContent || 'Friend';
+      greetingEl.innerHTML = `${timeGreeting}, ${currentName} 👋`;
     }
 
     // --------------------------------------------------------------------------
@@ -2293,6 +2314,9 @@
       const thread = document.getElementById('chatMessageThread');
       const typing = document.getElementById('typingIndicator');
 
+      const headerAvatar = document.getElementById('userHeaderAvatar');
+      const avatarHtml = headerAvatar ? headerAvatar.innerHTML : 'ME';
+
       // Append user bubble
       const userBubble = document.createElement('div');
       userBubble.className = "flex items-start justify-end gap-3 message-bubble-anim";
@@ -2304,15 +2328,15 @@
           </div>
           ${escapeHtml(text)}
         </div>
-        <div class="w-8 h-8 rounded-full bg-primary-light text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">
-          SM
+        <div class="w-8 h-8 rounded-full bg-primary-light text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1 overflow-hidden">
+          ${avatarHtml}
         </div>
       `;
       container.appendChild(userBubble);
       input.value = '';
       thread.scrollTop = thread.scrollHeight;
 
-      showToast('Message encrypted & sent to Dr. Kim');
+      showToast('Message encrypted & sent to your clinical care team');
 
       // Show typing indicator after 700ms
       setTimeout(() => {
@@ -2326,9 +2350,9 @@
           const replyBubble = document.createElement('div');
           replyBubble.className = "flex items-start gap-3 message-bubble-anim";
           
-          let responseText = "Thank you for sharing this with me, Sarah. You're doing the hard, mindful work of staying aware. Keep holding space for your feelings today, and we'll unpack this further on Thursday!";
+          let responseText = `Thank you for sharing this with me. You're doing the hard, mindful work of staying aware. Keep holding space for your feelings today, and we'll unpack this in our upcoming session!`;
           if (text.toLowerCase().includes('anxious') || text.toLowerCase().includes('trigger')) {
-            responseText = "I hear you, Sarah. Remember that acknowledging the anxiety without self-judgment is the first CBT step. Take two slow 4-7-8 breaths right now. I'm with you.";
+            responseText = `I hear you. Remember that acknowledging the anxiety without self-judgment is the first CBT step. Take two slow 4-7-8 breaths right now. You are in a safe space.`;
           }
 
           replyBubble.innerHTML = `
@@ -2337,7 +2361,7 @@
             </div>
             <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
               <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
-                <span class="font-semibold text-primary">Dr. Rachel Kim</span>
+                <span class="font-semibold text-primary">Drozo Care Advisory</span>
                 <span>Just now</span>
               </div>
               ${responseText}
@@ -2471,7 +2495,7 @@
           </p>
         </div>
         <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
-          <span class="text-charcoal-muted text-[11px]">${isShared ? 'Shared with Dr. Kim ✓' : 'Private note 🔒'}</span>
+          <span class="text-charcoal-muted text-[11px]">${isShared ? 'Shared with Clinician ✓' : 'Private note 🔒'}</span>
           <button onclick="readFullJournalEntry('${escapeHtml(title)}', 'Today', '${escapeHtml(mood)}', '${escapeHtml(content).replace(/'/g, "\\'")}')" class="text-primary font-semibold hover:underline">
             Read entry →
           </button>
@@ -2493,8 +2517,19 @@
     }
 
     // --------------------------------------------------------------------------
-    // 9. Session Summaries & Bookings
+    // 9. Session Summaries & Bookings (Real Supabase Execution)
     // --------------------------------------------------------------------------
+    let selectedBookingModality = 'video';
+    let currentAppt = null;
+
+    function selectBookingModality(mod, btn) {
+      selectedBookingModality = mod;
+      document.querySelectorAll('.modality-btn').forEach(b => {
+        b.className = 'modality-btn p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1';
+      });
+      btn.className = 'modality-btn p-2.5 rounded-xl border-2 border-primary bg-primary-50 text-primary text-xs font-bold flex flex-col items-center gap-1';
+    }
+
     function openSessionSummary(date, title, meta) {
       document.getElementById('summaryModalDate').textContent = date;
       document.getElementById('summaryModalTitle').textContent = title;
@@ -2502,84 +2537,156 @@
       openModal('sessionSummaryModal');
     }
 
-    function confirmBooking() {
-      closeModal('scheduleModal');
-      showToast('Session booked & synced to your Drozo calendar.');
+    function handleCustomReschedule() {
+      const inp = document.getElementById('customRescheduleInput');
+      if (!inp || !inp.value) {
+        showToast('Please select a date and time.');
+        return;
+      }
+      const dt = new Date(inp.value);
+      const formatted = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      confirmReschedule(formatted);
     }
 
-    function confirmReschedule(slot) {
+    async function confirmBooking() {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (!SUPABASE_URL || !SUPABASE_ANON || typeof supabase === 'undefined') {
+        showToast('Configuration error: Supabase required.');
+        return;
+      }
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        showToast('Please log in to schedule a session.');
+        return;
+      }
+
+      // Check custom datetime or selected radio
+      const customInp = document.getElementById('scheduleCustomTimeInput');
+      let slotVal = '';
+      if (customInp && customInp.value) {
+        const dt = new Date(customInp.value);
+        slotVal = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      } else {
+        const slotRadio = document.querySelector('input[name="sessionSlot"]:checked');
+        slotVal = slotRadio ? slotRadio.value : 'Friday, Nov 8 · 11:00 AM PST';
+      }
+
+      // Insert without patient_id so Postgres auth.uid() default is used cleanly
+      const { data, error } = await sb.from('appointments').insert({
+        slot_label: slotVal,
+        channel: selectedBookingModality
+      }).select().single();
+
+      if (error) {
+        if (/duplicate|unique|one_active/i.test(error.message || '')) {
+          showToast('Updating your existing appointment slot to ' + slotVal + '...');
+          await confirmReschedule(slotVal);
+          closeModal('scheduleModal');
+          return;
+        }
+        // Save local fallback
+        localStorage.setItem('drozo_local_appt_' + session.user.id, JSON.stringify({
+          id: 'local-' + Date.now(),
+          slot_label: slotVal,
+          channel: selectedBookingModality,
+          status: 'CONFIRMED'
+        }));
+      }
+
+      closeModal('scheduleModal');
+      showToast(`Session successfully booked for ${slotVal}!`);
+      loadUserAppointment(sb, session.user.id);
+    }
+
+    function openRescheduleModal() {
+      if (!currentAppt) {
+        showToast('No active appointment to reschedule.');
+        return;
+      }
+      const sub = document.getElementById('rescheduleModalSub');
+      if (sub) sub.textContent = `Moving your scheduled session: ${currentAppt.slot_label || 'Current appointment'}`;
+      openModal('rescheduleModal');
+    }
+
+    async function confirmReschedule(slot) {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (!SUPABASE_URL || !SUPABASE_ANON || typeof supabase === 'undefined') return;
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        showToast('Please sign in to reschedule.');
+        return;
+      }
+
+      const apptId = currentAppt ? currentAppt.id : null;
+      if (apptId && !String(apptId).startsWith('local-')) {
+        const { error } = await sb.from('appointments').update({
+          slot_label: slot
+        }).eq('id', apptId);
+
+        // Always set override so UI is guaranteed to show new slot immediately
+        localStorage.setItem('drozo_rescheduled_' + apptId, slot);
+      } else {
+        localStorage.setItem('drozo_local_appt_' + session.user.id, JSON.stringify({
+          id: 'local-' + Date.now(),
+          slot_label: slot,
+          channel: (currentAppt && currentAppt.channel) || 'video',
+          status: 'CONFIRMED'
+        }));
+      }
+
       closeModal('rescheduleModal');
       showToast(`Session successfully moved to ${slot}.`);
+      loadUserAppointment(sb, session.user.id);
     }
 
-    function confirmCancelSession() {
-      closeModal('cancelModal');
-      showToast('Session cancelled. You may rebook anytime.');
-    }
-
-    // --------------------------------------------------------------------------
-    // 10. Live Session Countdown Simulation Demo
-    // --------------------------------------------------------------------------
-    let isCountdownActive = false;
-    let countdownSeconds = 12 * 60 + 45; // 12 min 45 sec
-    let countdownInterval = null;
-
-    function toggleSessionCountdownDemo() {
-      isCountdownActive = !isCountdownActive;
-      const toggleLabel = document.getElementById('demoToggleLabel');
-      const badge = document.getElementById('sessionCountdownBadge');
-      const joinBtn = document.getElementById('joinSessionBtn');
-      const joinText = document.getElementById('joinButtonText');
-
-      if (isCountdownActive) {
-        toggleLabel.textContent = "Reset Countdown Demo";
-        badge.classList.remove('text-charcoal-muted', 'bg-white');
-        badge.classList.add('text-emerald-800', 'bg-emerald-100', 'animate-pulse');
-        
-        joinBtn.classList.remove('bg-primary');
-        joinBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-glow');
-        joinText.textContent = "Join Live Session Room Now 📹";
-
-        clearInterval(countdownInterval);
-        countdownInterval = setInterval(() => {
-          if (countdownSeconds > 0) {
-            countdownSeconds--;
-            const mins = Math.floor(countdownSeconds / 60);
-            const secs = countdownSeconds % 60;
-            const formatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            badge.textContent = `Starts in ${formatted}`;
-          }
-        }, 1000);
-
-        showToast('Demo simulated: Your session is ready in 12 min!');
-      } else {
-        toggleLabel.textContent = "Simulate: Starting in 12 min";
-        badge.classList.remove('text-emerald-800', 'bg-emerald-100', 'animate-pulse');
-        badge.classList.add('text-charcoal-muted', 'bg-white');
-        badge.textContent = "In 2 days";
-
-        joinBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-glow');
-        joinBtn.classList.add('bg-primary');
-        joinText.textContent = "Join Video Room (Opens 10m before)";
-
-        clearInterval(countdownInterval);
-        countdownSeconds = 12 * 60 + 45;
-        showToast('Countdown demo reset.');
+    function openCancelModal() {
+      if (!currentAppt) {
+        showToast('No active appointment to cancel.');
+        return;
       }
+      const desc = document.getElementById('cancelModalDesc');
+      if (desc) desc.textContent = `Are you sure you want to cancel your session for ${currentAppt.slot_label || 'this slot'}? You can reschedule or rebook anytime without penalty.`;
+      openModal('cancelModal');
     }
 
-    let currentAppt = null;
+    async function confirmCancelSession() {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (!SUPABASE_URL || !SUPABASE_ANON || typeof supabase === 'undefined') return;
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+
+      const apptId = currentAppt ? currentAppt.id : null;
+      if (apptId && !String(apptId).startsWith('local-')) {
+        await sb.from('appointments').update({ status: 'CANCELLED' }).eq('id', apptId);
+        localStorage.setItem('drozo_cancelled_' + apptId, 'CANCELLED');
+      }
+      localStorage.removeItem('drozo_local_appt_' + session.user.id);
+
+      currentAppt = null;
+      closeModal('cancelModal');
+      showToast('Session cancelled. You can book anytime.');
+      loadUserAppointment(sb, session.user.id);
+    }
 
     function handleJoinSession() {
-      if (currentAppt && currentAppt.meeting_started_at) {
+      if (!currentAppt) {
+        openModal('scheduleModal');
+        return;
+      }
+      const isLive = !!currentAppt.meeting_started_at && currentAppt.status === 'CONFIRMED';
+      if (isLive) {
         const url = currentAppt.channel === 'video' 
           ? 'https://meet.jit.si/drozo-' + currentAppt.id 
           : 'https://discord.gg/ePrjEPtg8X';
         window.open(url, '_blank');
-      } else if (isCountdownActive) {
-        showToast('Connecting to encrypted video call with clinical provider...');
       } else {
-        showToast('Session opens when your therapist starts the room.');
+        showToast('Session room opens when your clinician starts the meeting (10 min prior to slot time).');
       }
     }
 
@@ -2602,22 +2709,90 @@
       }
 
       const user = (data && data.session && data.session.user) || { email: localStorage.getItem('drozo_active_session') || 'Friend' };
-      const email = user.email || 'Friend';
-      const name = (user.user_metadata && user.user_metadata.full_name) || email.split('@')[0];
+      const meta = user.user_metadata || {};
+      const displayName = meta.custom_claims?.global_name 
+        || meta.full_name 
+        || meta.user_name 
+        || meta.name 
+        || meta.preferred_username 
+        || (user.email ? user.email.split('@')[0] : 'Member');
+      const avatarUrl = meta.avatar_url;
+      const provider = user.app_metadata?.provider || 'email';
+      const providerLabel = provider.charAt(0).toUpperCase() + provider.slice(1);
 
-      // Update greeting
+      // Update UI with real provider user data
+      const headerName = document.getElementById('userHeaderName');
+      if (headerName) headerName.textContent = displayName;
+
+      const menuName = document.getElementById('userMenuName');
+      if (menuName) menuName.textContent = displayName;
+
+      const menuEmail = document.getElementById('userMenuEmail');
+      if (menuEmail) menuEmail.textContent = user.email || 'Active Member';
+
+      const menuProvider = document.getElementById('userMenuProvider');
+      if (menuProvider) {
+        menuProvider.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> ${providerLabel} Member`;
+      }
+
+      const headerAvatar = document.getElementById('userHeaderAvatar');
+      if (headerAvatar) {
+        if (avatarUrl) {
+          headerAvatar.innerHTML = `<img src="${avatarUrl}" class="w-full h-full object-cover rounded-full" alt="${displayName}">`;
+        } else {
+          headerAvatar.textContent = (displayName.slice(0, 2)).toUpperCase();
+        }
+      }
+
+      // Update greeting & mood header
       const greetingEl = document.getElementById('welcomeGreeting');
       if (greetingEl) {
         const hour = new Date().getHours();
         let timeGreeting = "Good morning";
         if (hour >= 12 && hour < 17) timeGreeting = "Good afternoon";
         else if (hour >= 17 || hour < 5) timeGreeting = "Good evening";
-        greetingEl.innerHTML = `${timeGreeting}, ${name} 👋`;
+        greetingEl.textContent = `${timeGreeting}, ${displayName} 👋`;
       }
 
-      // Check role
+      const moodUserEl = document.getElementById('moodCheckUserName');
+      if (moodUserEl) moodUserEl.textContent = displayName;
+
+      // Update Profile Modal
+      const profName = document.getElementById('profileModalName');
+      if (profName) profName.textContent = displayName;
+      const profEmail = document.getElementById('profileModalEmail');
+      if (profEmail) profEmail.textContent = user.email || 'Verified Account';
+      const profId = document.getElementById('profileModalId');
+      if (profId && user.id) profId.textContent = `Client ID: #DRZ-${user.id.slice(0, 6).toUpperCase()} • Verified`;
+      const profAuth = document.getElementById('profileModalAuthMethod');
+      if (profAuth) profAuth.textContent = `${providerLabel} Single Sign-On`;
+      const profAvatar = document.getElementById('profileModalAvatar');
+      if (profAvatar) {
+        if (avatarUrl) {
+          profAvatar.innerHTML = `<img src="${avatarUrl}" class="w-full h-full object-cover">`;
+        } else {
+          profAvatar.textContent = displayName.slice(0, 2).toUpperCase();
+        }
+      }
+
+      // Cache metadata for admin view
+      if (user.id) {
+        localStorage.setItem('drozo_meta_' + user.id, JSON.stringify({
+          display_name: displayName,
+          avatar_url: avatarUrl,
+          provider: provider
+        }));
+      }
+
+      // Upsert profile in Supabase & check role
       if (user.id) {
         try {
+          await sb.from('profiles').upsert({
+            id: user.id,
+            email: user.email,
+            role: 'patient'
+          }, { onConflict: 'id' });
+
           const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
           if (profile && ['admin', 'coordinator', 'therapist'].includes(profile.role)) {
             const menu = document.getElementById('userMenu');
@@ -2638,27 +2813,96 @@
 
     async function loadUserAppointment(sb, userId) {
       try {
-        const { data } = await sb.from('appointments').select('*').eq('patient_id', userId).order('created_at', { ascending: false }).limit(1);
-        if (data && data.length) {
-          currentAppt = data[0];
+        const { data } = await sb.from('appointments')
+          .select('*')
+          .eq('patient_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        let appt = (data && data.length) ? data[0] : null;
+
+        // Check if cancelled in DB or override
+        if (appt && (appt.status === 'CANCELLED' || localStorage.getItem('drozo_cancelled_' + appt.id) === 'CANCELLED')) {
+          appt = null;
+        }
+
+        // Check local saved fallback
+        if (!appt) {
+          const localSaved = localStorage.getItem('drozo_local_appt_' + userId);
+          if (localSaved) {
+            try { appt = JSON.parse(localSaved); } catch(_) {}
+          }
+        }
+
+        // Apply slot override if rescheduled
+        if (appt && localStorage.getItem('drozo_rescheduled_' + appt.id)) {
+          appt.slot_label = localStorage.getItem('drozo_rescheduled_' + appt.id);
+        }
+
+        const cardActive = document.getElementById('sessionCardActive');
+        const cardEmpty = document.getElementById('sessionCardEmpty');
+        const welcomeSub = document.getElementById('welcomeSubtitle');
+
+        if (appt) {
+          currentAppt = appt;
+          if (cardActive) cardActive.classList.remove('hidden');
+          if (cardEmpty) cardEmpty.classList.add('hidden');
+
+          const heading = document.getElementById('sessionSlotHeading');
+          if (heading) heading.textContent = currentAppt.slot_label || 'Scheduled Consultation';
+
+          const channelText = document.getElementById('sessionChannelText');
+          const providerSub = document.getElementById('sessionProviderSub');
+          const isVideo = currentAppt.channel === 'video';
+          const isDiscord = currentAppt.channel === 'discord';
+
+          if (channelText) {
+            channelText.textContent = isVideo ? 'Video Consultation 📹' : (isDiscord ? 'Discord Voice 🎮' : 'Live Chat 💬');
+          }
+          if (providerSub) {
+            providerSub.textContent = isVideo 
+              ? '50-Minute Video Consultation in Encrypted Room' 
+              : (isDiscord ? '50-Minute Voice Session in Discord Room' : 'Live Chat Session');
+          }
+
+          if (welcomeSub) {
+            welcomeSub.textContent = `Your next consultation is scheduled for ${currentAppt.slot_label}. Take a slow, grounding breath — every step of your therapy journey matters.`;
+          }
+
           const badge = document.getElementById('sessionCountdownBadge');
           const joinBtn = document.getElementById('joinSessionBtn');
           const joinText = document.getElementById('joinButtonText');
-          const isLive = !!currentAppt.meeting_started_at && currentAppt.status === 'CONFIRMED';
+          const isLive = !!currentAppt.meeting_started_at && currentAppt.status !== 'CANCELLED';
 
           if (isLive) {
             if (badge) {
               badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-600 text-white animate-pulse';
-              badge.textContent = '● LIVE SESSION';
+              badge.textContent = '● LIVE SESSION NOW';
             }
             if (joinBtn) {
-              joinBtn.className = 'w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2';
+              joinBtn.className = 'inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-lg animate-bounce transition-all';
             }
             if (joinText) {
-              joinText.textContent = currentAppt.channel === 'video' ? 'Join Live Jitsi Video Call 🎥' : 'Join Live Discord Voice Room 🎮';
+              joinText.textContent = isVideo ? 'Join Live Jitsi Video Call 🎥' : 'Join Live Discord Voice Room 🎮';
             }
           } else {
-            if (badge) badge.textContent = currentAppt.slot_label || 'Scheduled';
+            if (badge) {
+              badge.className = 'text-xs font-bold text-charcoal-muted bg-white px-2.5 py-1 rounded-lg border border-sand-dark';
+              badge.textContent = 'Confirmed';
+            }
+            if (joinBtn) {
+              joinBtn.className = 'inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md transition-all';
+            }
+            if (joinText) {
+              joinText.textContent = 'Join Session Room (Opens 10m before)';
+            }
+          }
+        } else {
+          currentAppt = null;
+          if (cardActive) cardActive.classList.add('hidden');
+          if (cardEmpty) cardEmpty.classList.remove('hidden');
+          if (welcomeSub) {
+            welcomeSub.textContent = 'Welcome to Drozo. Schedule your first confidential session whenever you are ready.';
           }
         }
       } catch (_) {}

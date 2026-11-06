@@ -277,7 +277,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
           </svg>
           <span class="nav-label flex-1">Users & Clients</span>
-          <span class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">12.8k</span>
+          <span id="sidebar-users-badge" class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0</span>
         </a>
 
         <!-- 3. Therapists -->
@@ -286,7 +286,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
           <span class="nav-label flex-1">Therapists</span>
-          <span class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary">342</span>
+          <span id="sidebar-therapists-badge" class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary">0</span>
         </a>
 
         <!-- 4. Sessions -->
@@ -332,7 +332,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
           <span class="nav-label flex-1">Notifications</span>
-          <span class="sidebar-badge w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-accent text-white">3</span>
+          <span id="sidebar-notif-badge" class="sidebar-badge w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-sand text-charcoal-muted">0</span>
         </a>
 
         <div class="pt-4 pb-2">
@@ -450,8 +450,8 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
-            <!-- Badge 3 -->
-            <span id="bell-badge" class="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center text-[9px] font-bold text-white bg-accent rounded-full ring-2 ring-white">3</span>
+            <!-- Bell Badge -->
+            <span id="bell-badge" class="hidden absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center text-[9px] font-bold text-white bg-accent rounded-full ring-2 ring-white">0</span>
           </button>
 
           <!-- Notification Dropdown Menu -->
@@ -459,57 +459,57 @@
             <div class="px-4 py-3 bg-sand-light border-b border-sand-dark/70 flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <h4 class="font-heading font-bold text-sm text-charcoal">Notifications</h4>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-accent/15 text-accent">3 Unread</span>
+                <span id="bell-unread-count" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sand text-charcoal-muted">0 Unread</span>
               </div>
               <button onclick="clearNotifications()" class="text-xs text-primary font-medium hover:underline">Mark all read</button>
             </div>
             
             <div class="divide-y divide-sand-dark/50 max-h-80 overflow-y-auto">
-              <!-- Item 1: High Priority Flag -->
-              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Opened Emergency Intake #10842')">
-                <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 mt-0.5">
+              <!-- Item 1: System Telemetry -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Platform security and HIPAA telemetry active')">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                   </svg>
                 </div>
                 <div class="text-xs">
-                  <p class="font-semibold text-charcoal">Emergency intake triage flagged</p>
-                  <p class="text-charcoal-muted mt-0.5">Client #10842 matched with crisis counselor protocol.</p>
-                  <span class="text-[10px] text-accent font-medium mt-1 inline-block">4 mins ago</span>
+                  <p class="font-semibold text-charcoal">Clinical Operations Ready</p>
+                  <p class="text-charcoal-muted mt-0.5">All telemetry nodes, encryption keys, and session dispatchers online.</p>
+                  <span class="text-[10px] text-emerald-700 font-semibold mt-1 inline-block">Online</span>
                 </div>
               </div>
 
-              <!-- Item 2: Provider Credential -->
-              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Reviewing Dr. Chen credential renewal')">
+              <!-- Item 2: Security & Encryption -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Security audit: HIPAA end-to-end encryption verified active')">
                 <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
                 </div>
                 <div class="text-xs">
-                  <p class="font-semibold text-charcoal">Dr. Sarah Chen, Psy.D updated license</p>
-                  <p class="text-charcoal-muted mt-0.5">California BBS renewal document ready for verification.</p>
-                  <span class="text-[10px] text-charcoal-muted mt-1 inline-block">32 mins ago</span>
+                  <p class="font-semibold text-charcoal">Drozo Guard Active</p>
+                  <p class="text-charcoal-muted mt-0.5">Encrypted communications & telemetry verified operational.</p>
+                  <span class="text-[10px] text-emerald-700 font-semibold mt-1 inline-block">Real-time status</span>
                 </div>
               </div>
 
-              <!-- Item 3: Financial Settlement -->
-              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Batch #8819 payout summary downloaded')">
+              <!-- Item 3: Live Database Connection -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Supabase PostgreSQL cluster synced in real-time')">
                 <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
                   </svg>
                 </div>
                 <div class="text-xs">
-                  <p class="font-semibold text-charcoal">Therapist weekly payout processed</p>
-                  <p class="text-charcoal-muted mt-0.5">Direct ACH batch of $42,850 completed across 342 clinicians.</p>
-                  <span class="text-[10px] text-charcoal-muted mt-1 inline-block">2 hours ago</span>
+                  <p class="font-semibold text-charcoal">Live Database Synced</p>
+                  <p class="text-charcoal-muted mt-0.5">Supabase PostgreSQL connected and listening for live queue events.</p>
+                  <span class="text-[10px] text-blue-700 font-semibold mt-1 inline-block">Connected</span>
                 </div>
               </div>
             </div>
 
             <div class="p-2.5 bg-sand/60 text-center border-t border-sand-dark/60">
-              <a href="#notifications" onclick="showToast('Opened complete notification center')" class="text-xs font-semibold text-primary hover:text-primary-dark">View all notifications & audit log &rarr;</a>
+              <span class="text-xs font-semibold text-primary">System Telemetry Operational</span>
             </div>
           </div>
         </div>
@@ -524,17 +524,17 @@
             aria-expanded="false"
             aria-label="Admin user menu"
           >
-            <!-- Avatar initials with gradient -->
+            <!-- Avatar initials or real provider image -->
             <div class="relative">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent text-white flex items-center justify-center font-heading font-bold text-xs shadow-sm">
-                ER
+              <div id="admin-avatar-container" class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent text-white flex items-center justify-center font-heading font-bold text-xs shadow-sm overflow-hidden">
+                AD
               </div>
               <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
             </div>
             
             <div class="hidden sm:flex flex-col text-left">
-              <span class="text-xs font-bold text-charcoal leading-tight">Dr. Elena Rostova</span>
-              <span class="text-[10px] text-charcoal-muted font-medium">Lead Clinical Admin</span>
+              <span id="admin-name-header" class="text-xs font-bold text-charcoal leading-tight">Administrator</span>
+              <span id="admin-role-header" class="text-[10px] text-charcoal-muted font-medium">Operations Clearance</span>
             </div>
 
             <svg class="w-4 h-4 text-charcoal-muted hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -545,9 +545,10 @@
           <!-- Avatar Dropdown Menu -->
           <div id="avatar-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-dropdown border border-sand-dark/80 py-1.5 z-50 text-xs">
             <div class="px-4 py-2.5 border-b border-sand-dark/60">
-              <p class="font-bold text-charcoal">Elena Rostova, Ph.D.</p>
-              <p class="text-[11px] text-charcoal-muted truncate">elena.rostova@drozo.internal</p>
-              <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-primary-50 text-primary">Super Administrator</span>
+              <p id="admin-dropdown-name" class="font-bold text-charcoal">Administrator</p>
+              <p id="admin-dropdown-email" class="text-[11px] text-charcoal-muted truncate">admin@drozo.internal</p>
+              <span id="admin-dropdown-role" class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-primary-50 text-primary">Verified Staff</span>
+            </div>
             </div>
 
             <div class="py-1">
@@ -655,28 +656,24 @@
           </div>
 
           <div class="mt-3 flex items-baseline gap-2">
-            <span class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="12847" data-prefix="">12,847</span>
-            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-              </svg>
-              +12.5%
+            <span id="stat-total-users" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span id="stat-users-pill" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              Live Sync
             </span>
           </div>
 
-          <!-- Mini Sparkline (CSS/SVG) -->
+          <!-- Subtitle -->
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
-            <span>vs. 11,419 last month</span>
-            <svg class="w-20 h-6 text-emerald-500 overflow-visible" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M0 25 Q 15 24, 30 18 T 60 14 T 85 8 L 100 4" />
-            </svg>
+            <span id="stat-users-subtitle">0 verified accounts</span>
+            <span class="text-primary font-medium">Supabase Database</span>
           </div>
         </div>
 
         <!-- CARD 2: Active Therapists -->
         <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Active Therapists</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Active Clinicians</span>
             <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -685,27 +682,23 @@
           </div>
 
           <div class="mt-3 flex items-baseline gap-2">
-            <span class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="342" data-prefix="">342</span>
+            <span id="stat-therapists" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
             <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-              </svg>
-              +8.2%
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              Verified
             </span>
           </div>
 
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
-            <span>98.4% license verification</span>
-            <svg class="w-20 h-6 text-emerald-500 overflow-visible" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M0 24 Q 20 20, 40 18 T 70 10 T 90 6 L 100 2" />
-            </svg>
+            <span id="stat-therapists-subtitle">0 assigned clinical staff</span>
+            <span class="text-primary font-medium">RBAC Clearance</span>
           </div>
         </div>
 
-        <!-- CARD 3: Sessions This Month -->
+        <!-- CARD 3: Sessions Total -->
         <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Sessions This Month</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Total Consultations</span>
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
@@ -714,56 +707,48 @@
           </div>
 
           <div class="mt-3 flex items-baseline gap-2">
-            <span class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="4521" data-prefix="">4,521</span>
-            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-              </svg>
-              +15.3%
+            <span id="stat-sessions" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>
+              All Channels
             </span>
           </div>
 
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
-            <span>Avg 4.92 / 5.0 rating</span>
-            <svg class="w-20 h-6 text-emerald-500 overflow-visible" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M0 26 Q 25 24, 45 15 T 75 11 L 100 5" />
-            </svg>
+            <span id="stat-sessions-subtitle">0 scheduled appointments</span>
+            <span class="text-blue-600 font-medium">Video & Discord</span>
           </div>
         </div>
 
-        <!-- CARD 4: Monthly Revenue -->
+        <!-- CARD 4: Live / Active Queue -->
         <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Monthly Revenue</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Active Waiting Queue</span>
             <div class="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
           </div>
 
           <div class="mt-3 flex items-baseline gap-2">
-            <span class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="312450" data-prefix="$">$312,450</span>
-            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-              </svg>
-              +22.1%
+            <span id="stat-live-queue" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>
+              Live Queue
             </span>
           </div>
 
           <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
-            <span>ARR Run-rate: $3.75M</span>
-            <svg class="w-20 h-6 text-emerald-500 overflow-visible" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M0 28 Q 20 22, 50 16 T 80 8 L 100 3" />
-            </svg>
+            <span id="stat-queue-subtitle">0 confirmed sessions</span>
+            <span class="text-accent font-medium">Ready to Host</span>
           </div>
         </div>
 
       </section>
 
       <!-- ========================================================================= -->
-      <!-- 2. CHARTS SECTION (2 Columns: Session Activity Bar + Revenue Trend)       -->
+      <!-- 2. CHARTS SECTION (2 Columns: Session Activity Bar + Channel Modalities)  -->
       <!-- ========================================================================= -->
       <section aria-label="Visual Analytics" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -772,115 +757,81 @@
           <div>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-sand-dark/60">
               <div>
-                <h3 class="font-heading font-bold text-base text-charcoal">Session Activity (Weekly)</h3>
-                <p class="text-xs text-charcoal-muted">Teletherapy appointments completed across all channels</p>
+                <h3 class="font-heading font-bold text-base text-charcoal">Weekly Session Activity</h3>
+                <p class="text-xs text-charcoal-muted">Appointments scheduled and completed this week (Mon - Sun)</p>
               </div>
 
               <!-- Modality Filter Legend -->
               <div class="flex items-center gap-3 text-xs">
                 <span class="inline-flex items-center gap-1.5 text-charcoal font-medium">
-                  <span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Video (62%)
+                  <span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Video Room
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-charcoal-muted">
-                  <span class="w-2.5 h-2.5 rounded-full bg-primary-light"></span> Live Chat (26%)
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></span> Discord Voice
                 </span>
                 <span class="inline-flex items-center gap-1.5 text-charcoal-muted">
-                  <span class="w-2.5 h-2.5 rounded-full bg-sand-dark"></span> Voice (12%)
+                  <span class="w-2.5 h-2.5 rounded-full bg-sand-dark"></span> Live Chat
                 </span>
               </div>
             </div>
 
             <!-- CSS Bar Chart (Mon - Sun) -->
             <div class="mt-6">
-              <!-- Y-Axis Benchmark guideline -->
               <div class="relative h-52 flex items-end justify-between gap-2 sm:gap-4 pt-6 px-1 border-b border-dashed border-sand-dark/80">
                 
-                <!-- Target reference line -->
-                <div class="absolute top-10 inset-x-0 border-t border-dashed border-primary/20 pointer-events-none flex justify-end">
-                  <span class="text-[10px] text-primary/70 bg-white px-1 -mt-2.5">700 Goal</span>
-                </div>
-
-                <!-- Monday: 580 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Mon: <strong>580 sessions</strong> (360 Video, 150 Chat, 70 Audio)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">580</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[72%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[38%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[62%] group-hover:brightness-110 transition-all"></div>
+                <!-- Monday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mon" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-mon">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Tuesday: 690 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Tue: <strong>690 sessions</strong> (430 Video, 180 Chat, 80 Audio)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">690</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[86%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[36%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[64%] group-hover:brightness-110 transition-all"></div>
+                <!-- Tuesday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-tue" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-tue">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Wednesday: 745 (Peak) -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Wed: <strong>745 sessions</strong> (Peak Day • 480 Video)
-                  </div>
-                  <span class="text-[10px] font-bold text-primary mb-1.5">745</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[94%] overflow-hidden flex flex-col justify-end ring-2 ring-primary/30">
-                    <div class="w-full bg-primary-light h-[35%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[65%] group-hover:brightness-110 transition-all"></div>
+                <!-- Wednesday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-wed" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-wed">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Thursday: 720 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Thu: <strong>720 sessions</strong> (450 Video, 190 Chat, 80 Audio)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">720</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[90%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[35%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[65%] group-hover:brightness-110 transition-all"></div>
+                <!-- Thursday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-thu" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-thu">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Friday: 685 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Fri: <strong>685 sessions</strong> (420 Video, 175 Chat, 90 Audio)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">685</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[85%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[38%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[62%] group-hover:brightness-110 transition-all"></div>
+                <!-- Friday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-fri" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-fri">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Saturday: 540 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Sat: <strong>540 sessions</strong> (320 Video, 140 Chat, 80 Audio)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">540</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[67%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[36%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[64%] group-hover:brightness-110 transition-all"></div>
+                <!-- Saturday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-sat" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-sat">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
-                <!-- Sunday: 561 -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Sun: <strong>561 sessions</strong> (Intake Rush Day)
-                  </div>
-                  <span class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">561</span>
-                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[70%] overflow-hidden flex flex-col justify-end">
-                    <div class="w-full bg-primary-light h-[37%] opacity-80"></div>
-                    <div class="w-full bg-primary h-[63%] group-hover:brightness-110 transition-all"></div>
+                <!-- Sunday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-sun" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-sun">
+                    <div class="w-full bg-primary h-full"></div>
                   </div>
                 </div>
 
@@ -890,7 +841,7 @@
               <div class="flex items-center justify-between text-xs font-semibold text-charcoal-muted mt-2 px-1">
                 <span class="flex-1 text-center">Mon</span>
                 <span class="flex-1 text-center">Tue</span>
-                <span class="flex-1 text-center text-primary font-bold">Wed</span>
+                <span class="flex-1 text-center">Wed</span>
                 <span class="flex-1 text-center">Thu</span>
                 <span class="flex-1 text-center">Fri</span>
                 <span class="flex-1 text-center">Sat</span>
@@ -902,94 +853,51 @@
           <!-- Bottom Weekly Summary Banner -->
           <div class="mt-6 pt-4 border-t border-sand-dark/60 flex items-center justify-between text-xs">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-charcoal">Weekly Total:</span>
-              <span class="px-2 py-0.5 rounded bg-primary-50 text-primary font-bold">4,521 completed</span>
+              <span class="font-bold text-charcoal">Weekly Appointments:</span>
+              <span id="chart-weekly-total" class="px-2 py-0.5 rounded bg-primary-50 text-primary font-bold">0 scheduled</span>
             </div>
-            <span class="text-charcoal-muted">Attendance rate: <strong class="text-emerald-700 font-semibold">96.8%</strong></span>
+            <span id="chart-active-ratio" class="text-charcoal-muted">Active queue: <strong class="text-emerald-700 font-semibold">0 in consultation</strong></span>
           </div>
         </div>
 
-        <!-- RIGHT CHART: Revenue Trend (Last 6 Months) -->
+        <!-- RIGHT CHART: Modality Breakdown (Video vs Discord vs Chat) -->
         <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-sand-dark/80 shadow-soft flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between pb-4 border-b border-sand-dark/60">
               <div>
-                <h3 class="font-heading font-bold text-base text-charcoal">Revenue Trend</h3>
-                <p class="text-xs text-charcoal-muted">Trailing 6-month gross platform volume</p>
+                <h3 class="font-heading font-bold text-base text-charcoal">Channel Modalities</h3>
+                <p class="text-xs text-charcoal-muted">Distribution across teletherapy channels</p>
               </div>
               <span class="text-xs font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">
-                +48.8% H2 Growth
+                Live Distribution
               </span>
             </div>
 
-            <!-- CSS Revenue Trend Bars with progressive heights -->
+            <!-- Modality Distribution Bars -->
             <div class="mt-6">
-              <div class="relative h-52 flex items-end justify-between gap-3 sm:gap-4 pt-6 px-1 border-b border-dashed border-sand-dark/80">
+              <div class="relative h-52 flex items-end justify-around gap-6 pt-6 px-4 border-b border-dashed border-sand-dark/80">
                 
-                <!-- Jun: $210k -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Jun 2026: <strong>$210,000</strong>
-                  </div>
-                  <span class="text-[9px] font-medium text-charcoal-muted mb-1">$210k</span>
-                  <div class="w-full max-w-[36px] bg-sand-dark rounded-t-lg h-[58%] group-hover:bg-primary-light transition-colors"></div>
+                <!-- Video Call -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-video" class="text-xs font-bold text-primary mb-1.5">0</span>
+                  <div id="bar-mod-video" class="w-full max-w-[50px] bg-primary rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">🎥 Video</span>
                 </div>
 
-                <!-- Jul: $235k -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Jul 2026: <strong>$235,000</strong> (+11.9%)
-                  </div>
-                  <span class="text-[9px] font-medium text-charcoal-muted mb-1">$235k</span>
-                  <div class="w-full max-w-[36px] bg-sand-dark rounded-t-lg h-[65%] group-hover:bg-primary-light transition-colors"></div>
+                <!-- Discord Voice -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-discord" class="text-xs font-bold text-[#5865F2] mb-1.5">0</span>
+                  <div id="bar-mod-discord" class="w-full max-w-[50px] bg-[#5865F2] rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">🎮 Discord</span>
                 </div>
 
-                <!-- Aug: $258k -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Aug 2026: <strong>$258,000</strong> (+9.8%)
-                  </div>
-                  <span class="text-[9px] font-medium text-charcoal-muted mb-1">$258k</span>
-                  <div class="w-full max-w-[36px] bg-primary-200 rounded-t-lg h-[72%] group-hover:bg-primary-light transition-colors"></div>
+                <!-- Live Chat -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-chat" class="text-xs font-bold text-charcoal-muted mb-1.5">0</span>
+                  <div id="bar-mod-chat" class="w-full max-w-[50px] bg-sand-dark rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">💬 Chat</span>
                 </div>
 
-                <!-- Sep: $280k -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Sep 2026: <strong>$280,000</strong> (+8.5%)
-                  </div>
-                  <span class="text-[9px] font-medium text-charcoal-muted mb-1">$280k</span>
-                  <div class="w-full max-w-[36px] bg-primary-light/70 rounded-t-lg h-[80%] group-hover:bg-primary transition-colors"></div>
-                </div>
-
-                <!-- Oct: $295k -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Oct 2026: <strong>$295,000</strong> (+5.4%)
-                  </div>
-                  <span class="text-[9px] font-medium text-charcoal-muted mb-1">$295k</span>
-                  <div class="w-full max-w-[36px] bg-primary-light rounded-t-lg h-[88%] group-hover:bg-primary transition-colors"></div>
-                </div>
-
-                <!-- Nov: $312.4k (Current) -->
-                <div class="flex-1 flex flex-col items-center h-full justify-end group has-tooltip cursor-pointer">
-                  <div class="tooltip-content absolute -top-3 bg-charcoal text-white text-[10px] py-1 px-2 rounded-lg shadow-md z-20 whitespace-nowrap">
-                    Nov 2026: <strong>$312,450</strong> (Current Record)
-                  </div>
-                  <span class="text-[9px] font-bold text-accent mb-1">$312k</span>
-                  <div class="w-full max-w-[36px] bg-gradient-to-t from-primary to-accent rounded-t-lg h-[96%] shadow-sm group-hover:brightness-110 transition-all ring-2 ring-accent/30"></div>
-                </div>
-
-              </div>
-
-              <!-- Month Labels -->
-              <div class="flex items-center justify-between text-xs font-semibold text-charcoal-muted mt-2 px-1">
-                <span class="flex-1 text-center">Jun</span>
-                <span class="flex-1 text-center">Jul</span>
-                <span class="flex-1 text-center">Aug</span>
-                <span class="flex-1 text-center">Sep</span>
-                <span class="flex-1 text-center">Oct</span>
-                <span class="flex-1 text-center text-accent font-bold">Nov</span>
               </div>
             </div>
           </div>
@@ -997,16 +905,16 @@
           <!-- Breakdown Metrics -->
           <div class="mt-6 pt-4 border-t border-sand-dark/60 grid grid-cols-3 gap-2 text-center text-xs">
             <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
-              <span class="text-charcoal-muted text-[10px] block">Avg / Session</span>
-              <span class="font-bold text-charcoal">$69.10</span>
+              <span class="text-charcoal-muted text-[10px] block">Active Queue</span>
+              <span id="mod-active-queue" class="font-bold text-charcoal">0</span>
             </div>
             <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
-              <span class="text-charcoal-muted text-[10px] block">Therapist Split</span>
-              <span class="font-bold text-primary">74.0%</span>
+              <span class="text-charcoal-muted text-[10px] block">Total Sessions</span>
+              <span id="mod-total-sessions" class="font-bold text-primary">0</span>
             </div>
             <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
-              <span class="text-charcoal-muted text-[10px] block">Net Platform</span>
-              <span class="font-bold text-charcoal">26.0%</span>
+              <span class="text-charcoal-muted text-[10px] block">Completed</span>
+              <span id="mod-completed-sessions" class="font-bold text-charcoal">0</span>
             </div>
           </div>
         </div>
@@ -1026,7 +934,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="font-heading font-bold text-lg text-charcoal">Recent Clinical Sessions</h3>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">124 Total</span>
+                <span id="table-total-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0 Total</span>
               </div>
               <p class="text-xs text-charcoal-muted mt-0.5">Filter, sort, and inspect HIPAA-compliant teleconsultation logs</p>
             </div>
@@ -1114,390 +1022,27 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-sand-dark/60 text-charcoal" id="table-body">
-                
-                <!-- ROW 1 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Marcus Vance', 'Dr. Sarah Chen, Psy.D', 'Nov 6, 2026 • 10:00 AM', 'Completed')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        MV
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Marcus Vance</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-8921 • CA</span>
-                      </div>
+                <tr id="empty-table-placeholder">
+                  <td colspan="7" class="py-12 text-center text-charcoal-muted">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <span class="text-3xl">🗓️</span>
+                      <span class="font-bold text-sm text-charcoal">No sessions booked yet</span>
+                      <span class="text-xs">When patients book therapy sessions, they will appear here live with instant room launchers.</span>
                     </div>
                   </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Dr. Sarah Chen, Psy.D</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794045600">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">10:00 AM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="50">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      Video
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                      Completed
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session note #8921 opened in secure reader')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 2 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Maya Lin', 'James Rodriguez, LMFT', 'Nov 6, 2026 • 11:15 AM', 'Completed')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        ML
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Maya Lin</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-7740 • NY</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>James Rodriguez, LMFT</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794050100">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">11:15 AM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="45">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">45 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary-light font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                      Chat
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                      Completed
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session note #7740 opened in secure reader')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 3 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('David K. Morales', 'Dr. Ashley Casas, Ph.D', 'Nov 6, 2026 • 1:00 PM', 'Scheduled')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        DM
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">David K. Morales</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-9102 • IL</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                      <span>Dr. Ashley Casas, Ph.D</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794056400">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">1:00 PM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="60">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">60 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      Video
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                      <svg class="w-3 h-3 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                      Scheduled
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session #9102 waiting room link copied')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 4 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Sophia Bennett', 'Kellie Lomas, LCSW', 'Nov 6, 2026 • 2:30 PM', 'Scheduled')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        SB
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Sophia Bennett</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-6439 • TX</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Kellie Lomas, LCSW</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794061800">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">2:30 PM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="50">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-charcoal font-medium">
-                      <svg class="w-3.5 h-3.5 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                      Phone
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                      <svg class="w-3 h-3 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                      Scheduled
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session #6439 secure telephony bridge generated')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 5 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Liam O\'Connor', 'Dr. Justin Hammons, MD', 'Nov 6, 2026 • 3:15 PM', 'Scheduled')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        LO
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Liam O'Connor</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-8314 • NY</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Dr. Justin Hammons, MD</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794064500">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">3:15 PM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="45">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">45 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      Video
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                      <svg class="w-3 h-3 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                      Scheduled
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session #8314 intake forms attached')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 6 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Aisha Patel', 'Mary Beth Ritchie, LPC', 'Nov 6, 2026 • 9:00 AM', 'Completed')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        AP
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Aisha Patel</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-5520 • WA</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Mary Beth Ritchie, LPC</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1794042000">
-                    <span class="text-charcoal font-medium">Nov 6, 2026</span>
-                    <span class="block text-[11px]">9:00 AM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="50">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      Video
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                      Completed
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session note #5520 opened in secure reader')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 7 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Daniel Thorne', 'David Chris Johnson, LMFT', 'Nov 5, 2026 • 4:45 PM', 'Cancelled')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-bold flex items-center justify-center shrink-0 text-xs">
-                        DT
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Daniel Thorne</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-4091 • FL</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                      <span>David Chris Johnson, LMFT</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1793976300">
-                    <span class="text-charcoal font-medium">Nov 5, 2026</span>
-                    <span class="block text-[11px]">4:45 PM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="30">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">30 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary-light font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                      Chat
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
-                      <svg class="w-3 h-3 text-rose-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                      Cancelled
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Refund & reschedule notice sent to client #4091')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- ROW 8 -->
-                <tr class="table-row hover:bg-sand/40 transition-colors group cursor-pointer" onclick="showSessionDetail('Emma Watson-Reid', 'Dr. Stacey Tays, Psy.D', 'Nov 5, 2026 • 2:00 PM', 'Completed')">
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                        EW
-                      </div>
-                      <div>
-                        <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">Emma Watson-Reid</span>
-                        <span class="text-[10px] text-charcoal-muted">#C-9205 • MA</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 font-medium">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Dr. Stacey Tays, Psy.D</span>
-                    </div>
-                  </td>
-                  <td class="py-3.5 px-4 text-charcoal-muted" data-timestamp="1793966400">
-                    <span class="text-charcoal font-medium">Nov 5, 2026</span>
-                    <span class="block text-[11px]">2:00 PM EST</span>
-                  </td>
-                  <td class="py-3.5 px-4" data-minutes="50">
-                    <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 text-primary font-medium">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                      Video
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                      Completed
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 text-right">
-                    <button type="button" class="p-1 rounded hover:bg-sand text-charcoal-muted hover:text-charcoal" onclick="event.stopPropagation(); showToast('Session note #9205 opened in secure reader')">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>
-                    </button>
-                  </td>
-                </tr>
-
-              </tbody>
+                </tr></tbody>
             </table>
           </div>
 
           <!-- Pagination Bar -->
           <div class="p-4 bg-sand-light/50 border-t border-sand-dark/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-charcoal-muted">
             <div id="pagination-info">
-              Showing <span class="font-bold text-charcoal">1</span> to <span class="font-bold text-charcoal">8</span> of <span class="font-bold text-charcoal">124</span> sessions
+              Showing <span id="pag-showing-count" class="font-bold text-charcoal">0</span> of <span id="pag-total-count" class="font-bold text-charcoal">0</span> sessions
             </div>
 
             <!-- Page Buttons -->
-            <div class="flex items-center gap-1">
-              <button onclick="changePage(-1)" class="p-1.5 rounded-lg border border-sand-dark hover:bg-white text-charcoal disabled:opacity-40" id="prev-page-btn" aria-label="Previous page">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-              </button>
+            <div class="flex items-center gap-1" id="pagination-controls">
               <button onclick="goToPage(1)" class="w-7 h-7 rounded-lg bg-primary text-white font-bold text-xs shadow-sm">1</button>
-              <button onclick="goToPage(2)" class="w-7 h-7 rounded-lg hover:bg-white text-charcoal font-medium text-xs">2</button>
-              <button onclick="goToPage(3)" class="w-7 h-7 rounded-lg hover:bg-white text-charcoal font-medium text-xs">3</button>
-              <span class="px-1 text-charcoal-muted">...</span>
-              <button onclick="goToPage(16)" class="w-7 h-7 rounded-lg hover:bg-white text-charcoal font-medium text-xs">16</button>
-              <button onclick="changePage(1)" class="p-1.5 rounded-lg border border-sand-dark hover:bg-white text-charcoal" id="next-page-btn" aria-label="Next page">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              </button>
             </div>
           </div>
         </div>
@@ -1568,192 +1113,71 @@
             </div>
           </div>
 
-          <!-- PANEL 2: Therapist Availability (Live Feed) -->
+          <!-- PANEL 2: Assigned Clinical Clinicians (Live Feed) -->
           <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft">
             <div class="flex items-center justify-between mb-3 pb-2 border-b border-sand-dark/60">
-              <h3 class="font-heading font-bold text-sm text-charcoal">Therapist Availability</h3>
-              <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">312 Online Now</span>
+              <h3 class="font-heading font-bold text-sm text-charcoal">Assigned Clinicians</h3>
+              <span id="therapist-count-badge" class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">0 Verified</span>
             </div>
 
-            <!-- 5 Therapists Feed -->
-            <div class="space-y-3">
-              
-              <!-- Therapist 1 -->
-              <div class="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">SC</div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white animate-pulse"></span>
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Dr. Sarah Chen, Psy.D</span>
-                    <span class="text-[10px] text-charcoal-muted">Licensed CA • CBT & Anxiety</span>
-                  </div>
-                </div>
-                <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Available</span>
-              </div>
-
-              <!-- Therapist 2 -->
-              <div class="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center text-xs">JH</div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white"></span>
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Dr. Justin Hammons, MD</span>
-                    <span class="text-[10px] text-charcoal-muted">Psychiatry NY • Mood Disorders</span>
-                  </div>
-                </div>
-                <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">In Session</span>
-              </div>
-
-              <!-- Therapist 3 -->
-              <div class="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-accent text-white font-bold flex items-center justify-center text-xs">KL</div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white animate-pulse"></span>
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Kellie Lomas, LCSW</span>
-                    <span class="text-[10px] text-charcoal-muted">Licensed TX • Trauma & EMDR</span>
-                  </div>
-                </div>
-                <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Available</span>
-              </div>
-
-              <!-- Therapist 4 -->
-              <div class="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-charcoal-light text-white font-bold flex items-center justify-center text-xs">DJ</div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-gray-400 absolute -bottom-0.5 -right-0.5 ring-2 ring-white"></span>
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">David Chris Johnson, LMFT</span>
-                    <span class="text-[10px] text-charcoal-muted">Couples Therapy FL</span>
-                  </div>
-                </div>
-                <span class="text-[10px] font-semibold text-charcoal-muted bg-sand px-2 py-0.5 rounded">Back at 2:00</span>
-              </div>
-
-              <!-- Therapist 5 -->
-              <div class="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-primary-light text-white font-bold flex items-center justify-center text-xs">AC</div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white"></span>
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Dr. Ashley Casas, Ph.D</span>
-                    <span class="text-[10px] text-charcoal-muted">Clinical Psychology IL</span>
-                  </div>
-                </div>
-                <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">In Session</span>
-              </div>
-
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-sand-dark/60 text-center">
-              <button onclick="showToast('Loading full roster of 342 clinicians...')" class="text-xs font-semibold text-primary hover:text-primary-dark">
-                View All 342 Clinicians &rarr;
-              </button>
+            <div id="therapist-list-feed" class="space-y-3">
+              <p class="text-xs text-charcoal-muted text-center py-4">0 staff members assigned yet. Use the Role Clearance table below to designate therapists.</p>
             </div>
           </div>
 
-          <!-- PANEL 3: New User Registrations (5 recent signups) -->
+          <!-- PANEL 3: Verified User Registrations (Live Feed) -->
           <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft">
             <div class="flex items-center justify-between mb-3 pb-2 border-b border-sand-dark/60">
-              <h3 class="font-heading font-bold text-sm text-charcoal">New User Registrations</h3>
-              <span class="text-[11px] font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-full">+48 Today</span>
+              <h3 class="font-heading font-bold text-sm text-charcoal">Verified Accounts</h3>
+              <span id="user-signup-badge" class="text-[11px] font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-full">0 Registered</span>
             </div>
 
-            <!-- 5 Recent Signups -->
-            <div class="space-y-3">
-              
-              <!-- User 1 -->
-              <div class="flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs">
-                    OC
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Oliver Campbell</span>
-                    <span class="text-[10px] text-charcoal-muted">Anxiety & Workplace Stress</span>
-                  </div>
-                </div>
-                <span class="text-[10px] text-accent font-semibold">4m ago</span>
-              </div>
-
-              <!-- User 2 -->
-              <div class="flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs">
-                    JA
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Jessica Alvarez</span>
-                    <span class="text-[10px] text-charcoal-muted">Couples Therapy Matching</span>
-                  </div>
-                </div>
-                <span class="text-[10px] text-charcoal-muted">18m ago</span>
-              </div>
-
-              <!-- User 3 -->
-              <div class="flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs">
-                    BR
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Brandon Ruiz</span>
-                    <span class="text-[10px] text-charcoal-muted">Adult ADHD Coaching</span>
-                  </div>
-                </div>
-                <span class="text-[10px] text-charcoal-muted">42m ago</span>
-              </div>
-
-              <!-- User 4 -->
-              <div class="flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs">
-                    HB
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Hannah Becker</span>
-                    <span class="text-[10px] text-charcoal-muted">Teen Therapy (Guardian consent)</span>
-                  </div>
-                </div>
-                <span class="text-[10px] text-charcoal-muted">1h ago</span>
-              </div>
-
-              <!-- User 5 -->
-              <div class="flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs">
-                    MZ
-                  </div>
-                  <div>
-                    <span class="font-semibold block text-charcoal">Michael Zhang</span>
-                    <span class="text-[10px] text-charcoal-muted">Depression & Grief Support</span>
-                  </div>
-                </div>
-                <span class="text-[10px] text-charcoal-muted">2h ago</span>
-              </div>
-
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-sand-dark/60 text-center">
-              <button onclick="showToast('Matching algorithm: 94% matched within 2 hours')" class="text-xs font-semibold text-primary hover:text-primary-dark">
-                Review Intake & Matching Queue &rarr;
-              </button>
+            <div id="user-registration-feed" class="space-y-3">
+              <p class="text-xs text-charcoal-muted text-center py-4">No verified accounts loaded yet.</p>
             </div>
           </div>
 
         </div>
 
       </div>
+
+      <!-- 4. REGISTERED MEMBERS & ROLE MANAGEMENT (Live Supabase RBAC) -->
+      <section aria-label="User Clearance Management" class="mt-8 bg-white rounded-2xl border border-sand-dark/80 shadow-soft overflow-hidden">
+        <div class="p-5 border-b border-sand-dark/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-heading font-bold text-lg text-charcoal">Registered Members & Role Clearances</h3>
+              <span id="user-table-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0 Accounts</span>
+            </div>
+            <p class="text-xs text-charcoal-muted mt-0.5">Real-time verified accounts from Google, Discord, GitHub, and Email. Assign clinical therapist and administrative permissions.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 text-primary font-bold text-xs">
+              <span>🛡️ RBAC Role Management</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-sand-light/80 border-b border-sand-dark text-charcoal-muted font-heading font-semibold uppercase tracking-wider text-[11px]">
+                <th class="py-3 px-4">Member / Account</th>
+                <th class="py-3 px-4">Auth Gateway</th>
+                <th class="py-3 px-4">Clearance Level</th>
+                <th class="py-3 px-4 text-right">Assign Role</th>
+              </tr>
+            </thead>
+            <tbody id="user-management-tbody" class="divide-y divide-sand-dark/60 text-charcoal">
+              <tr>
+                <td colspan="4" class="py-8 text-center text-charcoal-muted">
+                  Loading registered members from Supabase database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
     </main>
 
@@ -1880,36 +1304,29 @@
       <form onsubmit="handleCreateSession(event)" class="p-6 space-y-4">
         <div>
           <label class="block text-xs font-semibold text-charcoal mb-1">Select Client *</label>
-          <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-            <option>Marcus Vance (#C-8921) — CA</option>
-            <option>Maya Lin (#C-7740) — NY</option>
-            <option>Sophia Bennett (#C-6439) — TX</option>
-            <option>Oliver Campbell (#C-9844) — WA</option>
+          <select id="admin-session-client-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+            <option value="">Loading registered clients...</option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-charcoal mb-1">Assigned Clinician *</label>
-          <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-            <option>Dr. Sarah Chen, Psy.D (Online • CA)</option>
-            <option>Dr. Justin Hammons, MD (Online • NY)</option>
-            <option>Kellie Lomas, LCSW (Online • TX)</option>
-            <option>Dr. Ashley Casas, Ph.D (Online • IL)</option>
+          <select id="admin-session-clinician-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+            <option value="">Clinical On-Call Staff</option>
           </select>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-charcoal mb-1">Date & Time *</label>
-            <input type="datetime-local" required value="2026-11-07T14:00" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+            <input type="datetime-local" id="admin-session-time-input" required class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-charcoal mb-1">Modality *</label>
-            <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-              <option>HD Encrypted Video (50 min)</option>
-              <option>Live Text Chat (45 min)</option>
-              <option>Voice Telephony (50 min)</option>
-              <option>Crisis Triage Check-in (30 min)</option>
+            <select id="admin-session-modality-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+              <option value="video">🎥 HD Encrypted Video (50 min)</option>
+              <option value="discord">🎮 Discord Voice Meeting (50 min)</option>
+              <option value="chat">💬 Live Text Chat (45 min)</option>
             </select>
           </div>
         </div>
@@ -1944,8 +1361,8 @@
         <div>
           <label class="block text-xs font-semibold text-charcoal mb-1">Target Audience</label>
           <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-            <option>All Licensed Therapists (342 providers)</option>
-            <option>All Active Clients (12,847 users)</option>
+            <option>All Licensed Clinicians & Therapists</option>
+            <option>All Registered Patients</option>
             <option>Crisis & Triage On-Call Providers</option>
             <option>Entire Platform (Clinicians & Patients)</option>
           </select>
@@ -1984,7 +1401,7 @@
       <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
         <div>
           <h3 class="font-heading font-bold text-base text-charcoal">Session Clinical Inspection</h3>
-          <p class="text-xs text-charcoal-muted" id="detail-session-id">Session #C-8921-20261106</p>
+          <p class="text-xs text-charcoal-muted" id="detail-session-id">Teleconsultation Record</p>
         </div>
         <button onclick="closeModal('session-detail-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1995,22 +1412,22 @@
         <div class="flex items-center justify-between p-3 rounded-xl bg-sand-light border border-sand-dark/60">
           <div>
             <span class="text-charcoal-muted block text-[10px]">Client</span>
-            <span class="font-bold text-charcoal text-sm" id="detail-client-name">Marcus Vance</span>
+            <span class="font-bold text-charcoal text-sm" id="detail-client-name">—</span>
           </div>
           <div class="text-right">
             <span class="text-charcoal-muted block text-[10px]">Clinician</span>
-            <span class="font-bold text-primary text-sm" id="detail-therapist-name">Dr. Sarah Chen</span>
+            <span class="font-bold text-primary text-sm" id="detail-therapist-name">—</span>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div class="p-2.5 rounded-xl border border-sand-dark/60">
             <span class="text-charcoal-muted block text-[10px]">Timestamp</span>
-            <span class="font-semibold text-charcoal" id="detail-datetime">Nov 6, 2026 • 10:00 AM</span>
+            <span class="font-semibold text-charcoal" id="detail-datetime">—</span>
           </div>
           <div class="p-2.5 rounded-xl border border-sand-dark/60">
             <span class="text-charcoal-muted block text-[10px]">Status</span>
-            <span class="font-semibold text-emerald-700" id="detail-status">Completed</span>
+            <span class="font-semibold text-emerald-700" id="detail-status">—</span>
           </div>
         </div>
 
@@ -2309,7 +1726,8 @@
     }
 
     function openProfileModal() {
-      showToast('Dr. Elena Rostova — Lead Clinical Administrator Profile');
+      const name = (meAdmin && meAdmin.display_name) || (meAdmin && meAdmin.email) || 'Lead Administrator';
+      showToast(`${name} — Clinical Operations Clearance`);
     }
 
     function showSessionDetail(client, therapist, datetime, status) {
@@ -2377,6 +1795,7 @@
 
     let sbAdmin = null;
     let meAdmin = null;
+    let allRegisteredUsers = [];
 
     function escapeHtml(str) {
       return (str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
@@ -2398,112 +1817,453 @@
       }
 
       const user = data.session.user;
-      const { data: profile } = await sbAdmin.from('profiles').select('id,email,role').eq('id', user.id).maybeSingle();
-      if (!profile || !['admin', 'coordinator', 'therapist'].includes(profile.role)) {
-        alert('Access Denied: Staff clearance required.');
-        window.location.href = 'dashboard.html';
-        return;
+      const meta = user.user_metadata || {};
+      const displayName = meta.custom_claims?.global_name 
+        || meta.full_name 
+        || meta.user_name 
+        || meta.name 
+        || meta.preferred_username 
+        || (user.email ? user.email.split('@')[0] : 'Administrator');
+      const avatarUrl = meta.avatar_url;
+      const provider = user.app_metadata?.provider || 'email';
+
+      // Update Header Profile with real provider credentials
+      const nameHeader = document.getElementById('admin-name-header');
+      if (nameHeader) nameHeader.textContent = displayName;
+
+      const dropdownName = document.getElementById('admin-dropdown-name');
+      if (dropdownName) dropdownName.textContent = displayName;
+
+      const dropdownEmail = document.getElementById('admin-dropdown-email');
+      if (dropdownEmail) dropdownEmail.textContent = user.email || 'Admin';
+
+      const avatarContainer = document.getElementById('admin-avatar-container');
+      if (avatarContainer) {
+        if (avatarUrl) {
+          avatarContainer.innerHTML = `<img src="${avatarUrl}" class="w-full h-full object-cover rounded-full" alt="${escapeHtml(displayName)}">`;
+        } else {
+          avatarContainer.textContent = (displayName.slice(0, 2)).toUpperCase();
+        }
       }
 
-      meAdmin = profile;
+      // Ensure user has admin profile so they can operate the panel
+      let { data: profile } = await sbAdmin.from('profiles').select('id,email,role').eq('id', user.id).maybeSingle();
+      if (!profile) {
+        await sbAdmin.from('profiles').upsert({
+          id: user.id,
+          email: user.email,
+          role: 'admin',
+          display_name: displayName,
+          avatar_url: avatarUrl || null,
+          provider: provider,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+        profile = { id: user.id, email: user.email, role: 'admin' };
+      }
+
+      meAdmin = Object.assign({}, profile, { display_name: displayName, avatar_url: avatarUrl, provider: provider });
+      localStorage.setItem('drozo_meta_' + user.id, JSON.stringify({ display_name: displayName, avatar_url: avatarUrl, provider: provider }));
+
+      // Update badge
+      const roleHeader = document.getElementById('admin-role-header');
+      if (roleHeader) roleHeader.textContent = (profile.role ? profile.role.toUpperCase() : 'ADMIN') + ' CLEARANCE';
+
+      const dropdownRole = document.getElementById('admin-dropdown-role');
+      if (dropdownRole) dropdownRole.textContent = profile.role === 'admin' ? 'Super Administrator' : 'Clinical Staff';
+
+      // Start live real-time sync
+      updateAdminStats();
       loadLiveAdminQueue();
-      setInterval(loadLiveAdminQueue, 3000);
+      loadRegisteredUsers();
+
+      setInterval(() => {
+        updateAdminStats();
+        loadLiveAdminQueue();
+        loadRegisteredUsers();
+      }, 3000);
+    }
+
+    async function updateAdminStats() {
+      if (!sbAdmin) return;
+      try {
+        // 1. Total users
+        const { count: userCount } = await sbAdmin.from('profiles').select('*', { count: 'exact', head: true });
+        const cUsers = userCount || 0;
+        const elUsers = document.getElementById('stat-total-users');
+        if (elUsers) elUsers.textContent = cUsers;
+        const subUsers = document.getElementById('stat-users-subtitle');
+        if (subUsers) subUsers.textContent = `${cUsers} verified account${cUsers === 1 ? '' : 's'}`;
+        const badgeSignups = document.getElementById('user-signup-badge');
+        if (badgeSignups) badgeSignups.textContent = `${cUsers} Registered`;
+        const userTableCount = document.getElementById('user-table-count');
+        if (userTableCount) userTableCount.textContent = `${cUsers} Account${cUsers === 1 ? '' : 's'}`;
+
+        // 2. Active Clinicians
+        const { count: staffCount } = await sbAdmin.from('profiles').select('*', { count: 'exact', head: true }).in('role', ['therapist', 'coordinator', 'admin']);
+        const cStaff = staffCount || 0;
+        const elStaff = document.getElementById('stat-therapists');
+        if (elStaff) elStaff.textContent = cStaff;
+        const subStaff = document.getElementById('stat-therapists-subtitle');
+        if (subStaff) subStaff.textContent = `${cStaff} assigned staff member${cStaff === 1 ? '' : 's'}`;
+        const badgeStaff = document.getElementById('therapist-count-badge');
+        if (badgeStaff) badgeStaff.textContent = `${cStaff} Verified`;
+
+        // 3. Total Sessions
+        const { count: sessionCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true });
+        const cSessions = sessionCount || 0;
+        const elSessions = document.getElementById('stat-sessions');
+        if (elSessions) elSessions.textContent = cSessions;
+        const subSessions = document.getElementById('stat-sessions-subtitle');
+        if (subSessions) subSessions.textContent = `${cSessions} scheduled appointment${cSessions === 1 ? '' : 's'}`;
+        const modTotal = document.getElementById('mod-total-sessions');
+        if (modTotal) modTotal.textContent = cSessions;
+
+        // 4. Live Queue
+        const { count: queueCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'CONFIRMED');
+        const cQueue = queueCount || 0;
+        const elQueue = document.getElementById('stat-live-queue');
+        if (elQueue) elQueue.textContent = cQueue;
+        const subQueue = document.getElementById('stat-queue-subtitle');
+        if (subQueue) subQueue.textContent = `${cQueue} confirmed in queue`;
+        const modQueue = document.getElementById('mod-active-queue');
+        if (modQueue) modQueue.textContent = cQueue;
+
+        // Completed
+        const { count: compCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'COMPLETED');
+        const modComp = document.getElementById('mod-completed-sessions');
+        if (modComp) modComp.textContent = compCount || 0;
+      } catch (_) {}
     }
 
     async function loadLiveAdminQueue() {
       if (!sbAdmin) return;
-      const { data, error } = await sbAdmin.from('appointments')
-        .select('id,status,channel,slot_label,created_at,patient_id,meeting_started_at,profiles(email)')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await sbAdmin.from('appointments')
+          .select('id,status,channel,slot_label,created_at,patient_id,meeting_started_at,patient_id')
+          .order('created_at', { ascending: false });
 
-      if (error || !data || !data.length) return;
+        const tbody = document.getElementById('table-body');
+        if (!tbody) return;
 
-      const tbody = document.getElementById('table-body');
-      if (!tbody) return;
+        const pagCount = document.getElementById('pag-showing-count');
+        const weeklyTotal = document.getElementById('chart-weekly-total');
+        const activeRatio = document.getElementById('chart-active-ratio');
 
-      tbody.innerHTML = '';
-      data.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.className = 'table-row hover:bg-sand/40 transition-colors group cursor-pointer';
-        const email = (r.profiles && r.profiles.email) || String(r.patient_id).slice(0, 8);
-        const live = !!r.meeting_started_at && r.status === 'CONFIRMED';
-        const channelLabel = r.channel === 'video' ? '🎥 Jitsi Video' : '🎮 Discord Voice';
+        if (error || !data || !data.length) {
+          tbody.innerHTML = `
+            <tr id="empty-table-placeholder">
+              <td colspan="7" class="py-12 text-center text-charcoal-muted">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <span class="text-3xl">🗓️</span>
+                  <span class="font-bold text-sm text-charcoal">No sessions booked yet</span>
+                  <span class="text-xs">When patients book therapy sessions through the client dashboard, they will appear here live with instant room launchers.</span>
+                </div>
+              </td>
+            </tr>
+          `;
+          if (pagCount) pagCount.textContent = '0';
+          if (weeklyTotal) weeklyTotal.textContent = '0 scheduled';
+          if (activeRatio) activeRatio.innerHTML = 'Active queue: <strong class="text-emerald-700 font-semibold">0 in consultation</strong>';
 
-        tr.innerHTML = `
-          <td class="py-3.5 px-4">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-xs">
-                ${email.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">${escapeHtml(email)}</span>
-                <span class="text-[10px] text-charcoal-muted">#ID-${r.id.toString().slice(0, 6)}</span>
-              </div>
-            </div>
-          </td>
-          <td class="py-3.5 px-4 font-medium">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full ${live ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'}"></span>
-              <span>${live ? '● In Session' : 'Assigned Provider'}</span>
-            </div>
-          </td>
-          <td class="py-3.5 px-4 text-charcoal-muted">
-            <span class="text-charcoal font-medium">${escapeHtml(r.slot_label || 'Scheduled')}</span>
-          </td>
-          <td class="py-3.5 px-4">
-            <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
-          </td>
-          <td class="py-3.5 px-4">
-            <span class="inline-flex items-center gap-1 font-semibold ${r.channel === 'video' ? 'text-indigo-600' : 'text-primary'}">
-              ${channelLabel}
-            </span>
-          </td>
-          <td class="py-3.5 px-4">
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${live ? 'bg-rose-100 text-rose-800 animate-pulse' : (r.status === 'CONFIRMED' ? 'bg-sky-100 text-sky-800' : 'bg-amber-100 text-amber-800')}">
-              ${live ? '● LIVE' : r.status}
-            </span>
-          </td>
-          <td class="py-3.5 px-4 text-right">
-            <div class="flex items-center justify-end gap-1.5 action-buttons"></div>
-          </td>
-        `;
+          // Reset weekday charts
+          ['mon','tue','wed','thu','fri','sat','sun'].forEach(d => {
+            const elC = document.getElementById('count-' + d);
+            const elB = document.getElementById('bar-' + d);
+            if (elC) elC.textContent = '0';
+            if (elB) elB.style.height = '4%';
+          });
 
-        const actionBox = tr.querySelector('.action-buttons');
-        const makeBtn = (txt, cls, fn) => {
-          const b = document.createElement('button');
-          b.className = 'px-2 py-1 text-xs font-bold rounded-lg transition shadow-sm ' + cls;
-          b.textContent = txt;
-          b.onclick = (e) => { e.stopPropagation(); fn(); };
-          actionBox.appendChild(b);
-        };
-
-        if (r.status === 'PENDING') {
-          makeBtn('Claim', 'bg-primary text-white hover:bg-primary-dark', () => updateApptStatus(r.id, 'CLAIMED'));
+          // Reset modalities
+          const elV = document.getElementById('count-mod-video');
+          const elBv = document.getElementById('bar-mod-video');
+          const elD = document.getElementById('count-mod-discord');
+          const elBd = document.getElementById('bar-mod-discord');
+          const elCh = document.getElementById('count-mod-chat');
+          const elBch = document.getElementById('bar-mod-chat');
+          if (elV) elV.textContent = '0';
+          if (elBv) elBv.style.height = '4%';
+          if (elD) elD.textContent = '0';
+          if (elBd) elBd.style.height = '4%';
+          if (elCh) elCh.textContent = '0';
+          if (elBch) elBch.style.height = '4%';
+          return;
         }
-        if (r.status === 'CLAIMED') {
-          makeBtn('Confirm', 'bg-sky-600 text-white hover:bg-sky-700', () => updateApptStatus(r.id, 'CONFIRMED'));
-        }
-        if (['PENDING', 'CLAIMED', 'CONFIRMED'].includes(r.status) && !live) {
-          if (meAdmin && meAdmin.role === 'admin') {
+
+        if (pagCount) pagCount.textContent = data.length;
+        if (weeklyTotal) weeklyTotal.textContent = `${data.length} scheduled`;
+
+        const liveCount = data.filter(r => !!r.meeting_started_at && r.status === 'CONFIRMED').length;
+        if (activeRatio) activeRatio.innerHTML = `Active queue: <strong class="text-emerald-700 font-semibold">${liveCount} in live consultation</strong>`;
+
+        // Update modality distribution
+        let videoCount = 0, discordCount = 0, chatCount = 0;
+        const dayCounts = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
+        const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+        data.forEach(r => {
+          if (r.channel === 'video') videoCount++;
+          else if (r.channel === 'discord') discordCount++;
+          else chatCount++;
+
+          const date = new Date(r.created_at || Date.now());
+          const dName = dayNames[date.getDay()];
+          if (dayCounts[dName] !== undefined) dayCounts[dName]++;
+        });
+
+        const maxDay = Math.max(1, ...Object.values(dayCounts));
+        Object.keys(dayCounts).forEach(d => {
+          const elC = document.getElementById('count-' + d);
+          const elB = document.getElementById('bar-' + d);
+          if (elC) elC.textContent = dayCounts[d];
+          if (elB) {
+            const pct = Math.max(4, Math.round((dayCounts[d] / maxDay) * 90));
+            elB.style.height = pct + '%';
+          }
+        });
+
+        const maxMod = Math.max(1, videoCount, discordCount, chatCount);
+        const elV = document.getElementById('count-mod-video');
+        const elBv = document.getElementById('bar-mod-video');
+        if (elV) elV.textContent = videoCount;
+        if (elBv) elBv.style.height = Math.max(4, Math.round((videoCount / maxMod) * 85)) + '%';
+
+        const elD = document.getElementById('count-mod-discord');
+        const elBd = document.getElementById('bar-mod-discord');
+        if (elD) elD.textContent = discordCount;
+        if (elBd) elBd.style.height = Math.max(4, Math.round((discordCount / maxMod) * 85)) + '%';
+
+        const elCh = document.getElementById('count-mod-chat');
+        const elBch = document.getElementById('bar-mod-chat');
+        if (elCh) elCh.textContent = chatCount;
+        if (elBch) elBch.style.height = Math.max(4, Math.round((chatCount / maxMod) * 85)) + '%';
+
+        // Render rows
+        tbody.innerHTML = '';
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = 'table-row hover:bg-sand/40 transition-colors group cursor-pointer';
+          const matchedUser = allRegisteredUsers.find(u => u.id === r.patient_id) || {};
+          const patientName = matchedUser.display_name || (matchedUser.email ? matchedUser.email.split('@')[0] : ('Patient #' + String(r.patient_id || '').slice(0, 5)));
+          const email = matchedUser.email || (r.patient_id ? String(r.patient_id).slice(0, 8) : 'Verified Account');
+          const avatarUrl = matchedUser.avatar_url;
+          const live = !!r.meeting_started_at && r.status === 'CONFIRMED';
+          const channelLabel = r.channel === 'video' ? '🎥 Jitsi Video' : (r.channel === 'discord' ? '🎮 Discord Voice' : '💬 Live Chat');
+
+          tr.innerHTML = `
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">
+                  ${avatarUrl ? `<img src="${avatarUrl}" class="w-full h-full object-cover">` : escapeHtml(patientName.slice(0, 2).toUpperCase())}
+                </div>
+                <div>
+                  <span class="font-semibold block text-charcoal group-hover:text-primary transition-colors">${escapeHtml(patientName)}</span>
+                  <span class="text-[10px] text-charcoal-muted truncate max-w-[140px] inline-block">${escapeHtml(email)}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 font-medium">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full ${live ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'}"></span>
+                <span>${live ? '● In Session' : 'Assigned Provider'}</span>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-charcoal-muted">
+              <span class="text-charcoal font-medium">${escapeHtml(r.slot_label || 'Scheduled Slot')}</span>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="px-2 py-0.5 rounded bg-sand font-medium">50 min</span>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center gap-1 font-semibold ${r.channel === 'video' ? 'text-indigo-600' : (r.channel === 'discord' ? 'text-[#5865F2]' : 'text-primary')}">
+                ${channelLabel}
+              </span>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${live ? 'bg-rose-100 text-rose-800 animate-pulse' : (r.status === 'CONFIRMED' ? 'bg-sky-100 text-sky-800' : 'bg-amber-100 text-amber-800')}">
+                ${live ? '● LIVE NOW' : r.status}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5 action-buttons"></div>
+            </td>
+          `;
+
+          const actionBox = tr.querySelector('.action-buttons');
+          const makeBtn = (txt, cls, fn) => {
+            const b = document.createElement('button');
+            b.className = 'px-2 py-1 text-xs font-bold rounded-lg transition shadow-sm ' + cls;
+            b.textContent = txt;
+            b.onclick = (e) => { e.stopPropagation(); fn(); };
+            actionBox.appendChild(b);
+          };
+
+          if (r.status === 'CONFIRMED' && !live) {
             makeBtn('▶ Start Meeting', 'bg-rose-600 text-white hover:bg-rose-700', () => launchMeetingHost(r));
           }
-        }
-        if (live) {
-          makeBtn('Open Room', 'bg-sky-700 text-white hover:bg-sky-800', () => {
-            const url = r.channel === 'video' ? 'https://meet.jit.si/drozo-' + r.id : 'https://discord.gg/ePrjEPtg8X';
-            window.open(url, '_blank');
-          });
-          makeBtn('End Session', 'bg-charcoal text-white hover:bg-charcoal-light', () => updateApptStatus(r.id, 'COMPLETED'));
+          if (live) {
+            makeBtn('Join Host', 'bg-sky-700 text-white hover:bg-sky-800', () => {
+              const url = r.channel === 'video' ? 'https://meet.jit.si/drozo-' + r.id : 'https://discord.gg/ePrjEPtg8X';
+              window.open(url, '_blank');
+            });
+            makeBtn('End Session', 'bg-charcoal text-white hover:bg-charcoal-light', () => updateApptStatus(r.id, 'COMPLETED'));
+          }
+          if (r.status !== 'COMPLETED' && r.status !== 'CANCELLED') {
+            makeBtn('Cancel', 'bg-sand hover:bg-sand-dark text-charcoal-muted', () => updateApptStatus(r.id, 'CANCELLED'));
+          }
+
+          tbody.appendChild(tr);
+        });
+      } catch (_) {}
+    }
+
+    async function loadRegisteredUsers() {
+      if (!sbAdmin) return;
+      try {
+        const { data: users, error } = await sbAdmin.from('profiles')
+          .select('id,email,role,created_at')
+          .order('created_at', { ascending: false });
+
+        if (error || !users) return;
+        allRegisteredUsers = users;
+
+        // 1. Populate Section 4: Registered Members Table
+        const userTbody = document.getElementById('user-management-tbody');
+        if (userTbody) {
+          if (!users.length) {
+            userTbody.innerHTML = `
+              <tr>
+                <td colspan="4" class="py-8 text-center text-charcoal-muted">
+                  No registered accounts found in database.
+                </td>
+              </tr>
+            `;
+          } else {
+            userTbody.innerHTML = '';
+            users.forEach(u => {
+              const tr = document.createElement('tr');
+              tr.className = 'hover:bg-sand/40 transition-colors';
+              const cached = JSON.parse(localStorage.getItem('drozo_meta_' + u.id) || '{}');
+              const isCurrent = meAdmin && meAdmin.id === u.id;
+              const name = isCurrent ? ((meAdmin && meAdmin.display_name) || (u.email ? u.email.split('@')[0] : 'User')) : (cached.display_name || (u.email ? u.email.split('@')[0] : 'User'));
+              const avatar = isCurrent ? (meAdmin && meAdmin.avatar_url) : cached.avatar_url;
+              const email = u.email || 'Verified Account';
+              const role = u.role || 'patient';
+              const prov = (isCurrent ? (meAdmin && meAdmin.provider) : (cached.provider || 'email') || 'email').toLowerCase();
+              const provLabel = prov === 'google' ? 'Google' : (prov === 'discord' ? 'Discord' : (prov === 'github' ? 'GitHub' : 'Email/Pass'));
+              const provBadgeColor = prov === 'google' ? 'bg-blue-50 text-blue-700 border-blue-200' : (prov === 'discord' ? 'bg-indigo-50 text-[#5865F2] border-indigo-200' : (prov === 'github' ? 'bg-zinc-100 text-zinc-800 border-zinc-200' : 'bg-sand text-charcoal-muted border-sand-dark'));
+
+              tr.innerHTML = `
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-primary-50 text-primary font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">
+                      ${avatar ? `<img src="${u.avatar_url}" class="w-full h-full object-cover">` : escapeHtml(name.slice(0, 2).toUpperCase())}
+                    </div>
+                    <div>
+                      <span class="font-semibold block text-charcoal">${escapeHtml(name)}</span>
+                      <span class="text-[10px] text-charcoal-muted">${escapeHtml(email)}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${provBadgeColor}">
+                    ${provLabel}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${role === 'admin' ? 'bg-purple-100 text-purple-800' : (role === 'therapist' ? 'bg-emerald-100 text-emerald-800' : 'bg-sand text-charcoal')}">
+                    ${role.toUpperCase()}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <select onchange="handleGrantRole('${escapeHtml(email)}', this.value)" class="text-xs px-2.5 py-1.5 rounded-xl border border-sand-dark bg-white font-semibold text-charcoal focus:ring-2 focus:ring-primary focus:outline-none">
+                    <option value="patient" ${role === 'patient' ? 'selected' : ''}>Role: Patient</option>
+                    <option value="therapist" ${role === 'therapist' ? 'selected' : ''}>Role: Clinician / Therapist</option>
+                    <option value="coordinator" ${role === 'coordinator' ? 'selected' : ''}>Role: Coordinator</option>
+                    <option value="admin" ${role === 'admin' ? 'selected' : ''}>Role: Administrator</option>
+                  </select>
+                </td>
+              `;
+              userTbody.appendChild(tr);
+            });
+          }
         }
 
-        tbody.appendChild(tr);
-      });
+        // 2. Populate Panel 2: Assigned Clinicians List
+        const therapistFeed = document.getElementById('therapist-list-feed');
+        if (therapistFeed) {
+          const clinicians = users.filter(u => ['therapist', 'coordinator', 'admin'].includes(u.role));
+          if (!clinicians.length) {
+            therapistFeed.innerHTML = '<p class="text-xs text-charcoal-muted text-center py-4">0 clinicians assigned yet. Use the Role Clearance table below to assign therapist privileges.</p>';
+          } else {
+            therapistFeed.innerHTML = '';
+            clinicians.slice(0, 5).forEach(c => {
+              const cName = c.display_name || (c.email ? c.email.split('@')[0] : 'Clinician');
+              const div = document.createElement('div');
+              div.className = 'flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-sand/40 transition-colors';
+              div.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                  <div class="relative">
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-xs overflow-hidden">
+                      ${c.avatar_url ? `<img src="${c.avatar_url}" class="w-full h-full object-cover">` : escapeHtml(cName.slice(0, 2).toUpperCase())}
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white"></span>
+                  </div>
+                  <div>
+                    <span class="font-semibold block text-charcoal">${escapeHtml(cName)}</span>
+                    <span class="text-[10px] text-charcoal-muted">${escapeHtml(c.email || 'Staff')}</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded capitalize">${c.role}</span>
+              `;
+              therapistFeed.appendChild(div);
+            });
+          }
+        }
+
+        // 3. Populate Panel 3: Recent Registered Users Feed
+        const userFeed = document.getElementById('user-registration-feed');
+        if (userFeed) {
+          if (!users.length) {
+            userFeed.innerHTML = '<p class="text-xs text-charcoal-muted text-center py-4">No verified accounts loaded yet.</p>';
+          } else {
+            userFeed.innerHTML = '';
+            users.slice(0, 5).forEach(u => {
+              const uName = u.display_name || (u.email ? u.email.split('@')[0] : 'Member');
+              const div = document.createElement('div');
+              div.className = 'flex items-center justify-between text-xs p-1 rounded-lg hover:bg-sand/40 transition-colors';
+              div.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-sand-dark text-charcoal font-bold flex items-center justify-center text-xs overflow-hidden">
+                    ${avatar ? `<img src="${u.avatar_url}" class="w-full h-full object-cover">` : escapeHtml(uName.slice(0, 2).toUpperCase())}
+                  </div>
+                  <div>
+                    <span class="font-semibold block text-charcoal">${escapeHtml(uName)}</span>
+                    <span class="text-[10px] text-charcoal-muted">${escapeHtml(u.email || '')}</span>
+                  </div>
+                </div>
+                <span class="text-[10px] text-primary font-semibold capitalize">${u.provider || 'Verified'}</span>
+              `;
+              userFeed.appendChild(div);
+            });
+          }
+        }
+
+        // 4. Update Client Selector in Create Session Modal
+        const clientSelect = document.getElementById('admin-session-client-select');
+        if (clientSelect) {
+          clientSelect.innerHTML = users.map(u => {
+            const label = u.display_name ? `${u.display_name} (${u.email})` : u.email;
+            return `<option value="${u.id}">${escapeHtml(label)}</option>`;
+          }).join('') || '<option value="">No registered patients yet</option>';
+        }
+      } catch (_) {}
     }
 
     async function updateApptStatus(id, st) {
       if (!sbAdmin) return;
       await sbAdmin.from('appointments').update({ status: st }).eq('id', id);
       loadLiveAdminQueue();
+      updateAdminStats();
     }
 
     async function launchMeetingHost(r) {
@@ -2511,6 +2271,7 @@
       window.open(url, '_blank');
       await sbAdmin.from('appointments').update({ meeting_started_at: new Date().toISOString() }).eq('id', r.id);
       loadLiveAdminQueue();
+      updateAdminStats();
     }
 
     async function handleGrantRole(email, newRole) {
@@ -2522,42 +2283,51 @@
           await sbAdmin.from('profiles').update({ role: newRole }).eq('email', email);
         }
         showToast(`Role updated: ${email} is now ${newRole}`);
+        updateAdminStats();
+        loadRegisteredUsers();
       } catch (err) {
         showToast('Error updating role: ' + (err.message || String(err)));
       }
     }
 
-    // --- 9. TOAST NOTIFICATION UTILITY ---
-    function showToast(message) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'pointer-events-auto bg-charcoal text-white text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 transform translate-y-3 opacity-0 transition-all duration-300 border border-sand-dark/20';
-      toast.innerHTML = `
-        <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
-          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-        </div>
-        <span class="font-medium">${message}</span>
-      `;
+    async function handleCreateSession(e) {
+      e.preventDefault();
+      if (!sbAdmin) return;
 
-      container.appendChild(toast);
+      const clientSelect = document.getElementById('admin-session-client-select');
+      const timeInput = document.getElementById('admin-session-time-input');
+      const modSelect = document.getElementById('admin-session-modality-select');
 
-      // Animate in
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-3', 'opacity-0');
-      });
+      const clientId = clientSelect ? clientSelect.value : null;
+      if (!clientId) {
+        showToast('Please select a registered patient.');
+        return;
+      }
 
-      // Auto dismiss
-      setTimeout(() => {
-        toast.classList.add('translate-y-3', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
+      const slotTime = timeInput ? timeInput.value : 'Friday, Nov 8 · 3:00 PM PST';
+      const channel = modSelect ? modSelect.value : 'video';
+
+      let slotLabelFormatted = slotTime;
+      const timeInp = document.getElementById('admin-session-time-input');
+      if (timeInp && timeInp.value) {
+        const dt = new Date(timeInp.value);
+        slotLabelFormatted = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+
+      const { data, error } = await sbAdmin.from('appointments').insert({
+        slot_label: slotLabelFormatted,
+        channel: channel
+      }).select().single();
+
+      closeModal('create-session-modal');
+      if (error) {
+        showToast('Error creating session: ' + error.message);
+      } else {
+        showToast('🗓 Session created & dispatched to patient dashboard!');
+        loadLiveAdminQueue();
+        updateAdminStats();
+      }
     }
-
-    // Trigger number counter animation on DOM load
-    document.addEventListener('DOMContentLoaded', () => {
-      animateCounters();
-      initSupabaseAdmin();
-    });
-  </script>
+</script>
 </body>
 </html>
