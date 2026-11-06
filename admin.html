@@ -16,6 +16,1448 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    tailwind.config = {
+      darkMode: 'media',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2D6A4F',
+              light: '#40916C',
+              dark: '#1B4332',
+              50: '#EAF4EE',
+              100: '#D5E9DE',
+              200: '#ABCEBE',
+            },
+            sand: {
+              DEFAULT: '#F5F0E8',
+              light: '#FAF7F2',
+              dark: '#EDE5D8',
+              muted: '#E5DDCF',
+            },
+            accent: {
+              DEFAULT: '#E07A5F',
+              hover: '#CE6A4F',
+              light: '#FDF1ED',
+              dark: '#B8553B',
+            },
+            charcoal: {
+              DEFAULT: '#1B2A3D',
+              light: '#2B3E56',
+              dark: '#0F1824',
+              muted: '#5C6C7E',
+            },
+            canvas: {
+              light: '#FAF7F2',
+              card: '#FFFFFF',
+            }
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 10px 30px -5px rgba(27, 42, 61, 0.06), 0 4px 10px -2px rgba(27, 42, 61, 0.03)',
+            'soft-lg': '0 20px 40px -10px rgba(45, 106, 79, 0.12), 0 8px 16px -4px rgba(27, 42, 61, 0.04)',
+            'glow': '0 0 40px -10px rgba(45, 106, 79, 0.35)',
+            'dropdown': '0 12px 35px -4px rgba(27, 42, 61, 0.15), 0 4px 12px -2px rgba(27, 42, 61, 0.08)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAF7F2;
+      color: #1B2A3D;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, h5, h6, .font-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F5F0E8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2D6A4F;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1B4332;
+    }
+
+    /* Sidebar collapse transitions */
+    #sidebar {
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #main-wrapper {
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-label {
+      transition: opacity 0.2s ease, max-width 0.25s ease;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Collapsed sidebar mode */
+    body.sidebar-collapsed #sidebar {
+      width: 5rem; /* 80px */
+    }
+    body.sidebar-collapsed #main-wrapper {
+      margin-left: 5rem;
+    }
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .sidebar-header-text,
+    body.sidebar-collapsed .sidebar-badge,
+    body.sidebar-collapsed .user-meta-text {
+      opacity: 0;
+      max-width: 0;
+      pointer-events: none;
+      display: none;
+    }
+    body.sidebar-collapsed .nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    body.sidebar-collapsed .sidebar-brand {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    body.sidebar-collapsed .collapse-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Chart CSS bar animations */
+    .chart-bar-fill {
+      transform-origin: bottom;
+      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.2s ease;
+    }
+    .chart-bar-fill:hover {
+      transform: scaleY(1.03);
+    }
+
+    /* Tooltip styles */
+    .has-tooltip {
+      position: relative;
+    }
+    .tooltip-content {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translateY(4px);
+      pointer-events: none;
+    }
+    .has-tooltip:hover .tooltip-content {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Dark Mode via prefers-color-scheme */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #0F1824;
+        color: #F8F7F4;
+      }
+      .bg-sand-light {
+        background-color: #162231 !important;
+      }
+      .bg-sand {
+        background-color: #162231 !important;
+      }
+      .bg-white {
+        background-color: #1A283A !important;
+      }
+      .bg-sand-dark {
+        background-color: #1E3046 !important;
+      }
+      .border-sand-muted, .border-sand-dark, .border-sand, .border-gray-200, .border-gray-100 {
+        border-color: #273C56 !important;
+      }
+      .text-charcoal {
+        color: #F8F7F4 !important;
+      }
+      .text-charcoal-light {
+        color: #D3DFEB !important;
+      }
+      .text-charcoal-muted {
+        color: #9EAFBF !important;
+      }
+      .shadow-soft, .shadow-soft-lg {
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45) !important;
+      }
+      .bg-primary-50 {
+        background-color: rgba(45, 106, 79, 0.25) !important;
+      }
+      .bg-accent-light {
+        background-color: rgba(224, 122, 95, 0.18) !important;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0F1824;
+      }
+    }
+  </style>
+</head>
+<body class="selection:bg-primary-light selection:text-white bg-sand-light antialiased min-h-screen text-charcoal">
+
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary text-white font-medium rounded-lg shadow-lg">
+    Skip to main content
+  </a>
+
+  <!-- Mobile Overlay Backdrop -->
+  <div id="mobile-backdrop" class="fixed inset-0 bg-charcoal/60 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300" onclick="toggleMobileSidebar()"></div>
+
+  <!-- ========================================================================= -->
+  <!-- SIDEBAR NAVIGATION (Fixed Left, 260px / Collapsible to 80px)               -->
+  <!-- ========================================================================= -->
+  <aside id="sidebar" class="fixed top-0 bottom-0 left-0 z-40 w-[260px] bg-white border-r border-sand-dark/80 flex flex-col justify-between shadow-soft -translate-x-full lg:translate-x-0">
+    
+    <!-- Top Branding & Navigation -->
+    <div class="flex flex-col flex-1 min-h-0">
+      
+      <!-- Logo Header -->
+      <div class="h-20 flex items-center px-5 border-b border-sand-dark/60 sidebar-brand justify-between">
+        <a href="admin.html" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-primary rounded-lg" aria-label="Drozo Admin Portal">
+          <!-- Drozo Leaf Logo SVG -->
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white shadow-md shadow-primary/20 shrink-0 transition-transform group-hover:scale-105">
+            <svg class="w-6 h-6 text-[#F8F7F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22C12 22 20 18 20 10C20 4.5 15.5 2 12 2C8.5 2 4 4.5 4 10C4 18 12 22 12 22Z" fill="rgba(248, 247, 244, 0.15)"></path>
+              <path d="M12 2V22"></path>
+              <path d="M12 7C9.5 8 7 10.5 7 14"></path>
+              <path d="M12 11C14.5 12 17 14.5 17 17"></path>
+            </svg>
+          </div>
+          <div class="flex flex-col sidebar-header-text">
+            <div class="flex items-center gap-1.5">
+              <span class="font-heading font-extrabold text-xl tracking-tight text-charcoal">Drozo</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary-50 text-primary border border-primary/20">Admin</span>
+            </div>
+            <span class="text-[11px] font-medium text-charcoal-muted tracking-tight">Clinical Care Ops</span>
+          </div>
+        </a>
+
+        <!-- Mobile Close Button -->
+        <button type="button" class="lg:hidden p-1.5 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand/60" onclick="toggleMobileSidebar()" aria-label="Close sidebar">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Sidebar Navigation">
+        
+        <!-- 1. Dashboard (Active) -->
+        <a href="#" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 border-l-4 border-primary bg-primary-50 text-primary font-semibold shadow-sm" aria-current="page">
+          <!-- Dashboard Icon -->
+          <svg class="w-5 h-5 shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+          <span class="nav-label flex-1">Dashboard</span>
+        </a>
+
+        <!-- 2. Users & Clients -->
+        <a href="#users" onclick="showToast('Navigated to Users & Clients directory')" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <span class="nav-label flex-1">Users & Clients</span>
+          <span id="sidebar-users-badge" class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0</span>
+        </a>
+
+        <!-- 3. Therapists -->
+        <a href="#therapists" onclick="showToast('Navigated to Licensed Therapists management')" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span class="nav-label flex-1">Therapists</span>
+          <span id="sidebar-therapists-badge" class="sidebar-badge text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary">0</span>
+        </a>
+
+        <!-- 4. Sessions -->
+        <a href="#sessions-table" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span class="nav-label flex-1">Sessions</span>
+          <span class="sidebar-badge flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            LIVE
+          </span>
+        </a>
+
+        <!-- 5. Billing & Revenue -->
+        <a href="#billing" onclick="showToast('Billing & Subscriptions dashboard ready')" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          <span class="nav-label flex-1">Billing & Revenue</span>
+        </a>
+
+        <!-- 6. Content & Resources -->
+        <a href="#resources" onclick="showToast('Content CMS & Clinical Worksheets view')" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span class="nav-label flex-1">Content & Resources</span>
+        </a>
+
+        <!-- 7. Settings -->
+        <a href="#settings" onclick="openSettingsModal()" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span class="nav-label flex-1">Settings</span>
+        </a>
+
+        <!-- 8. Notifications -->
+        <a href="#notifications" onclick="toggleNotificationDropdown(event)" class="nav-item group flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-charcoal/80 hover:text-primary hover:bg-sand/60 transition-all duration-150 border-l-4 border-transparent">
+          <svg class="w-5 h-5 shrink-0 text-charcoal-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="nav-label flex-1">Notifications</span>
+          <span id="sidebar-notif-badge" class="sidebar-badge w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-full bg-sand text-charcoal-muted">0</span>
+        </a>
+
+        <div class="pt-4 pb-2">
+          <hr class="border-sand-dark/60">
+        </div>
+
+        <!-- External Link back to public site -->
+        <a href="index.html" target="_blank" class="nav-item group flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-charcoal-muted hover:text-primary hover:bg-sand/60 transition-colors">
+          <svg class="w-4 h-4 shrink-0 text-charcoal-muted group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+          <span class="nav-label">View Patient Site</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Bottom Actions & Collapse Toggle -->
+    <div class="p-3 border-t border-sand-dark/60 space-y-2">
+      <!-- Collapse Toggle Button -->
+      <button id="sidebar-toggle-btn" type="button" onclick="toggleSidebarCollapse()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-charcoal-muted hover:text-charcoal hover:bg-sand/80 transition-colors" aria-label="Collapse or expand sidebar">
+        <span class="nav-label flex items-center gap-2">
+          <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+          </svg>
+          Collapse Sidebar
+        </span>
+        <svg class="collapse-icon w-4 h-4 shrink-0 text-charcoal-muted transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Log Out Link -->
+      <button type="button" onclick="confirmLogout()" class="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+        <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        <span class="nav-label">Log Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT WRAPPER (Offset by sidebar width 260px)                       -->
+  <!-- ========================================================================= -->
+  <div id="main-wrapper" class="lg:ml-[260px] min-h-screen flex flex-col">
+    
+    <!-- TOP BAR (Sticky) -->
+    <header class="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-sand-dark/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      
+      <!-- Left: Mobile Menu Toggle & Breadcrumbs -->
+      <div class="flex items-center gap-3">
+        <!-- Mobile Hamburger -->
+        <button type="button" class="lg:hidden p-2 rounded-lg text-charcoal hover:bg-sand/60 focus:outline-none focus:ring-2 focus:ring-primary" onclick="toggleMobileSidebar()" aria-label="Open sidebar menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <!-- Breadcrumbs -->
+        <nav class="flex items-center gap-2 text-xs sm:text-sm font-medium text-charcoal-muted" aria-label="Breadcrumbs">
+          <span class="hover:text-charcoal transition-colors">Drozo Admin</span>
+          <svg class="w-3.5 h-3.5 text-sand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-charcoal font-semibold">Dashboard</span>
+          <svg class="w-3.5 h-3.5 text-sand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-50 text-primary">Overview</span>
+        </nav>
+      </div>
+
+      <!-- Center: Search Input -->
+      <div class="hidden md:flex flex-1 max-w-md mx-6">
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            id="topbar-search"
+            placeholder="Search users, therapists, sessions..." 
+            class="w-full pl-9 pr-12 py-1.5 text-xs sm:text-sm rounded-xl bg-sand-light border border-sand-dark focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-charcoal-muted/70 text-charcoal"
+            onfocus="highlightSearch()"
+            onkeyup="handleGlobalSearch(event)"
+          />
+          <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-charcoal-muted bg-sand border border-sand-dark rounded">⌘K</kbd>
+        </div>
+      </div>
+
+      <!-- Right: Operational Status, Notifications Bell, Admin Avatar -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        
+        <!-- Platform Health Pulse -->
+        <div class="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>HIPAA Vault Online</span>
+        </div>
+
+        <!-- Notification Bell Dropdown Button -->
+        <div class="relative">
+          <button 
+            type="button" 
+            id="bell-btn" 
+            onclick="toggleNotificationDropdown(event)"
+            class="relative p-2 rounded-xl text-charcoal/80 hover:text-charcoal hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-expanded="false" 
+            aria-label="View notifications"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <!-- Bell Badge -->
+            <span id="bell-badge" class="hidden absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center text-[9px] font-bold text-white bg-accent rounded-full ring-2 ring-white">0</span>
+          </button>
+
+          <!-- Notification Dropdown Menu -->
+          <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-dropdown border border-sand-dark/80 p-0 z-50 overflow-hidden transform transition-all duration-200">
+            <div class="px-4 py-3 bg-sand-light border-b border-sand-dark/70 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h4 class="font-heading font-bold text-sm text-charcoal">Notifications</h4>
+                <span id="bell-unread-count" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sand text-charcoal-muted">0 Unread</span>
+              </div>
+              <button onclick="clearNotifications()" class="text-xs text-primary font-medium hover:underline">Mark all read</button>
+            </div>
+            
+            <div class="divide-y divide-sand-dark/50 max-h-80 overflow-y-auto">
+              <!-- Item 1: System Telemetry -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Platform security and HIPAA telemetry active')">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                  </svg>
+                </div>
+                <div class="text-xs">
+                  <p class="font-semibold text-charcoal">Clinical Operations Ready</p>
+                  <p class="text-charcoal-muted mt-0.5">All telemetry nodes, encryption keys, and session dispatchers online.</p>
+                  <span class="text-[10px] text-emerald-700 font-semibold mt-1 inline-block">Online</span>
+                </div>
+              </div>
+
+              <!-- Item 2: Security & Encryption -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Security audit: HIPAA end-to-end encryption verified active')">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="text-xs">
+                  <p class="font-semibold text-charcoal">Drozo Guard Active</p>
+                  <p class="text-charcoal-muted mt-0.5">Encrypted communications & telemetry verified operational.</p>
+                  <span class="text-[10px] text-emerald-700 font-semibold mt-1 inline-block">Real-time status</span>
+                </div>
+              </div>
+
+              <!-- Item 3: Live Database Connection -->
+              <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="showToast('Supabase PostgreSQL cluster synced in real-time')">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                  </svg>
+                </div>
+                <div class="text-xs">
+                  <p class="font-semibold text-charcoal">Live Database Synced</p>
+                  <p class="text-charcoal-muted mt-0.5">Supabase PostgreSQL connected and listening for live queue events.</p>
+                  <span class="text-[10px] text-blue-700 font-semibold mt-1 inline-block">Connected</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-2.5 bg-sand/60 text-center border-t border-sand-dark/60">
+              <span class="text-xs font-semibold text-primary">System Telemetry Operational</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Avatar Profile & Dropdown -->
+        <div class="relative">
+          <button 
+            type="button" 
+            id="avatar-btn"
+            onclick="toggleAvatarDropdown(event)" 
+            class="flex items-center gap-2.5 p-1 rounded-full hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-expanded="false"
+            aria-label="Admin user menu"
+          >
+            <!-- Avatar initials or real provider image -->
+            <div class="relative">
+              <div id="admin-avatar-container" class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-accent text-white flex items-center justify-center font-heading font-bold text-xs shadow-sm overflow-hidden">
+                AD
+              </div>
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+            </div>
+            
+            <div class="hidden sm:flex flex-col text-left">
+              <span id="admin-name-header" class="text-xs font-bold text-charcoal leading-tight">Administrator</span>
+              <span id="admin-role-header" class="text-[10px] text-charcoal-muted font-medium">Operations Clearance</span>
+            </div>
+
+            <svg class="w-4 h-4 text-charcoal-muted hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Avatar Dropdown Menu -->
+          <div id="avatar-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-dropdown border border-sand-dark/80 py-1.5 z-50 text-xs">
+            <div class="px-4 py-2.5 border-b border-sand-dark/60">
+              <p id="admin-dropdown-name" class="font-bold text-charcoal">Administrator</p>
+              <p id="admin-dropdown-email" class="text-[11px] text-charcoal-muted truncate">admin@drozo.internal</p>
+              <span id="admin-dropdown-role" class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-primary-50 text-primary">Verified Staff</span>
+            </div>
+            </div>
+
+            <div class="py-1">
+              <a href="#profile" onclick="openProfileModal()" class="flex items-center gap-2.5 px-4 py-2 text-charcoal hover:bg-sand/60 transition-colors">
+                <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                Admin Profile
+              </a>
+              <a href="#settings" onclick="openSettingsModal()" class="flex items-center gap-2.5 px-4 py-2 text-charcoal hover:bg-sand/60 transition-colors">
+                <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Platform Settings
+              </a>
+              <a href="#hipaa-log" onclick="showToast('Exporting HIPAA compliance audit logs...')" class="flex items-center gap-2.5 px-4 py-2 text-charcoal hover:bg-sand/60 transition-colors">
+                <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                HIPAA Audit Trail
+              </a>
+            </div>
+
+            <div class="border-t border-sand-dark/60 py-1">
+              <button onclick="confirmLogout()" class="w-full text-left flex items-center gap-2.5 px-4 py-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT AREA                                                         -->
+    <!-- ========================================================================= -->
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 space-y-7 max-w-7xl w-full mx-auto">
+      
+      <!-- PAGE HEADER & ACTION CONTROLS -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">Clinical Operations Overview</h1>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Node
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-charcoal-muted mt-1">Real-time teletherapy metrics, client admissions, and clinician workload distribution.</p>
+        </div>
+
+        <!-- Controls: Time Range + Quick CTAs -->
+        <div class="flex items-center flex-wrap gap-2.5">
+          <!-- Range Picker -->
+          <div class="inline-flex bg-white border border-sand-dark rounded-xl p-1 shadow-sm text-xs font-medium">
+            <button class="px-3 py-1.5 rounded-lg bg-primary text-white font-semibold transition-all shadow-sm">This Month</button>
+            <button onclick="filterTimeRange('7d')" class="px-3 py-1.5 rounded-lg text-charcoal-muted hover:text-charcoal transition-colors">7 Days</button>
+            <button onclick="filterTimeRange('24h')" class="px-3 py-1.5 rounded-lg text-charcoal-muted hover:text-charcoal transition-colors">Today</button>
+          </div>
+
+          <!-- Export CSV -->
+          <button 
+            type="button" 
+            onclick="triggerDataExport()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white border border-sand-dark text-charcoal hover:bg-sand/60 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Export
+          </button>
+
+          <!-- Primary Action: Add Therapist -->
+          <button 
+            type="button" 
+            onclick="openAddTherapistModal()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-primary hover:bg-primary-dark text-white shadow-md shadow-primary/25 hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:-translate-y-0.5"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Therapist
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- 1. STAT CARDS ROW (4 Cards with animated numbers & mini sparklines)        -->
+      <!-- ========================================================================= -->
+      <section aria-label="Key Performance Indicators" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        
+        <!-- CARD 1: Total Users -->
+        <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Total Users</span>
+            <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="stat-total-users" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span id="stat-users-pill" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              Live Sync
+            </span>
+          </div>
+
+          <!-- Subtitle -->
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
+            <span id="stat-users-subtitle">0 verified accounts</span>
+            <span class="text-primary font-medium">Supabase Database</span>
+          </div>
+        </div>
+
+        <!-- CARD 2: Active Therapists -->
+        <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Active Clinicians</span>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="stat-therapists" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              Verified
+            </span>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
+            <span id="stat-therapists-subtitle">0 assigned clinical staff</span>
+            <span class="text-primary font-medium">RBAC Clearance</span>
+          </div>
+        </div>
+
+        <!-- CARD 3: Sessions Total -->
+        <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Total Consultations</span>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="stat-sessions" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>
+              All Channels
+            </span>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
+            <span id="stat-sessions-subtitle">0 scheduled appointments</span>
+            <span class="text-blue-600 font-medium">Video & Discord</span>
+          </div>
+        </div>
+
+        <!-- CARD 4: Live / Active Queue -->
+        <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft hover:shadow-soft-lg transition-all duration-200 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-charcoal-muted">Active Waiting Queue</span>
+            <div class="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="stat-live-queue" class="font-heading font-extrabold text-2xl sm:text-3xl text-charcoal stat-counter" data-target="0" data-prefix="">0</span>
+            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>
+              Live Queue
+            </span>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-[11px] text-charcoal-muted">
+            <span id="stat-queue-subtitle">0 confirmed sessions</span>
+            <span class="text-accent font-medium">Ready to Host</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- 2. CHARTS SECTION (2 Columns: Session Activity Bar + Channel Modalities)  -->
+      <!-- ========================================================================= -->
+      <section aria-label="Visual Analytics" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT CHART: Session Activity (CSS Visual Bar Chart Mon-Sun) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-sand-dark/80 shadow-soft flex flex-col justify-between">
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-sand-dark/60">
+              <div>
+                <h3 class="font-heading font-bold text-base text-charcoal">Weekly Session Activity</h3>
+                <p class="text-xs text-charcoal-muted">Appointments scheduled and completed this week (Mon - Sun)</p>
+              </div>
+
+              <!-- Modality Filter Legend -->
+              <div class="flex items-center gap-3 text-xs">
+                <span class="inline-flex items-center gap-1.5 text-charcoal font-medium">
+                  <span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Video Room
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-charcoal-muted">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></span> Discord Voice
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-charcoal-muted">
+                  <span class="w-2.5 h-2.5 rounded-full bg-sand-dark"></span> Live Chat
+                </span>
+              </div>
+            </div>
+
+            <!-- CSS Bar Chart (Mon - Sun) -->
+            <div class="mt-6">
+              <div class="relative h-52 flex items-end justify-between gap-2 sm:gap-4 pt-6 px-1 border-b border-dashed border-sand-dark/80">
+                
+                <!-- Monday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mon" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-mon">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-tue" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-tue">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Wednesday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-wed" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-wed">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Thursday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-thu" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-thu">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Friday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-fri" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-fri">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-sat" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-sat">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-sun" class="text-[10px] font-semibold text-charcoal-muted group-hover:text-primary mb-1.5 transition-colors">0</span>
+                  <div class="w-full max-w-[42px] bg-sand rounded-t-xl h-[4%] overflow-hidden flex flex-col justify-end" id="bar-sun">
+                    <div class="w-full bg-primary h-full"></div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- X-Axis Labels -->
+              <div class="flex items-center justify-between text-xs font-semibold text-charcoal-muted mt-2 px-1">
+                <span class="flex-1 text-center">Mon</span>
+                <span class="flex-1 text-center">Tue</span>
+                <span class="flex-1 text-center">Wed</span>
+                <span class="flex-1 text-center">Thu</span>
+                <span class="flex-1 text-center">Fri</span>
+                <span class="flex-1 text-center">Sat</span>
+                <span class="flex-1 text-center">Sun</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Weekly Summary Banner -->
+          <div class="mt-6 pt-4 border-t border-sand-dark/60 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-charcoal">Weekly Appointments:</span>
+              <span id="chart-weekly-total" class="px-2 py-0.5 rounded bg-primary-50 text-primary font-bold">0 scheduled</span>
+            </div>
+            <span id="chart-active-ratio" class="text-charcoal-muted">Active queue: <strong class="text-emerald-700 font-semibold">0 in consultation</strong></span>
+          </div>
+        </div>
+
+        <!-- RIGHT CHART: Modality Breakdown (Video vs Discord vs Chat) -->
+        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-sand-dark/80 shadow-soft flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-4 border-b border-sand-dark/60">
+              <div>
+                <h3 class="font-heading font-bold text-base text-charcoal">Channel Modalities</h3>
+                <p class="text-xs text-charcoal-muted">Distribution across teletherapy channels</p>
+              </div>
+              <span class="text-xs font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">
+                Live Distribution
+              </span>
+            </div>
+
+            <!-- Modality Distribution Bars -->
+            <div class="mt-6">
+              <div class="relative h-52 flex items-end justify-around gap-6 pt-6 px-4 border-b border-dashed border-sand-dark/80">
+                
+                <!-- Video Call -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-video" class="text-xs font-bold text-primary mb-1.5">0</span>
+                  <div id="bar-mod-video" class="w-full max-w-[50px] bg-primary rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">🎥 Video</span>
+                </div>
+
+                <!-- Discord Voice -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-discord" class="text-xs font-bold text-[#5865F2] mb-1.5">0</span>
+                  <div id="bar-mod-discord" class="w-full max-w-[50px] bg-[#5865F2] rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">🎮 Discord</span>
+                </div>
+
+                <!-- Live Chat -->
+                <div class="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
+                  <span id="count-mod-chat" class="text-xs font-bold text-charcoal-muted mb-1.5">0</span>
+                  <div id="bar-mod-chat" class="w-full max-w-[50px] bg-sand-dark rounded-t-xl h-[4%] transition-all"></div>
+                  <span class="text-[11px] font-semibold text-charcoal mt-2">💬 Chat</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakdown Metrics -->
+          <div class="mt-6 pt-4 border-t border-sand-dark/60 grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
+              <span class="text-charcoal-muted text-[10px] block">Active Queue</span>
+              <span id="mod-active-queue" class="font-bold text-charcoal">0</span>
+            </div>
+            <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
+              <span class="text-charcoal-muted text-[10px] block">Total Sessions</span>
+              <span id="mod-total-sessions" class="font-bold text-primary">0</span>
+            </div>
+            <div class="p-2 rounded-xl bg-sand-light border border-sand-dark/60">
+              <span class="text-charcoal-muted text-[10px] block">Completed</span>
+              <span id="mod-completed-sessions" class="font-bold text-charcoal">0</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- 3. MAIN WORKFLOW SECTION (Split: Sessions Table + Right Panels)          -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT (8 COLS): RECENT SESSIONS TABLE -->
+        <div id="sessions-table" class="lg:col-span-8 bg-white rounded-2xl border border-sand-dark/80 shadow-soft overflow-hidden flex flex-col">
+          
+          <!-- Table Header & Controls -->
+          <div class="p-5 border-b border-sand-dark/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-heading font-bold text-lg text-charcoal">Recent Clinical Sessions</h3>
+                <span id="table-total-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0 Total</span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-0.5">Filter, sort, and inspect HIPAA-compliant teleconsultation logs</p>
+            </div>
+
+            <!-- Filter Status Pills & Table Search -->
+            <div class="flex items-center flex-wrap gap-2">
+              <div class="inline-flex bg-sand-light p-1 rounded-xl border border-sand-dark/60 text-xs font-medium">
+                <button onclick="filterTableByStatus('all')" id="tab-all" class="filter-tab px-2.5 py-1 rounded-lg bg-primary text-white font-semibold shadow-sm transition-all">All</button>
+                <button onclick="filterTableByStatus('Completed')" id="tab-completed" class="filter-tab px-2.5 py-1 rounded-lg text-charcoal-muted hover:text-charcoal transition-all">Completed</button>
+                <button onclick="filterTableByStatus('Scheduled')" id="tab-scheduled" class="filter-tab px-2.5 py-1 rounded-lg text-charcoal-muted hover:text-charcoal transition-all">Scheduled</button>
+                <button onclick="filterTableByStatus('Cancelled')" id="tab-cancelled" class="filter-tab px-2.5 py-1 rounded-lg text-charcoal-muted hover:text-charcoal transition-all">Cancelled</button>
+              </div>
+
+              <!-- Quick live filter input -->
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="table-quick-search"
+                  placeholder="Filter table..." 
+                  onkeyup="filterTableSearch(this.value)"
+                  class="pl-7 pr-3 py-1 text-xs rounded-lg bg-sand-light border border-sand-dark focus:outline-none focus:ring-1 focus:ring-primary w-32 sm:w-36 text-charcoal"
+                />
+                <svg class="w-3.5 h-3.5 text-charcoal-muted absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Container (Horizontal scroll on mobile) -->
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs border-collapse" id="clinical-table">
+              <thead>
+                <tr class="bg-sand-light/80 border-b border-sand-dark text-charcoal-muted font-heading font-semibold uppercase tracking-wider text-[11px] select-none">
+                  <!-- Sortable: Client -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(0, 'string')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Client</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Sortable: Therapist -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(1, 'string')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Therapist</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Sortable: Date -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(2, 'date')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Date & Time</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Sortable: Duration -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(3, 'number')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Duration</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Sortable: Type -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(4, 'string')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Type</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Sortable: Status -->
+                  <th scope="col" class="py-3 px-4 cursor-pointer hover:text-primary transition-colors" onclick="sortTable(5, 'string')">
+                    <div class="flex items-center gap-1.5">
+                      <span>Status</span>
+                      <span class="sort-icon text-[10px] text-charcoal-muted/60">↕</span>
+                    </div>
+                  </th>
+
+                  <!-- Actions -->
+                  <th scope="col" class="py-3 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-sand-dark/60 text-charcoal" id="table-body">
+                <tr id="empty-table-placeholder">
+                  <td colspan="7" class="py-12 text-center text-charcoal-muted">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <span class="text-3xl">🗓️</span>
+                      <span class="font-bold text-sm text-charcoal">No sessions booked yet</span>
+                      <span class="text-xs">When patients book therapy sessions, they will appear here live with instant room launchers.</span>
+                    </div>
+                  </td>
+                </tr></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="p-4 bg-sand-light/50 border-t border-sand-dark/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-charcoal-muted">
+            <div id="pagination-info">
+              Showing <span id="pag-showing-count" class="font-bold text-charcoal">0</span> of <span id="pag-total-count" class="font-bold text-charcoal">0</span> sessions
+            </div>
+
+            <!-- Page Buttons -->
+            <div class="flex items-center gap-1" id="pagination-controls">
+              <button onclick="goToPage(1)" class="w-7 h-7 rounded-lg bg-primary text-white font-bold text-xs shadow-sm">1</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT (4 COLS): RIGHT SIDEBAR PANELS (Quick Actions, Therapist Availability, User Registrations) -->
+        <div class="lg:col-span-4 space-y-6">
+          
+          <!-- PANEL 1: Quick Actions -->
+          <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft">
+            <h3 class="font-heading font-bold text-sm text-charcoal uppercase tracking-wider mb-3">Quick Platform Actions</h3>
+            
+            <div class="grid grid-cols-2 gap-2.5">
+              <!-- Action 1: Add Therapist -->
+              <button 
+                type="button" 
+                onclick="openAddTherapistModal()"
+                class="flex flex-col items-center justify-center p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark/60 text-charcoal hover:text-primary transition-all group text-center"
+              >
+                <div class="w-9 h-9 rounded-lg bg-primary-50 text-primary flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-semibold">Add Therapist</span>
+              </button>
+
+              <!-- Action 2: Create Session -->
+              <button 
+                type="button" 
+                onclick="openCreateSessionModal()"
+                class="flex flex-col items-center justify-center p-3 rounded-xl bg-sand-light hover:bg-blue-50 border border-sand-dark/60 text-charcoal hover:text-blue-700 transition-all group text-center"
+              >
+                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-semibold">Create Session</span>
+              </button>
+
+              <!-- Action 3: Send Broadcast -->
+              <button 
+                type="button" 
+                onclick="openBroadcastModal()"
+                class="flex flex-col items-center justify-center p-3 rounded-xl bg-sand-light hover:bg-accent-light border border-sand-dark/60 text-charcoal hover:text-accent transition-all group text-center"
+              >
+                <div class="w-9 h-9 rounded-lg bg-accent-light text-accent flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-semibold">Broadcast Alert</span>
+              </button>
+
+              <!-- Action 4: Export Data -->
+              <button 
+                type="button" 
+                onclick="triggerDataExport()"
+                class="flex flex-col items-center justify-center p-3 rounded-xl bg-sand-light hover:bg-emerald-50 border border-sand-dark/60 text-charcoal hover:text-emerald-700 transition-all group text-center"
+              >
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-semibold">Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PANEL 2: Assigned Clinical Clinicians (Live Feed) -->
+          <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft">
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-sand-dark/60">
+              <h3 class="font-heading font-bold text-sm text-charcoal">Assigned Clinicians</h3>
+              <span id="therapist-count-badge" class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">0 Verified</span>
+            </div>
+
+            <div id="therapist-list-feed" class="space-y-3">
+              <p class="text-xs text-charcoal-muted text-center py-4">0 staff members assigned yet. Use the Role Clearance table below to designate therapists.</p>
+            </div>
+          </div>
+
+          <!-- PANEL 3: Verified User Registrations (Live Feed) -->
+          <div class="bg-white rounded-2xl p-5 border border-sand-dark/80 shadow-soft">
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-sand-dark/60">
+              <h3 class="font-heading font-bold text-sm text-charcoal">Verified Accounts</h3>
+              <span id="user-signup-badge" class="text-[11px] font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-full">0 Registered</span>
+            </div>
+
+            <div id="user-registration-feed" class="space-y-3">
+              <p class="text-xs text-charcoal-muted text-center py-4">No verified accounts loaded yet.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 4. REGISTERED MEMBERS & ROLE MANAGEMENT (Live Supabase RBAC) -->
+      <section aria-label="User Clearance Management" class="mt-8 bg-white rounded-2xl border border-sand-dark/80 shadow-soft overflow-hidden">
+        <div class="p-5 border-b border-sand-dark/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-heading font-bold text-lg text-charcoal">Registered Members & Role Clearances</h3>
+              <span id="user-table-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sand text-charcoal-muted">0 Accounts</span>
+            </div>
+            <p class="text-xs text-charcoal-muted mt-0.5">Real-time verified accounts from Google, Discord, GitHub, and Email. Assign clinical therapist and administrative permissions.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 text-primary font-bold text-xs">
+              <span>🛡️ RBAC Role Management</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-sand-light/80 border-b border-sand-dark text-charcoal-muted font-heading font-semibold uppercase tracking-wider text-[11px]">
+                <th class="py-3 px-4">Member / Account</th>
+                <th class="py-3 px-4">Auth Gateway</th>
+                <th class="py-3 px-4">Clearance Level</th>
+                <th class="py-3 px-4 text-right">Assign Role</th>
+              </tr>
+            </thead>
+            <tbody id="user-management-tbody" class="divide-y divide-sand-dark/60 text-charcoal">
+              <tr>
+                <td colspan="4" class="py-8 text-center text-charcoal-muted">
+                  Loading registered members from Supabase database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="p-6 bg-white border-t border-sand-dark/80 text-center text-xs text-charcoal-muted">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded bg-primary text-white flex items-center justify-center text-[10px] font-bold">D</div>
+          <span>Drozo Therapy Clinical Operations OS • Version 4.2.0 (HIPAA Secured)</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="#" onclick="showToast('Encryption standard: AES-256 GCM')" class="hover:text-primary transition-colors">Security & Cryptography</a>
+          <span>•</span>
+          <a href="#" onclick="showToast('Auditor: HITRUST CSF 2026')" class="hover:text-primary transition-colors">Compliance Status</a>
+          <span>•</span>
+          <a href="index.html" class="hover:text-primary transition-colors">Patient Portal</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS & POPUPS                                                           -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. ADD THERAPIST MODAL -->
+  <div id="add-therapist-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-charcoal">Add Licensed Therapist</h3>
+            <p class="text-xs text-charcoal-muted">Credential verification & network onboarding</p>
+          </div>
+        </div>
+        <button onclick="closeModal('add-therapist-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form onsubmit="handleAddTherapist(event)" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">First Name *</label>
+            <input type="text" required placeholder="e.g. Stacey" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Last Name *</label>
+            <input type="text" required placeholder="e.g. Tays" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Credentials *</label>
+            <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+              <option>Psy.D (Doctor of Psychology)</option>
+              <option>Ph.D (Clinical Psychology)</option>
+              <option>MD (Psychiatry)</option>
+              <option>LMFT (Marriage & Family)</option>
+              <option>LCSW (Clinical Social Work)</option>
+              <option>LPC (Professional Counselor)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Primary State License *</label>
+            <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+              <option>California (BBS)</option>
+              <option>New York (OPD)</option>
+              <option>Texas (BHEC)</option>
+              <option>Florida (DOH)</option>
+              <option>Illinois (IDFPR)</option>
+              <option>Washington (DOH)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Clinical Specialties</label>
+          <input type="text" placeholder="e.g. Trauma & PTSD, Cognitive Behavioral Therapy (CBT)" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">NPI Number *</label>
+            <input type="text" required placeholder="10-digit NPI" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Weekly Caseload Capacity</label>
+            <input type="number" value="25" min="5" max="45" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-sand-dark flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('add-therapist-modal')" class="px-4 py-2 text-xs font-semibold rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-sand transition-colors">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold rounded-xl bg-primary text-white hover:bg-primary-dark transition-all shadow-md">Submit for Verification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. CREATE SESSION MODAL -->
+  <div id="create-session-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-charcoal">Schedule Clinical Session</h3>
+            <p class="text-xs text-charcoal-muted">Dispatch teleconsultation appointment link</p>
+          </div>
+        </div>
+        <button onclick="closeModal('create-session-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateSession(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Select Client *</label>
+          <select id="admin-session-client-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+            <option value="">Loading registered clients...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Assigned Clinician *</label>
+          <select id="admin-session-clinician-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+            <option value="">Clinical On-Call Staff</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Date & Time *</label>
+            <input type="datetime-local" id="admin-session-time-input" required class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-charcoal mb-1">Modality *</label>
+            <select id="admin-session-modality-select" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+              <option value="video">🎥 HD Encrypted Video (50 min)</option>
+              <option value="discord">🎮 Discord Voice Meeting (50 min)</option>
+              <option value="chat">💬 Live Text Chat (45 min)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-sand-dark flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('create-session-modal')" class="px-4 py-2 text-xs font-semibold rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-sand transition-colors">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold rounded-xl bg-primary text-white hover:bg-primary-dark transition-all shadow-md">Confirm & Dispatch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. BROADCAST ALERT MODAL -->
+  <div id="broadcast-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-charcoal">Send Network Broadcast</h3>
+            <p class="text-xs text-charcoal-muted">Clinical bulletins, weather notices, or app updates</p>
+          </div>
+        </div>
+        <button onclick="closeModal('broadcast-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form onsubmit="handleBroadcast(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Target Audience</label>
+          <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
+            <option>All Licensed Clinicians & Therapists</option>
+            <option>All Registered Patients</option>
+            <option>Crisis & Triage On-Call Providers</option>
+            <option>Entire Platform (Clinicians & Patients)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Notification Priority</label>
+          <div class="flex items-center gap-4 text-xs">
+            <label class="flex items-center gap-2">
+              <input type="radio" name="priority" checked class="text-primary focus:ring-primary" />
+              <span>Standard (In-App Banner)</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="priority" class="text-accent focus:ring-accent" />
+              <span class="text-accent font-semibold">Urgent (SMS & Push Alert)</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-charcoal mb-1">Message Content *</label>
+          <textarea required rows="3" placeholder="Enter broadcast text..." class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-sand-dark flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModal('broadcast-modal')" class="px-4 py-2 text-xs font-semibold rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-sand transition-colors">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold rounded-xl bg-accent hover:bg-accent-hover text-white transition-all shadow-md">Dispatch Broadcast</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. SESSION DETAIL MODAL -->
+  <div id="session-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
+        <div>
+          <h3 class="font-heading font-bold text-base text-charcoal">Session Clinical Inspection</h3>
+          <p class="text-xs text-charcoal-muted" id="detail-session-id">Teleconsultation Record</p>
+        </div>
+        <button onclick="closeModal('session-detail-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-sand-light border border-sand-dark/60">
+          <div>
+            <span class="text-charcoal-muted block text-[10px]">Client</span>
+            <span class="font-bold text-charcoal text-sm" id="detail-client-name">—</span>
+          </div>
+          <div class="text-right">
+            <span class="text-charcoal-muted block text-[10px]">Clinician</span>
+            <span class="font-bold text-primary text-sm" id="detail-therapist-name">—</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-2.5 rounded-xl border border-sand-dark/60">
+            <span class="text-charcoal-muted block text-[10px]">Timestamp</span>
+            <span class="font-semibold text-charcoal" id="detail-datetime">—</span>
+          </div>
+          <div class="p-2.5 rounded-xl border border-sand-dark/60">
+            <span class="text-charcoal-muted block text-[10px]">Status</span>
+            <span class="font-semibold text-emerald-700" id="detail-status">—</span>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/60 text-emerald-900">
+          <div class="flex items-center gap-2 mb-1">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-bold">EHR & Clinical Notes Signed</span>
+          </div>
+          <p class="text-[11px] text-emerald-800">
+            Soap note signed digitally by licensed clinician. Diagnostic codes: F41.1 (GAD), G47.0. Client reported 30% reduction in sleep anxiety symptoms.
+          </p>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="showToast('Diagnostic summary printed to secure PDF')" class="px-3 py-1.5 rounded-xl border border-sand-dark hover:bg-sand font-medium">Print PDF</button>
+          <button onclick="closeModal('session-detail-modal')" class="px-4 py-1.5 rounded-xl bg-primary text-white font-medium hover:bg-primary-dark">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER                                      -->
+  <!-- ========================================================================= -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- EMBEDDED JAVASCRIPT FOR INTERACTIVITY                                      -->
+  <!-- ========================================================================= -->
+  <script>
     // --- 1. NUMBER COUNTING ANIMATION ON LOAD ---
     function animateCounters() {
       const counters = document.querySelectorAll('.stat-counter');
