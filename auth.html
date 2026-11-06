@@ -1,572 +1,1704 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full scroll-smooth">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Drozo Therapy | Guard</title>
-<script src="config.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-  <script>window.tailwind = window.tailwind || {}; tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'] }, colors: { emerald: { 50: '#effaf5', 100: '#d8f3e6', 200: '#b1e6cf', 300: '#7fd3b0', 400: '#47b98c', 500: '#1fa076', 600: '#138a64', 700: '#0f7052', 800: '#0d5942', 900: '#0a4634' } } } } };</script>
-  <style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'); body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
-<style>
-body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background:#060b11; color:#f1f5f9; -webkit-tap-highlight-color:transparent; }
-.mono { font-family: ui-monospace, Menlo, monospace; }
-</style>
-</head>
-<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In or Join — Drozo Therapy | Compassionate Online Healthcare</title>
+  <meta name="description" content="Sign in or create your confidential Drozo Therapy account. Connect with licensed, vetted therapists tailored to your unique emotional needs.">
 
-<header class="flex items-center justify-between py-3 border-b border-slate-800">
-  <div class="flex items-center gap-2"><svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#138a64"/><path d="M14 11h6.5a9 9 0 0 1 0 18H14z" fill="none" stroke="#fff" stroke-width="3.2" stroke-linejoin="round"/><circle cx="29" cy="11.5" r="2.7" fill="#bff0da"/></svg><span class="text-sm font-extrabold tracking-tight">Drozo Therapy <span class="text-emerald-400">Guard</span></span></div>
-  <div id="guardPill" class="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold mono">SIGNED OUT</div>
-</header>
+  <!-- Google Fonts: Plus Jakarta Sans (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<main class="my-auto py-8">
-  <section id="loginView" class="space-y-3">
-    <h2 class="text-base font-extrabold text-center">Sign in to Drozo Guard</h2>
-    <p class="text-xs text-slate-400 text-center">Use the same account you sign in with on the website.</p>
-    <input id="gEmail" type="email" autocomplete="username" placeholder="Email" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm" />
-    <input id="gPass" type="password" autocomplete="current-password" placeholder="Password" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm" />
-    <input id="gCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit authenticator code" class="hidden w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm mono text-center tracking-widest" />
-    <button type="button" id="btnLogin" class="w-full py-3 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">Sign In</button>
-  </section>
-
-  <section id="standbyView" class="hidden flex flex-col items-center text-center space-y-4">
-    <div class="w-24 h-24 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-5xl">🛡️</div>
-    <div>
-      <h2 class="text-base font-extrabold">Drozo Guard Active</h2>
-      <p class="text-xs text-slate-400 mt-1">Waiting for a sign-in request for <span id="acctEmail" class="text-sky-300 mono"></span></p>
-    </div>
-    <div class="flex gap-4"><button type="button" id="btnChange" class="text-xs text-sky-400 underline">Change protection</button><button type="button" id="btnSignOut" class="text-xs text-slate-500 underline">Sign out of this phone</button></div>
-  </section>
-
-  <section id="challengeView" class="hidden space-y-4">
-    <div class="p-4 rounded-3xl bg-slate-900 border border-sky-500/30 space-y-4">
-      <div class="text-xs font-extrabold uppercase tracking-wide">🔐 Sign-In Request</div>
-      <div class="p-3 rounded-2xl bg-black/40 border border-slate-800 text-[11px] text-sky-400 mono truncate" id="userEmailDisplay"></div>
-      <p class="text-[11px] text-slate-400 text-center">Are you trying to sign in to Drozo Therapy right now?</p>
-      <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btnDeny" class="py-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 font-extrabold rounded-2xl text-xs">✕ Deny</button>
-        <button type="button" id="btnApprove" class="py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs">✓ Approve</button>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="py-3 flex justify-between text-[10px] text-slate-500 mono"><span>Drozo Therapy Guard</span><span id="bioTag">Standard</span></footer>
-
-<div id="enrollModal" class="hidden fixed inset-0 z-50 bg-[#060b11]/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
-  <div class="text-5xl">🔒</div>
-  <h2 class="text-base font-extrabold">Protect Drozo Guard on this phone</h2>
-  <p class="text-xs text-slate-400 max-w-[290px]">Face ID stores a numeric face template (not a photo) in your account, protected by row-level security.</p>
-  <div class="w-full max-w-xs space-y-2">
-    <button type="button" id="btnEnroll" class="w-full py-3 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">👆 Set Up Fingerprint</button>
-    <button type="button" id="btnEnrollFace" class="w-full py-3 bg-indigo-600 text-white font-extrabold rounded-2xl text-xs">👤 Set Up Face ID</button>
-    <button type="button" id="btnSkip" class="w-full py-2.5 bg-slate-900 text-slate-400 rounded-xl text-xs font-semibold border border-slate-800">Skip (not recommended)</button>
-  </div>
-  <div id="enrollMsg" class="text-[11px] text-slate-500"></div>
-</div>
-
-<div id="lockModal" class="hidden fixed inset-0 z-50 bg-[#060b11] flex flex-col items-center justify-center p-6 text-center space-y-4">
-  <div class="text-5xl">👆</div>
-  <h2 class="text-lg font-black">Drozo Guard Locked</h2>
-  <button type="button" id="btnUnlock" class="w-full max-w-xs py-3.5 bg-sky-600 text-white font-extrabold rounded-2xl text-xs">Scan Fingerprint to Unlock</button>
-  <div id="lockMsg" class="text-[11px] text-slate-500"></div>
-</div>
-
-<script>
-// ===== Drozo Therapy Face ID v6 (simple instructions, Cancel/Back that always work): automatic, Apple-style. No Scan button. Cancel / Back always work. =====
-// The camera finds your face by itself. Setting up asks you to roll your head in a slow circle (a ring of ticks fills);
-// signing in is a quick look plus a small, random head nudge to prove you are a live person.
-const FaceID = (function () {
-  const MODEL_URLS = ['https://vladmandic.github.io/face-api/model/', 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/'];
-  const g = (id) => document.getElementById(id);
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  let loaded = false, tinyOk = false, stream = null, cancelled = false, running = false, uiReady = false, dark = 0, ab = (p) => p, chooseResolve = null;
-  const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
-
-  // ---------- maths ----------
-  const dist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); };
-  const avg = (list) => list[0].map((_, i) => list.reduce((s, v) => s + v[i], 0) / list.length);
-  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-  const yawOf = (p) => (p[30].x - (p[0].x + p[16].x) / 2) / (p[16].x - p[0].x);   // + = user's left
-  const pitchOf = (p) => { let ey = 0; for (let i = 36; i < 48; i++) ey += p[i].y; ey /= 12; return (p[30].y - ey) / (p[8].y - ey); };  // - = chin up
-  // head direction relative to "looking straight": x to the user's right, y downwards, ~1 = a comfortable full turn
-  const dirOf = (p, n) => ({ x: -(yawOf(p) - n.yaw) / 0.20, y: (pitchOf(p) - n.pitch) / 0.11 });
-  const sectorOf = (d) => Math.floor(((Math.atan2(d.x, -d.y) * 180 / Math.PI + 360) % 360) / 30) % 12;
-
-  // ---------- interface (built once, no page markup needed) ----------
-  const CSS = '#fidOv{position:fixed;inset:0;z-index:2147483000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse at 50% 30%,#111a2a 0%,#05080d 70%);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;text-align:center;padding:24px;-webkit-user-select:none;user-select:none}' +
-    '#fidOv.show{display:flex;animation:fidIn .25s ease}@keyframes fidIn{from{opacity:0}to{opacity:1}}' +
-    '.fid-title{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.65;font-weight:600}' +
-    '.fid-stage{position:relative;width:min(78vw,300px);aspect-ratio:1/1}' +
-    '.fid-vid{position:absolute;inset:8%;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.65)}' +
-    '.fid-vid video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}' +
-    '.fid-svg{position:absolute;inset:0;width:100%;height:100%}' +
-    '.fid-svg line{stroke:rgba(255,255,255,.2);stroke-width:1.7;stroke-linecap:round;transition:stroke .15s,stroke-width .15s}' +
-    '.fid-svg line.on{stroke:#34d399;stroke-width:2.7}.fid-svg.bad line{stroke:#f87171}' +
-    '.fid-check{position:absolute;inset:8%;border-radius:50%;display:none;align-items:center;justify-content:center;background:rgba(5,8,13,.6)}' +
-    '.fid-check.on{display:flex;animation:fidPop .4s cubic-bezier(.2,1.4,.4,1)}@keyframes fidPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}' +
-    '.fid-check path{stroke:#34d399;stroke-width:6;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:fidDraw .45s .12s ease forwards}@keyframes fidDraw{to{stroke-dashoffset:0}}' +
-    '.fid-shake{animation:fidShake .45s}@keyframes fidShake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}' +
-    '.fid-arrow{position:absolute;font-size:38px;line-height:1;color:#34d399;opacity:0;transition:opacity .2s}.fid-arrow.on{opacity:1;animation:fidNudge 1s infinite}' +
-    '@keyframes fidNudge{50%{transform:translate(var(--nx,0),var(--ny,0))}}' +
-    '#fidAl{left:-3%;top:44%;--nx:-8px}#fidAr{right:-3%;top:44%;--nx:8px}#fidAu{top:-3%;left:46%;--ny:-8px}#fidAd{bottom:-3%;left:46%;--ny:8px}' +
-    '.fid-back{position:absolute;z-index:5;top:max(18px,env(safe-area-inset-top));left:16px;padding:13px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-x{position:absolute;z-index:6;top:0;right:0;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(20,28,40,.9);color:#fff;font-size:20px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-dbg{font-size:11px;opacity:.35;min-height:14px;font-variant-numeric:tabular-nums}.fid-msg{font-size:21px;font-weight:700;min-height:28px;letter-spacing:-.01em;padding:0 12px}.fid-sub{font-size:13px;opacity:.6;min-height:18px}' +
-    '.fid-btns{display:flex;gap:10px;min-height:42px}.fid-btn{padding:14px 30px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}.fid-btn.main{background:#fff;color:#000;border-color:#fff}';
-
-  function ensureUI() {
-    if (uiReady && g('fidOv')) return;
-    const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
-    let ticks = '';
-    for (let i = 0; i < 60; i++) {
-      const a = (i * 6 - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
-      ticks += '<line id="fidT' + i + '" x1="' + (50 + 44.5 * c).toFixed(2) + '" y1="' + (50 + 44.5 * s).toFixed(2) + '" x2="' + (50 + 49 * c).toFixed(2) + '" y2="' + (50 + 49 * s).toFixed(2) + '"></line>';
-    }
-    const w = document.createElement('div');
-    w.id = 'fidOv';
-    w.innerHTML = '<button type="button" class="fid-back" id="fidBack">&#8249; Back</button><div class="fid-title" id="fidTitle">Face ID</div>' +
-      '<div class="fid-stage" id="fidStage"><button type="button" class="fid-x" id="fidX" aria-label="Close">&#10005;</button><div class="fid-vid"><video id="fidVideo" autoplay playsinline muted></video></div>' +
-      '<svg class="fid-svg" id="fidSvg" viewBox="0 0 100 100">' + ticks + '</svg>' +
-      '<div class="fid-check" id="fidCheck"><svg width="86" height="86" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" style="stroke-width:2.2"></path></svg></div>' +
-      '<div class="fid-arrow" id="fidAl">&#8592;</div><div class="fid-arrow" id="fidAr">&#8594;</div><div class="fid-arrow" id="fidAu">&#8593;</div><div class="fid-arrow" id="fidAd">&#8595;</div></div>' +
-      '<div class="fid-msg" id="fidMsg"></div><div class="fid-sub" id="fidSub"></div><div class="fid-dbg" id="fidDbg"></div>' +
-      '<div class="fid-btns"><button type="button" class="fid-btn main" id="fidRetry" style="display:none">Try again</button><button type="button" class="fid-btn" id="fidCancel">Cancel</button></div>';
-    document.body.appendChild(w);
-    uiReady = true;
-  }
-  const HINT_NOFACE = 'Put your face in the circle';
-  const frameTimes = [];
-  function noteFrame() { frameTimes.push(Date.now()); while (frameTimes.length > 8) frameTimes.shift(); }
-  function fps() { if (frameTimes.length < 3) return ''; const s = (frameTimes[frameTimes.length - 1] - frameTimes[0]) / 1000; return s > 0 ? ((frameTimes.length - 1) / s).toFixed(1) + ' fps' : ''; }
-  const slowFps = () => { const f = parseFloat(fps()); return f > 0 && f < 2.5; };
-  function dbg(t) { const d = g('fidDbg'); if (d) d.textContent = t || ''; }
-  function say(m, s) { const a = g('fidMsg'), b = g('fidSub'); if (a) a.textContent = m || ''; if (b) b.textContent = s || ''; }
-  function ticksOn(from, to, on) { for (let i = from; i < to; i++) { const t = g('fidT' + i); if (t) t.classList[on ? 'add' : 'remove']('on'); } }
-  function fillTo(frac) { const n = Math.round(Math.max(0, Math.min(1, frac)) * 60); ticksOn(0, n, true); ticksOn(n, 60, false); }
-  function arrow(dir) { ['l', 'r', 'u', 'd'].forEach((k) => { const e = g('fidA' + k); if (e) e.classList[k === dir ? 'add' : 'remove']('on'); }); }
-  const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (_) {} };
-
-  // ---------- camera + models ----------
-  async function loadModels() {
-    if (loaded) return;
-    for (const url of MODEL_URLS) {
-      try {
-        await withTimeout(Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(url), faceapi.nets.faceLandmark68Net.loadFromUri(url), faceapi.nets.faceRecognitionNet.loadFromUri(url)]), 25000, 'timeout');
-        try { await withTimeout(faceapi.nets.faceLandmark68TinyNet.loadFromUri(url), 15000, 'timeout'); tinyOk = true; } catch (_) { tinyOk = false; }
-        loaded = true; return;
-      } catch (_) { /* try the next download source */ }
-    }
-    throw new Error('Face models could not be downloaded. Check your internet connection, then tap Try again.');
-  }
-  async function waitForVideo(v) {
-    const t0 = Date.now();
-    while (!(v.videoWidth > 0 && (v.readyState === undefined || v.readyState >= 2))) {
-      if (Date.now() - t0 > 10000) throw new Error('The camera started but no picture arrived. Close other apps that use the camera, then tap Try again.');
-      await sleep(100);
-    }
-  }
-  // download models, start the engine, and run one practice detection so the first real frame is fast
-  async function prepare(video) {
-    say('Downloading face models…', 'Only the first time');
-    await loadModels();
-    say('Starting the face engine…', '');
-    try { if (faceapi.tf && faceapi.tf.ready) await withTimeout(faceapi.tf.ready(), 15000, 'engine timeout'); } catch (_) {}
-    await waitForVideo(video);
-    const warm = () => withTimeout(ab(faceapi.detectSingleFace(video, OPTS()).withFaceLandmarks().withFaceDescriptor()), 25000, 'The face engine took too long to start.');
-    try { await warm(); }
-    catch (e) {
-      if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
-      // the graphics engine failed on this device: switch to the slower, safer CPU engine
-      try { await faceapi.tf.setBackend('cpu'); await faceapi.tf.ready(); await warm(); dbg('engine: cpu (fallback)'); return; }
-      catch (e2) { if (cancelled || /Cancelled/.test((e2 && e2.message) || '')) throw new Error('Cancelled'); throw new Error('The face engine could not start on this device (' + ((e && e.message) || 'error') + ').'); }
-    }
-    try { await ab(faceapi.detectSingleFace(video, QOPTS()).withFaceLandmarks(tinyOk)); } catch (e) { if (/Cancelled/.test((e && e.message) || '')) throw e; }
-    dbg('engine: ' + ((faceapi.tf && faceapi.tf.getBackend && faceapi.tf.getBackend()) || 'ready') + (tinyOk ? ' · fast mode' : ''));
-  }
-  const OPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 });
-  const QOPTS = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 256, scoreThreshold: 0.3 });   // quick looks: smaller + more willing to find a face
-  const quick = async (v) => {
-    try { return (await ab(faceapi.detectSingleFace(v, QOPTS()).withFaceLandmarks(tinyOk))) || null; }
-    catch (e) {
-      if (tinyOk && !/Cancelled/.test((e && e.message) || '')) { tinyOk = false; return (await ab(faceapi.detectSingleFace(v, QOPTS()).withFaceLandmarks())) || null; }
-      throw e;
-    }
-  };
-  const full = async (v) => (await ab(faceapi.detectSingleFace(v, OPTS()).withFaceLandmarks().withFaceDescriptor())) || null;
-  function brightness(v) {
-    try { const c = document.createElement('canvas'); c.width = 32; c.height = 32; const x = c.getContext('2d'); x.drawImage(v, 0, 0, 32, 32); const d = x.getImageData(0, 0, 32, 32).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; return s / (d.length / 4); } catch (_) { return 128; }
-  }
-  // one look at the camera: either a usable face, or a hint for the person
-  async function look(v) {
-    if ((++dark % 12) === 1 && brightness(v) < 40) return { hint: 'Too dark. Face a light or a window.' };
-    const q = await quick(v); noteFrame();
-    if (!q) return { hint: HINT_NOFACE };
-    const b = q.detection.box, vw = v.videoWidth, vh = v.videoHeight;
-    if (b.width < vw * 0.24) return { hint: 'Move a little closer' };
-    if (b.width > vw * 0.82) return { hint: 'Move back a little' };
-    if (Math.abs(b.x + b.width / 2 - vw / 2) > vw * 0.24 || Math.abs(b.y + b.height / 2 - vh / 2) > vh * 0.24) return { hint: 'Move to the middle of the circle' };
-    return { q: q };
-  }
-
-  // wait until `test` holds for two looks (a single missed frame is forgiven), then collect `frames` descriptors
-  async function capture(v, o) {
-    const got = [], t0 = Date.now();
-    let stable = 0, nofaceRun = 0, failSince = 0;
-    while (Date.now() - t0 < o.timeout) {
-      if (cancelled) throw new Error('Cancelled');
-      await sleep(0);
-      const L = await look(v);
-      if (!L.q) { nofaceRun++; dbg('looking for a face… ' + fps()); if (nofaceRun > 2 || L.hint !== HINT_NOFACE) { say(L.hint, ''); arrow(null); } if (nofaceRun > 2) stable = 0; await sleep(60); continue; }
-      nofaceRun = 0;
-      const p = L.q.landmarks.positions;
-      dbg('face found · ' + fps() + ' · turn ' + yawOf(p).toFixed(2) + ' · tilt ' + pitchOf(p).toFixed(2));
-      if (!o.test(p)) { if (!failSince) failSince = Date.now(); say(o.say, Date.now() - failSince > 6000 ? 'Keep your head level and face the screen' : (slowFps() ? 'Hold each position for a moment' : (o.sub || ''))); arrow(o.arrow || null); stable = Math.max(0, stable - 1); await sleep(30); continue; }
-      failSince = 0;
-      if (++stable < 2) continue;
-      say(o.done || o.say, o.sub || '');
-      let f = L.q;
-      if (!o.noDescriptor) { f = await full(v); if (!f) continue; }
-      got.push(o.noDescriptor ? null : Array.from(f.descriptor));
-      if (o.tick) o.tick(f);
-      if (got.length >= o.frames) { arrow(null); return got; }
-    }
-    arrow(null);
-    return null;
-  }
-
-  // ---------- setting up: look straight, then roll your head in a slow circle ----------
-  async function enrollFlow(v) {
-    const ys = [], ps = [];
-    const A = await capture(v, {
-      say: 'Look at the camera', sub: 'Step 1 of 2', frames: 4, timeout: 25000,
-      test: (p) => Math.abs(yawOf(p)) < 0.24,
-      tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); fillTo(ys.length / 40); }
-    });
-    if (!A) throw new Error("We couldn't see your face. Try again with more light.");
-    fillTo(0); await sleep(250);
-    const n = { yaw: mean(ys), pitch: mean(ps) };
-    const samples = [{ pose: 'front', v: avg(A) }], got = new Map();
-    say('Move your head slowly in a big circle', 'Step 2 of 2 · like drawing a circle with your nose'); buzz(15);
-    const t0 = Date.now(); let last = -1, run = 0, miss = 0;
-    while (Date.now() - t0 < 60000 && got.size < 9) {
-      if (cancelled) throw new Error('Cancelled');
-      await sleep(0);
-      const L = await look(v);
-      if (!L.q) { miss++; if (miss > 2 || L.hint !== HINT_NOFACE) { say(L.hint, ''); arrow(null); } await sleep(60); continue; }
-      miss = 0;
-      const d = dirOf(L.q.landmarks.positions, n);
-      const m = Math.hypot(d.x, d.y);
-      // point the arrow toward the nearest part of the circle that is still empty
-      let want = null, bestGap = 99;
-      const cur = Math.atan2(d.x, -d.y) * 180 / Math.PI;
-      for (let s = 0; s < 12; s++) { if (got.has(s)) continue; const gap = Math.abs((((s * 30 + 15) - cur + 540) % 360) - 180); if (gap < bestGap) { bestGap = gap; want = s * 30 + 15; } }
-      const dirKey = want === null ? null : (want >= 315 || want < 45 ? 'u' : want < 135 ? 'r' : want < 225 ? 'd' : 'l');
-      if (m < 0.5) { say('Move your head slowly in a big circle', 'Step 2 of 2 · like drawing a circle with your nose'); arrow(dirKey); last = -1; await sleep(30); continue; }
-      arrow(dirKey);
-      const sec = sectorOf(d);
-      if (got.has(sec)) { last = sec; run = 0; continue; }
-      run = (sec === last) ? run + 1 : 1; last = sec;
-      if (run < (slowFps() ? 1 : 2)) continue;
-      const f = await full(v); if (!f) continue;
-      got.set(sec, Array.from(f.descriptor));
-      samples.push({ pose: 's' + sec, v: Array.from(f.descriptor) });
-      ticksOn(sec * 5, sec * 5 + 5, true); buzz(8); run = 0;
-    }
-    arrow(null);
-    const right = got.has(2) || got.has(3) || got.has(4), left = got.has(8) || got.has(9) || got.has(10);
-    if (got.size < 6 || !right || !left) throw new Error('Move your head in a bigger, slower circle.');
-    for (const s of samples) if (dist(samples[0].v, s.v) > 0.9) throw new Error('Only one face please. Try again.');
-    return { poses: samples };
-  }
-
-  // ---------- signing in: a quick look + a small random head nudge ----------
-  async function verifyFlow(v) {
-    let done = 0; const total = 8; const ys = [], ps = [];
-    const tick = () => { done++; fillTo(done / total); };
-    const A = await capture(v, {
-      say: 'Look at the camera', sub: 'Step 1 of 3', frames: 4, timeout: 25000,
-      test: (p) => Math.abs(yawOf(p)) < 0.24,
-      tick: (f) => { ys.push(yawOf(f.landmarks.positions)); ps.push(pitchOf(f.landmarks.positions)); tick(); }
-    });
-    if (!A) throw new Error("We couldn't see your face. Try again with more light.");
-    const n = { yaw: mean(ys), pitch: mean(ps) };
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const T = await capture(v, {
-      say: 'Turn your head a little to the ' + side, sub: 'Step 2 of 3 · just a small turn', noDescriptor: true, frames: 1, timeout: 14000, arrow: side === 'left' ? 'l' : 'r',
-      test: (p) => { const d = dirOf(p, n); return side === 'left' ? d.x < -0.4 : d.x > 0.4; },
-      tick: tick
-    });
-    if (!T) throw new Error("We didn't see you turn your head. Turn a little when asked.");
-    const B = await capture(v, { say: 'Good. Now look at the camera again', sub: 'Step 3 of 3', frames: 3, timeout: 15000, test: (p) => { const d = dirOf(p, n); return Math.hypot(d.x, d.y) < 0.65; }, tick: tick });
-    if (!B) throw new Error('Please look back at the camera after turning.');
-    if (dist(avg(A), avg(B)) > 0.5) throw new Error('The picture changed during the check. Please try again.');
-    return { v: avg(A.concat(B)), live: true };
-  }
-
-  // ---------- run ----------
-  function choose(retryOk) {
-    return new Promise((resolve) => {
-      chooseResolve = resolve;
-      const r = g('fidRetry');
-      r.style.display = retryOk ? '' : 'none';
-      r.onclick = () => resolve('retry');
-    });
-  }
-  let innerDone = Promise.resolve();
-  async function run(mode) {
-    if (running) throw new Error('Face ID is already open.');
-    if (typeof faceapi === 'undefined') throw new Error('The face library did not load. Check your connection and reload.');
-    running = true;
-    const mine = { stopped: false };
-    let ov = null, abortRej;
-    const cancelP = new Promise((_, rej) => { abortRej = rej; }); cancelP.catch(() => {});
-    let onKey = null;
-    try {
-      await Promise.race([innerDone, sleep(3000)]);               // a cancelled scan finishes unwinding first
-      cancelled = false; chooseResolve = null; ensureUI();
-      ab = (p) => Promise.race([p, cancelP]);
-      const abort = () => { cancelled = true; abortRej(new Error('Cancelled')); if (chooseResolve) chooseResolve('cancel'); };
-      onKey = (e) => { if (e && e.key === 'Escape') abort(); };
-      ov = g('fidOv');
-      const video = g('fidVideo');
-      ov.classList.add('show');
-      g('fidTitle').textContent = mode === 'enroll' ? 'Set up Face ID' : 'Face ID';
-      g('fidCancel').onclick = abort; g('fidBack').onclick = abort; g('fidX').onclick = abort;
-      document.addEventListener('keydown', onKey);
-      const inner = (async () => {
-        say('Starting camera…', ''); dbg(''); fillTo(0);
-        const gum = navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } }, audio: false });
-        gum.then((s) => { if (mine.stopped || cancelled) s.getTracks().forEach((t) => t.stop()); }).catch(() => {});   // never leave the camera on
-        stream = await ab(gum);
-        video.srcObject = stream;
-        video.muted = true; video.playsInline = true;
-        try { video.setAttribute('playsinline', ''); video.setAttribute('muted', ''); } catch (_) {}
-        try { const pp = video.play(); if (pp && pp.catch) pp.catch(() => {}); } catch (_) {}
-        say('Getting Face ID ready…', 'The first time can take a few seconds');
-        for (;;) {
-          try { await ab(prepare(video)); break; }
-          catch (e) {
-            if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
-            say(e.message, 'Tap Try again, or go back'); g('fidSvg').classList.add('bad');
-            if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
-            g('fidSvg').classList.remove('bad'); say('Getting Face ID ready…', '');
+  <!-- Tailwind CSS CDN -->
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2D6A4F',
+              light: '#40916C',
+              dark: '#1B4332',
+              50: '#EAF4EE',
+              100: '#D5E9DE',
+              200: '#ABCEBE',
+            },
+            sand: {
+              DEFAULT: '#F5F0E8',
+              light: '#FAF7F2',
+              dark: '#EDE5D8',
+              muted: '#E5DDCF',
+            },
+            accent: {
+              DEFAULT: '#E07A5F',
+              hover: '#CE6A4F',
+              light: '#FDF1ED',
+              dark: '#B8553B',
+            },
+            charcoal: {
+              DEFAULT: '#1B2A3D',
+              light: '#2B3E56',
+              dark: '#0F1824',
+              muted: '#5C6C7E',
+            },
+            canvas: {
+              light: '#FAF7F2',
+              card: '#FFFFFF',
+            }
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 10px 30px -5px rgba(27, 42, 61, 0.06), 0 4px 10px -2px rgba(27, 42, 61, 0.03)',
+            'soft-lg': '0 20px 40px -10px rgba(45, 106, 79, 0.12), 0 8px 16px -4px rgba(27, 42, 61, 0.04)',
+            'glow': '0 0 40px -10px rgba(45, 106, 79, 0.35)',
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'float-delayed': 'float 7s ease-in-out 2s infinite',
+            'pulse-soft': 'pulseSoft 4s ease-in-out infinite',
+            'breathe': 'breathe 8s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-12px)' },
+            },
+            pulseSoft: {
+              '0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.04)' },
+            },
+            breathe: {
+              '0%, 100%': { transform: 'scale(1)', opacity: '0.7' },
+              '50%': { transform: 'scale(1.15)', opacity: '0.9' },
+            }
           }
         }
-        for (;;) {
-          g('fidSvg').classList.remove('bad'); g('fidCheck').classList.remove('on'); g('fidRetry').style.display = 'none'; fillTo(0);
-          try {
-            const res = mode === 'enroll' ? await enrollFlow(video) : await verifyFlow(video);
-            fillTo(1); g('fidCheck').classList.add('on'); say(mode === 'enroll' ? 'Face ID is set up' : 'Face recognised', ''); dbg(''); buzz([20, 40, 20]);
-            await sleep(900);
-            return res;
-          } catch (e) {
-            if (cancelled || /Cancelled/.test(e.message)) throw new Error('Cancelled');
-            g('fidSvg').classList.add('bad'); ticksOn(0, 60, true); g('fidStage').classList.add('fid-shake'); buzz([60, 40, 60]);
-            setTimeout(() => g('fidStage').classList.remove('fid-shake'), 500);
-            say(e.message, 'Tap Try again, or go back'); arrow(null);
-            if ((await choose(true)) === 'cancel') throw new Error('Cancelled');
-          }
-        }
-      })();
-      innerDone = inner.then(() => {}, () => {});
-      return await Promise.race([inner, cancelP]);
-    } finally {
-      mine.stopped = true;
-      if (onKey) document.removeEventListener('keydown', onKey);
-      ab = (p) => p; chooseResolve = null;
-      if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
-      if (ov) ov.classList.remove('show');
-      running = false;
-    }
-  }
-  return { run: run, _t: { yawOf: yawOf, pitchOf: pitchOf, dist: dist, avg: avg, dirOf: dirOf, sectorOf: sectorOf } };
-})();
-
-  </script>
-<script>
-(function () {
-  "use strict";
-  if (!(window.DROZO_CONFIG && window.DROZO_CONFIG.url && window.DROZO_CONFIG.anon)) { alert('config.js is missing or empty. Create it next to index.html with your Supabase Project URL and anon key.'); }
-  var SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
-  var SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
-  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
-  var BIO_KEY = "drozo_guard_bio_type";      // "fingerprint" | "face" | "none" | null  (per phone)
-  var CRED_KEY = "drozo_guard_passkey_id";
-  var activeId = null, pollTimer = null;
-  var $ = function (id) { return document.getElementById(id); };
-  var show = function (id) { $(id).classList.remove("hidden"); };
-  var hide = function (id) { $(id).classList.add("hidden"); };
-  var errText = function (e) { return (e && e.message) ? e.message : String(e); };
-
-  // ---------- WebAuthn (device fingerprint / screen lock) ----------
-  async function passkeyAvailable() {
-    return !!(window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
-      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
-  }
-  async function enrollPasskey() {
-    var challenge = crypto.getRandomValues(new Uint8Array(32));
-    var uid = crypto.getRandomValues(new Uint8Array(16));
-    var cred = await navigator.credentials.create({ publicKey: {
-      challenge: challenge,
-      rp: { name: "Drozo Guard", id: location.hostname },
-      user: { id: uid, name: "drozo-guard-device", displayName: "Drozo Guard" },
-      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-      authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-      timeout: 60000
-    }});
-    localStorage.setItem(CRED_KEY, b64(cred.rawId));
-  }
-  async function verifyPasskey() {
-    var id = localStorage.getItem(CRED_KEY);
-    if (!id) throw new Error("No passkey registered on this device.");
-    var challenge = crypto.getRandomValues(new Uint8Array(32));
-    await navigator.credentials.get({ publicKey: {
-      challenge: challenge,
-      rpId: location.hostname,
-      allowCredentials: [{ type: "public-key", id: unb64(id) }],
-      userVerification: "required",
-      timeout: 60000
-    }});
-  }
-
-  async function rpc(name, args) {
-    var r = await sb.rpc(name, args);
-    if (r.error) throw r.error;
-    return r.data;
-  }
-  async function enrollFace() {
-    var r = await FaceID.run("enroll");
-    var n = await rpc("enroll_my_face", { poses: r.poses });
-    if (!n) throw new Error("Could not save your face. Try again.");
-  }
-  var lastFace = { registered: false, distance: null };
-  async function verifyFace() {
-    var r = await FaceID.run("verify");
-    var rows = await rpc("verify_my_face", { probe: JSON.stringify(r.v) });
-    lastFace = { registered: !!(rows && rows.length), distance: (rows && rows.length) ? rows[0].distance : null };
-    return !!(rows && rows.length && rows[0].match_found);
-  }
-
-  // ---------- enroll / lock ----------
-  async function unlock() {
-    $("lockMsg").textContent = "Touch the fingerprint sensor…";
-    try { await verifyPasskey(); hide("lockModal"); }
-    catch (e) { $("lockMsg").textContent = "Cancelled or failed. Tap to retry."; }
-  }
-  async function enrollFingerprint() {
-    $("enrollMsg").textContent = "";
-    try {
-      if (!(await passkeyAvailable())) throw new Error("This phone has no fingerprint / screen-lock passkey support.");
-      await enrollPasskey();
-      localStorage.setItem(BIO_KEY, "fingerprint"); $("bioTag").textContent = "🔒 Fingerprint"; hide("enrollModal");
-    } catch (e) { $("enrollMsg").textContent = errText(e); }
-  }
-  async function enrollWithFace() {
-    $("enrollMsg").textContent = "";
-    try { await enrollFace(); localStorage.setItem(BIO_KEY, "face"); $("bioTag").textContent = "🔒 Face ID"; hide("enrollModal"); }
-    catch (e) { $("enrollMsg").textContent = errText(e); }
-  }
-  function skip() {
-    if (!confirm("Anyone holding this phone could approve sign-ins. Continue without protection?")) return;
-    localStorage.setItem(BIO_KEY, "none"); $("bioTag").textContent = "⚠️ No Biometrics"; hide("enrollModal");
-  }
-
-  // ---------- sign in ----------
-  async function afterLogin() {
-    var aal = (await sb.auth.mfa.getAuthenticatorAssuranceLevel()).data;
-    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") { show("loginView"); show("gCode"); $("gCode").focus(); return; }
-    var u = (await sb.auth.getUser()).data.user;
-    $("acctEmail").textContent = u ? u.email : "";
-    hide("loginView"); show("standbyView");
-    $("guardPill").textContent = "STANDBY";
-    var bio = localStorage.getItem(BIO_KEY);
-    if (bio === "fingerprint") { $("bioTag").textContent = "🔒 Fingerprint"; show("lockModal"); unlock(); }
-    else if (bio === "face") { $("bioTag").textContent = "🔒 Face ID"; }
-    else if (bio === "none") { $("bioTag").textContent = "⚠️ No Biometrics"; }
-    else { show("enrollModal"); }
-    poll(); if (pollTimer) clearInterval(pollTimer); pollTimer = setInterval(poll, 2000);
-  }
-  async function login() {
-    try {
-      if (!$("gCode").classList.contains("hidden")) {
-        var totp = ((await sb.auth.mfa.listFactors()).data || {}).totp || [];
-        if (!totp.length) throw new Error("No authenticator is linked to this account.");
-        var v = await sb.auth.mfa.challengeAndVerify({ factorId: totp[0].id, code: $("gCode").value.trim() });
-        if (v.error) throw v.error;
-        $("gCode").value = ""; hide("gCode");
-      } else {
-        var r = await sb.auth.signInWithPassword({ email: $("gEmail").value.trim().toLowerCase(), password: $("gPass").value });
-        if (r.error) throw r.error;
-        $("gPass").value = "";
       }
-      await afterLogin();
-    } catch (e) { alert(/invalid login/i.test(errText(e)) ? "Incorrect email or password." : errText(e)); }
-  }
-  async function resetProtection() {
-    if (!confirm("Remove fingerprint / Face ID protection from this phone and set it up again?")) return;
-    try { await rpc("reset_my_face", {}); } catch (_) {}
-    localStorage.removeItem(BIO_KEY); localStorage.removeItem(CRED_KEY);
-    $("bioTag").textContent = "Standard"; $("enrollMsg").textContent = "";
-    show("enrollModal");
-  }
-  async function signOut() {
-    if (pollTimer) clearInterval(pollTimer);
-    try { await sb.auth.signOut(); } catch (_) {}
-    location.reload();
-  }
+    };
+  </script>
 
-  // ---------- challenges ----------
-  async function poll() {
-    if (activeId) return;
-    try {
-      var since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      var r = await sb.from("guard_challenges").select("id").eq("status", "pending").gt("created_at", since).order("created_at", { ascending: false }).limit(1);
-      if (r.data && r.data.length) showChallenge(r.data[0].id);
-    } catch (_) {}
-  }
-  function showChallenge(id) {
-    activeId = id;
-    $("userEmailDisplay").textContent = $("acctEmail").textContent;
-    hide("standbyView"); show("challengeView");
-    $("guardPill").textContent = "CHALLENGE";
-  }
-  async function respond(decision) {
-    if (!activeId) return;
-    var r = await sb.from("guard_challenges").update({ status: decision }).eq("id", activeId);
-    if (r.error) { alert("Could not send your answer: " + errText(r.error)); return; }
-    alert(decision === "authorized" ? "Login Approved ✓" : "Login Denied ✕");
-    activeId = null; hide("challengeView"); show("standbyView"); $("guardPill").textContent = "STANDBY";
-  }
-  async function approve() {
-    var bio = localStorage.getItem(BIO_KEY);
-    try {
-      if (bio === "fingerprint") await verifyPasskey();
-      else if (bio === "face") { if (!(await verifyFace())) {
-        alert(lastFace.registered
-          ? "Face does not match this account (score " + Number(lastFace.distance).toFixed(2) + ", needs under 0.55). Try better lighting, or tap Change protection to register your face again."
-          : "No Face ID is registered for this account yet. Tap Change protection to set it up.");
+  <!-- Custom CSS for specialized aesthetics, micro-interactions & dark mode -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAF7F2;
+      color: #1B2A3D;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, h5, h6, .font-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* Organic CSS Shapes & Visual panel accents */
+    .organic-shape-1 {
+      border-radius: 64% 36% 70% 30% / 48% 59% 41% 52%;
+    }
+    .organic-shape-2 {
+      border-radius: 42% 58% 35% 65% / 60% 32% 68% 40%;
+    }
+    .organic-shape-3 {
+      border-radius: 50% 50% 38% 62% / 55% 45% 55% 45%;
+    }
+
+    /* Calming breathing guide circle */
+    @keyframes breatheGuide {
+      0%, 100% {
+        transform: scale(0.92);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 25px 8px rgba(255, 255, 255, 0.15);
+      }
+    }
+    .breathe-animation {
+      animation: breatheGuide 6s ease-in-out infinite;
+    }
+
+    /* Smooth Input Glow Focus */
+    .input-field {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .input-field:focus {
+      border-color: #2D6A4F;
+      box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
+    }
+
+    .input-field.input-error {
+      border-color: #EF4444 !important;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important;
+    }
+
+    /* Tab Transition Slide */
+    .tab-slider-bg {
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .auth-tab-content {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .auth-tab-content.hidden-tab {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    .auth-tab-content.active-tab {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F5F0E8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2D6A4F;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1B4332;
+    }
+
+    /* Toast notification keyframes */
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .toast-animate-in {
+      animation: slideInDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Modal Animation */
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .modal-animate {
+      animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Dark Mode via prefers-color-scheme */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #0F1824;
+        color: #F8F7F4;
+      }
+      .bg-sand-light, .bg-sand {
+        background-color: #121E2C !important;
+      }
+      .bg-white {
+        background-color: #182637 !important;
+      }
+      .bg-sand-dark {
+        background-color: #1C2E42 !important;
+      }
+      .border-sand-muted, .border-sand-dark, .border-sand {
+        border-color: #273C56 !important;
+      }
+      .text-charcoal {
+        color: #F8F7F4 !important;
+      }
+      .text-charcoal-muted {
+        color: #9EAFBF !important;
+      }
+      .input-field {
+        background-color: #152232 !important;
+        border-color: #273C56 !important;
+        color: #F8F7F4 !important;
+      }
+      .input-field::placeholder {
+        color: #6B7F96 !important;
+      }
+      .input-field:focus {
+        border-color: #40916C !important;
+        box-shadow: 0 0 0 4px rgba(64, 145, 108, 0.25) !important;
+      }
+      .social-btn {
+        background-color: #182637 !important;
+        border-color: #273C56 !important;
+        color: #F8F7F4 !important;
+      }
+      .social-btn:hover {
+        background-color: #203349 !important;
+        border-color: #3B5678 !important;
+      }
+      .tab-container {
+        background-color: #0D1622 !important;
+        border-color: #273C56 !important;
+      }
+      .tab-slider-bg {
+        background-color: #1F3247 !important;
+      }
+      .trust-card-mobile {
+        background-color: #162436 !important;
+        border-color: #273C56 !important;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0F1824;
+      }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col selection:bg-primary-light selection:text-white antialiased">
+
+  <!-- Accessibility Skip Link -->
+  <a href="#auth-card" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary text-white font-medium rounded-lg shadow-lg">
+    Skip to authentication form
+  </a>
+
+  <!-- ========================================================================= -->
+  <!-- TOAST NOTIFICATION CONTAINER (Fixed Top Right)                            -->
+  <!-- ========================================================================= -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 max-w-md w-full px-4 pointer-events-none" aria-live="polite">
+    <!-- Injected dynamically via JavaScript -->
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN SPLIT LAYOUT WRAPPER                                                 -->
+  <!-- ========================================================================= -->
+  <main class="min-h-screen flex flex-col lg:flex-row w-full flex-grow">
+
+    <!-- ======================================================================= -->
+    <!-- LEFT PANEL (60% Desktop) — Warm Cream / Sand Form Area                  -->
+    <!-- ======================================================================= -->
+    <section class="w-full lg:w-[58%] xl:w-[60%] bg-sand-light flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 relative z-10 transition-colors">
+      
+      <!-- Top Bar: Logo & Back to Home Link -->
+      <header class="flex items-center justify-between w-full max-w-xl mx-auto mb-6 lg:mb-8">
+        <!-- Drozo Brand Leaf Logo -->
+        <a href="index.html" class="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-xl" aria-label="Drozo Therapy Homepage">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white shadow-md shadow-primary/20 transition-transform duration-300 group-hover:scale-105">
+            <!-- Wellness / Leaf Icon SVG (Same as Homepage) -->
+            <svg class="w-6 h-6 text-[#F8F7F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22C12 22 20 18 20 10C20 4.5 15.5 2 12 2C8.5 2 4 4.5 4 10C4 18 12 22 12 22Z" fill="rgba(248, 247, 244, 0.15)"></path>
+              <path d="M12 2V22"></path>
+              <path d="M12 7C9.5 8 7 10.5 7 14"></path>
+              <path d="M12 11C14.5 12 17 14.5 17 17"></path>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-heading font-extrabold text-2xl tracking-tight text-charcoal">Drozo</span>
+            <span class="text-[10px] font-semibold tracking-widest uppercase -mt-1 text-primary">Therapy</span>
+          </div>
+        </a>
+
+        <!-- Back to Homepage Link -->
+        <a href="index.html" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-charcoal-muted hover:text-primary transition-colors py-1.5 px-3 rounded-full hover:bg-sand/70 focus:outline-none focus:ring-2 focus:ring-primary">
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          <span>Back to Home</span>
+        </a>
+      </header>
+
+      <!-- Center Auth Card Area -->
+      <div id="auth-card" class="w-full max-w-xl mx-auto my-auto py-2 sm:py-6">
+
+        <!-- Header Greeting & Dynamic Subtitle -->
+        <div class="text-center sm:text-left mb-6 sm:mb-8">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            Confidential & HIPAA-Compliant Portal
+          </div>
+          <h1 id="auth-heading" class="font-heading text-3xl sm:text-4xl font-extrabold text-charcoal tracking-tight">
+            Welcome back
+          </h1>
+          <p id="auth-subheading" class="mt-2 text-sm sm:text-base text-charcoal-muted">
+            Sign in to continue your secure mental healthcare sessions and notes.
+          </p>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TOGGLE TABS: Sign In / Create Account                             -->
+        <!-- ================================================================= -->
+        <div class="tab-container relative p-1.5 bg-sand-dark/60 rounded-2xl flex items-center mb-8 border border-sand-muted shadow-inner" role="tablist" aria-label="Authentication Type">
+          <!-- Animated Sliding Indicator -->
+          <div id="tab-slider" class="tab-slider-bg absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-sm transition-transform duration-300 ease-out z-0"></div>
+
+          <!-- Sign In Tab Button -->
+          <button 
+            type="button" 
+            role="tab" 
+            id="tab-signin-btn" 
+            aria-selected="true" 
+            aria-controls="panel-signin"
+            onclick="switchAuthTab('signin')"
+            class="relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal text-center rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary">
+            Sign In
+          </button>
+
+          <!-- Create Account Tab Button -->
+          <button 
+            type="button" 
+            role="tab" 
+            id="tab-signup-btn" 
+            aria-selected="false" 
+            aria-controls="panel-signup"
+            onclick="switchAuthTab('signup')"
+            class="relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal-muted text-center rounded-xl transition-colors duration-200 hover:text-charcoal focus:outline-none focus:ring-2 focus:ring-primary">
+            Create Account
+          </button>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SIGN IN PANEL                                                     -->
+        <!-- ================================================================= -->
+        <div id="panel-signin" class="auth-tab-content active-tab" role="tabpanel" aria-labelledby="tab-signin-btn">
+          
+          <!-- Quick Demo Credentials Helper Banner -->
+          <div class="mb-5 p-3 rounded-xl bg-primary-50/70 border border-primary/20 flex items-center justify-between text-xs text-primary-dark">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Demo login: <strong>sarah.walker@drozo.com</strong></span>
+            </div>
+            <button type="button" onclick="fillDemoCredentials()" class="font-semibold text-primary hover:text-primary-dark underline hover:no-underline focus:outline-none focus:ring-1 focus:ring-primary rounded">
+              Fill Demo
+            </button>
+          </div>
+
+          <form id="signin-form" novalidate onsubmit="handleSignInSubmit(event)" class="space-y-4 sm:space-y-5">
+            
+            <!-- Email Field -->
+            <div>
+              <label for="signin-email" class="block text-xs sm:text-sm font-semibold text-charcoal mb-1.5">
+                Email Address
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <input 
+                  type="email" 
+                  id="signin-email" 
+                  name="email"
+                  autocomplete="email"
+                  required
+                  placeholder="name@example.com"
+                  oninput="clearError('signin-email')"
+                  class="input-field block w-full pl-11 pr-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signin-email-error"
+                >
+              </div>
+              <p id="signin-email-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Please enter a valid email address.</span>
+              </p>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="signin-password" class="block text-xs sm:text-sm font-semibold text-charcoal">
+                  Password
+                </label>
+                <button 
+                  type="button" 
+                  onclick="openForgotPasswordModal()"
+                  class="text-xs sm:text-sm font-semibold text-primary hover:text-primary-dark transition-colors focus:outline-none focus:underline">
+                  Forgot password?
+                </button>
+              </div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                  </svg>
+                </div>
+                <input 
+                  type="password" 
+                  id="signin-password" 
+                  name="password"
+                  autocomplete="current-password"
+                  required
+                  placeholder="Enter your secure password"
+                  oninput="clearError('signin-password')"
+                  class="input-field block w-full pl-11 pr-11 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signin-password-error"
+                >
+                <!-- Toggle Password Visibility Button -->
+                <button 
+                  type="button" 
+                  id="toggle-signin-password" 
+                  onclick="togglePasswordVisibility('signin-password', this)"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-charcoal-muted hover:text-charcoal focus:outline-none focus:text-primary transition-colors"
+                  aria-label="Toggle password visibility">
+                  <!-- Eye Open Icon -->
+                  <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <!-- Eye Closed Icon (Hidden by default) -->
+                  <svg class="w-5 h-5 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                </button>
+              </div>
+              <p id="signin-password-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Please enter your password (minimum 6 characters).</span>
+              </p>
+            </div>
+
+            <!-- Remember Me Row -->
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  id="signin-remember" 
+                  name="remember"
+                  class="w-4 h-4 rounded border-sand-dark text-primary focus:ring-primary focus:ring-offset-0 transition-colors cursor-pointer"
+                >
+                <span class="text-xs sm:text-sm text-charcoal font-medium">Keep me signed in on this device</span>
+              </label>
+            </div>
+
+            <!-- Sign In Submit Button -->
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="signin-submit-btn" 
+                class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 text-base font-bold text-white bg-primary hover:bg-primary-dark active:scale-[0.99] transition-all duration-200 rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-75 disabled:cursor-not-allowed">
+                <!-- Normal State -->
+                <span class="btn-text flex items-center gap-2">
+                  <span>Sign In</span>
+                  <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+                <!-- Loading State (hidden initially) -->
+                <span class="btn-spinner hidden flex items-center gap-2">
+                  <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Signing in securely...</span>
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Divider: Or Continue With -->
+          <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-sand-dark"></div>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase tracking-wider">
+              <span class="bg-sand-light px-3 text-charcoal-muted font-medium">Or continue with</span>
+            </div>
+          </div>
+
+          <!-- Social Authentication Buttons -->
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <!-- Google Button -->
+            <button 
+              type="button" 
+              onclick="handleSocialLogin('Google')"
+              class="social-btn flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border border-sand-dark bg-white hover:bg-sand/60 text-charcoal text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary">
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <!-- Apple Button -->
+            <button 
+              type="button" 
+              onclick="handleSocialLogin('Apple')"
+              class="social-btn flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border border-sand-dark bg-white hover:bg-sand/60 text-charcoal text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary">
+              <svg class="w-5 h-5 fill-current text-charcoal" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.87c.6-.74 1.01-1.77.9-2.8-.87.04-1.92.58-2.54 1.32-.55.63-.99 1.67-.86 2.68.97.07 1.9-.46 2.5-1.2z"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+          </div>
+
+          <!-- Bottom Switch Prompt -->
+          <div class="mt-6 text-center text-xs sm:text-sm text-charcoal-muted">
+            New to Drozo Therapy? 
+            <button type="button" onclick="switchAuthTab('signup')" class="font-bold text-primary hover:text-primary-dark ml-1 underline hover:no-underline focus:outline-none">
+              Create free account
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SIGN UP PANEL                                                     -->
+        <!-- ================================================================= -->
+        <div id="panel-signup" class="auth-tab-content hidden-tab" role="tabpanel" aria-labelledby="tab-signup-btn">
+          
+          <form id="signup-form" novalidate onsubmit="handleSignUpSubmit(event)" class="space-y-4 sm:space-y-4.5">
+            
+            <!-- Full Name Field -->
+            <div>
+              <label for="signup-name" class="block text-xs sm:text-sm font-semibold text-charcoal mb-1.5">
+                Full Name
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <input 
+                  type="text" 
+                  id="signup-name" 
+                  name="name"
+                  autocomplete="name"
+                  required
+                  placeholder="e.g. Elena Rostova"
+                  oninput="clearError('signup-name')"
+                  class="input-field block w-full pl-11 pr-4 py-3 sm:py-3.2 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signup-name-error"
+                >
+              </div>
+              <p id="signup-name-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Please enter your full legal or preferred name.</span>
+              </p>
+            </div>
+
+            <!-- Email Field -->
+            <div>
+              <label for="signup-email" class="block text-xs sm:text-sm font-semibold text-charcoal mb-1.5">
+                Email Address
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <input 
+                  type="email" 
+                  id="signup-email" 
+                  name="email"
+                  autocomplete="email"
+                  required
+                  placeholder="name@example.com"
+                  oninput="clearError('signup-email')"
+                  class="input-field block w-full pl-11 pr-4 py-3 sm:py-3.2 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signup-email-error"
+                >
+              </div>
+              <p id="signup-email-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Please enter a valid email address.</span>
+              </p>
+            </div>
+
+            <!-- Password Field with Strength Meter -->
+            <div>
+              <label for="signup-password" class="block text-xs sm:text-sm font-semibold text-charcoal mb-1.5">
+                Create Password
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                  </svg>
+                </div>
+                <input 
+                  type="password" 
+                  id="signup-password" 
+                  name="password"
+                  autocomplete="new-password"
+                  required
+                  placeholder="At least 8 characters"
+                  oninput="handlePasswordStrength(this.value); clearError('signup-password')"
+                  class="input-field block w-full pl-11 pr-11 py-3 sm:py-3.2 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signup-password-error"
+                >
+                <button 
+                  type="button" 
+                  id="toggle-signup-password" 
+                  onclick="togglePasswordVisibility('signup-password', this)"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-charcoal-muted hover:text-charcoal focus:outline-none focus:text-primary transition-colors"
+                  aria-label="Toggle password visibility">
+                  <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg class="w-5 h-5 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Password Strength Meter Bar -->
+              <div class="mt-2 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-charcoal-muted">Strength:</span>
+                  <span id="strength-text" class="font-bold text-gray-400">Enter a password</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-sand-dark/60 rounded-full overflow-hidden p-0.5">
+                  <div id="bar-1" class="h-full rounded-full bg-gray-200 transition-all duration-300"></div>
+                  <div id="bar-2" class="h-full rounded-full bg-gray-200 transition-all duration-300"></div>
+                  <div id="bar-3" class="h-full rounded-full bg-gray-200 transition-all duration-300"></div>
+                  <div id="bar-4" class="h-full rounded-full bg-gray-200 transition-all duration-300"></div>
+                </div>
+                <p class="text-[11px] text-charcoal-muted leading-tight">
+                  Must include 8+ characters, mixed case, and a number or symbol.
+                </p>
+              </div>
+
+              <p id="signup-password-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Password must be at least 8 characters long.</span>
+              </p>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div>
+              <label for="signup-confirm-password" class="block text-xs sm:text-sm font-semibold text-charcoal mb-1.5">
+                Confirm Password
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-charcoal-muted">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <input 
+                  type="password" 
+                  id="signup-confirm-password" 
+                  name="confirm-password"
+                  autocomplete="new-password"
+                  required
+                  placeholder="Re-enter your password"
+                  oninput="checkPasswordMatch(); clearError('signup-confirm-password')"
+                  class="input-field block w-full pl-11 pr-11 py-3 sm:py-3.2 text-sm sm:text-base rounded-xl border border-sand-dark bg-white text-charcoal placeholder-charcoal-muted/60 focus:outline-none transition-all shadow-sm"
+                  aria-describedby="signup-confirm-error"
+                >
+                <button 
+                  type="button" 
+                  id="toggle-signup-confirm-password" 
+                  onclick="togglePasswordVisibility('signup-confirm-password', this)"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-charcoal-muted hover:text-charcoal focus:outline-none focus:text-primary transition-colors"
+                  aria-label="Toggle confirm password visibility">
+                  <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg class="w-5 h-5 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                </button>
+              </div>
+              <p id="signup-confirm-error" class="hidden mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>Passwords do not match.</span>
+              </p>
+            </div>
+
+            <!-- Agree to Terms Checkbox -->
+            <div class="pt-1">
+              <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  id="signup-terms" 
+                  name="terms"
+                  required
+                  onchange="clearError('signup-terms')"
+                  class="mt-1 w-4 h-4 rounded border-sand-dark text-primary focus:ring-primary focus:ring-offset-0 transition-colors cursor-pointer shrink-0"
+                >
+                <span class="text-xs text-charcoal leading-relaxed">
+                  I agree to Drozo's <a href="terms.html" target="_blank" class="font-semibold text-primary hover:underline">Terms of Service</a>, <a href="privacy.html" target="_blank" class="font-semibold text-primary hover:underline">Privacy Policy</a>, and consent to confidential telehealth counseling.
+                </span>
+              </label>
+              <p id="signup-terms-error" class="hidden mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>You must accept the terms to create an account.</span>
+              </p>
+            </div>
+
+            <!-- Create Account Button -->
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="signup-submit-btn" 
+                class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 text-base font-bold text-white bg-primary hover:bg-primary-dark active:scale-[0.99] transition-all duration-200 rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-75 disabled:cursor-not-allowed">
+                <!-- Normal State -->
+                <span class="btn-text flex items-center gap-2">
+                  <span>Create Account</span>
+                  <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+                <!-- Loading State -->
+                <span class="btn-spinner hidden flex items-center gap-2">
+                  <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Creating your account...</span>
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Divider: Or Continue With -->
+          <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-sand-dark"></div>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase tracking-wider">
+              <span class="bg-sand-light px-3 text-charcoal-muted font-medium">Or sign up with</span>
+            </div>
+          </div>
+
+          <!-- Social Buttons for Signup -->
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <button 
+              type="button" 
+              onclick="handleSocialLogin('Google')"
+              class="social-btn flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border border-sand-dark bg-white hover:bg-sand/60 text-charcoal text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary">
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="handleSocialLogin('Apple')"
+              class="social-btn flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border border-sand-dark bg-white hover:bg-sand/60 text-charcoal text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary">
+              <svg class="w-5 h-5 fill-current text-charcoal" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.87c.6-.74 1.01-1.77.9-2.8-.87.04-1.92.58-2.54 1.32-.55.63-.99 1.67-.86 2.68.97.07 1.9-.46 2.5-1.2z"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+          </div>
+
+          <!-- Bottom Switch Prompt -->
+          <div class="mt-6 text-center text-xs sm:text-sm text-charcoal-muted">
+            Already have an account? 
+            <button type="button" onclick="switchAuthTab('signin')" class="font-bold text-primary hover:text-primary-dark ml-1 underline hover:no-underline focus:outline-none">
+              Sign in here
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Bottom Reassurance / Crisis Footer -->
+      <footer class="w-full max-w-xl mx-auto pt-6 border-t border-sand-dark/60 text-xs text-charcoal-muted flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+        <div class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>End-to-End Encrypted &bull; 256-Bit SSL</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span>In crisis? Call/Text <strong class="text-charcoal font-semibold">988</strong></span>
+          <span>&bull;</span>
+          <a href="faq.html" class="hover:text-primary transition-colors">Need Help?</a>
+        </div>
+      </footer>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- RIGHT PANEL (40% Desktop) — Inspiring Deep Green / Visual Panel         -->
+    <!-- ======================================================================= -->
+    <section class="w-full lg:w-[42%] xl:w-[40%] bg-gradient-to-br from-primary-dark via-primary to-[#122A1E] text-white p-8 sm:p-12 lg:p-12 xl:p-16 flex flex-col justify-between relative overflow-hidden order-first lg:order-last min-h-[460px] lg:min-h-screen">
+      
+      <!-- Calming Abstract Floating Shapes / CSS Blobs -->
+      <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-light/20 rounded-full blur-3xl pointer-events-none animate-pulse-soft"></div>
+      <div class="absolute top-1/3 -left-20 w-80 h-80 bg-accent/15 rounded-full blur-3xl pointer-events-none animate-float-delayed"></div>
+      <div class="absolute -bottom-20 right-10 w-96 h-96 bg-primary-light/25 rounded-full blur-3xl pointer-events-none animate-float"></div>
+
+      <!-- Subtle Geometric Top Right Leaf Watermark -->
+      <div class="absolute -top-12 -right-12 opacity-5 pointer-events-none">
+        <svg class="w-96 h-96 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 22C12 22 20 18 20 10C20 4.5 15.5 2 12 2C8.5 2 4 4.5 4 10C4 18 12 22 12 22Z"></path>
+        </svg>
+      </div>
+
+      <!-- Top Visual Header & Live Pulse Element -->
+      <div class="relative z-10 flex items-center justify-between">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-sand-light tracking-wide shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-[#72C09B] animate-ping"></span>
+          <span>Online Therapy &bull; All 50 States</span>
+        </div>
+
+        <!-- Breathing Indicator Mini Pill -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs text-white/90">
+          <div class="w-3 h-3 rounded-full bg-accent-light breathe-animation"></div>
+          <span class="text-[11px] font-medium">Breathe In &bull; Breathe Out</span>
+        </div>
+      </div>
+
+      <!-- Centerpiece: Quote & Narrative -->
+      <div class="relative z-10 my-8 lg:my-auto max-w-lg">
+        
+        <!-- Large Decorative Quote Icon -->
+        <div class="mb-5 inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-sand-light shadow-lg">
+          <svg class="w-6 h-6 fill-current text-white/90" viewBox="0 0 24 24">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+          </svg>
+        </div>
+
+        <!-- Main Quote -->
+        <blockquote class="font-heading text-3xl sm:text-4xl xl:text-5xl font-extrabold text-white leading-tight tracking-tight drop-shadow-sm">
+          "Every day is a <span class="text-sand underline decoration-accent/60 decoration-wavy underline-offset-4">fresh start</span>."
+        </blockquote>
+
+        <p class="mt-4 text-white/80 text-sm sm:text-base xl:text-lg font-light leading-relaxed">
+          Emotional healing isn't linear, but you never have to walk through the heavy days on your own. Connect with genuine, licensed therapists who understand where you are.
+        </p>
+
+        <!-- Stats Bar: 1.25M+ People -->
+        <div class="mt-8 pt-6 border-t border-white/15 flex flex-wrap items-center gap-4 sm:gap-6">
+          <!-- Client Avatar Cluster -->
+          <div class="flex -space-x-3 items-center">
+            <div class="w-10 h-10 rounded-full border-2 border-primary-dark bg-[#3B7A5E] flex items-center justify-center font-bold text-xs text-white shadow-md">
+              ER
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary-dark bg-[#E07A5F] flex items-center justify-center font-bold text-xs text-white shadow-md">
+              JM
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary-dark bg-[#40916C] flex items-center justify-center font-bold text-xs text-white shadow-md">
+              AL
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary-dark bg-[#2D425A] flex items-center justify-center font-bold text-xs text-white shadow-md">
+              +1M
+            </div>
+          </div>
+
+          <div>
+            <div class="text-sm sm:text-base font-bold text-white tracking-tight">
+              Join 1.25M+ people
+            </div>
+            <div class="text-xs text-white/70 flex items-center gap-1.5 mt-0.5">
+              <!-- Star SVGs -->
+              <div class="flex text-[#F4A261]">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              </div>
+              <span><strong>4.9 / 5</strong> on their healing journey</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Frosted Testimonial Snippet Card -->
+        <div class="mt-6 p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl text-sand-light relative overflow-hidden group">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+          <p class="text-xs sm:text-sm italic leading-relaxed text-white/95">
+            "Drozo helped me match with the right therapist in under 24 hours. Having the flexibility to message my counselor between video sessions completely shifted my outlook on mental health."
+          </p>
+          <div class="mt-3 flex items-center justify-between text-xs text-sand-dark">
+            <span class="font-semibold text-white">&mdash; Elena R.</span>
+            <span class="text-white/70">Verified Member &bull; 8 months</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Trust Badges Grid (HIPAA, SSL, Confidentiality, Board-Certified) -->
+      <div class="relative z-10 pt-6 border-t border-white/15">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center sm:text-left">
+          
+          <!-- Badge 1: HIPAA -->
+          <div class="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <svg class="w-5 h-5 text-[#72C09B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <div class="text-[11px] font-semibold leading-tight text-white/90">
+              HIPAA Compliant
+            </div>
+          </div>
+
+          <!-- Badge 2: 256-Bit SSL -->
+          <div class="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <svg class="w-5 h-5 text-[#72C09B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <div class="text-[11px] font-semibold leading-tight text-white/90">
+              256-Bit Encrypted
+            </div>
+          </div>
+
+          <!-- Badge 3: 100% Confidential -->
+          <div class="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <svg class="w-5 h-5 text-[#72C09B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <div class="text-[11px] font-semibold leading-tight text-white/90">
+              100% Confidential
+            </div>
+          </div>
+
+          <!-- Badge 4: Licensed Therapists -->
+          <div class="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+            <svg class="w-5 h-5 text-[#72C09B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+            <div class="text-[11px] font-semibold leading-tight text-white/90">
+              Vetted Providers
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FORGOT PASSWORD MODAL (Accessible Dialog)                                 -->
+  <!-- ========================================================================= -->
+  <div id="forgot-password-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-charcoal-dark/70 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-animate bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-sand-dark relative text-charcoal">
+      
+      <!-- Close Button -->
+      <button 
+        type="button" 
+        onclick="closeForgotPasswordModal()"
+        class="absolute top-5 right-5 p-2 rounded-full text-charcoal-muted hover:text-charcoal hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+        aria-label="Close dialog">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <!-- Modal Content State: Initial Input Form -->
+      <div id="modal-form-content">
+        <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary flex items-center justify-center mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+        </div>
+
+        <h3 id="modal-title" class="font-heading text-xl font-bold text-charcoal tracking-tight">
+          Reset your password
+        </h3>
+        <p class="mt-1.5 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
+          Enter the email associated with your Drozo Therapy account and we'll send you a confidential recovery link.
+        </p>
+
+        <form id="forgot-password-form" onsubmit="handleForgotPasswordSubmit(event)" class="mt-5 space-y-4">
+          <div>
+            <label for="forgot-email" class="block text-xs font-semibold text-charcoal mb-1">
+              Email Address
+            </label>
+            <input 
+              type="email" 
+              id="forgot-email" 
+              required
+              placeholder="name@example.com"
+              class="input-field block w-full px-4 py-3 text-sm rounded-xl border border-sand-dark bg-sand-light text-charcoal placeholder-charcoal-muted/60 focus:outline-none"
+            >
+            <p id="forgot-email-error" class="hidden mt-1 text-xs text-red-500 font-medium">Please enter a valid email address.</p>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button 
+              type="button" 
+              onclick="closeForgotPasswordModal()"
+              class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-charcoal-muted hover:text-charcoal hover:bg-sand/60 transition-colors focus:outline-none">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              id="forgot-submit-btn"
+              class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-primary">
+              <span>Send Recovery Link</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Content State: Sent Confirmation -->
+      <div id="modal-success-content" class="hidden text-center py-4">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF4EE] text-primary flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="font-heading text-xl font-bold text-charcoal">Check your email</h3>
+        <p class="mt-2 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
+          We have dispatched secure recovery instructions to <strong id="sent-email-display" class="text-charcoal">your email</strong>. Please check your inbox and spam folder.
+        </p>
+        <button 
+          type="button" 
+          onclick="closeForgotPasswordModal()" 
+          class="mt-6 w-full py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors shadow-md focus:outline-none">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC (Interactive Features & State Handling)                  -->
+  <!-- ========================================================================= -->
+  <script>
+    // State management
+    let activeTab = 'signin';
+
+    // Email validation regex helper
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Initialize on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if user is already signed in or returning from Google/Apple OAuth
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (SUPABASE_URL && SUPABASE_ANON && typeof supabase !== 'undefined') {
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        sb.auth.getSession().then(async ({ data }) => {
+          if (data && data.session) {
+            localStorage.setItem('drozo_active_session', data.session.user.email);
+            let role = 'patient';
+            try {
+              const { data: profile } = await sb.from('profiles').select('role').eq('id', data.session.user.id).maybeSingle();
+              if (profile && profile.role) role = profile.role;
+            } catch (_) {}
+            if (['admin', 'coordinator', 'therapist'].includes(role)) {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'dashboard.html';
+            }
+          }
+        });
+      }
+
+      // Check query parameter or hash for preselected mode (?mode=signup or #signup)
+      const urlParams = new URLSearchParams(window.location.search);
+      const modeParam = urlParams.get('mode');
+      const hash = window.location.hash.toLowerCase();
+
+      if (modeParam === 'signup' || hash === '#signup') {
+        switchAuthTab('signup', false);
+      } else {
+        switchAuthTab('signin', false);
+      }
+
+      // Listen for browser back/forward or hash changes
+      window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#signup') {
+          switchAuthTab('signup', false);
+        } else if (window.location.hash === '#signin') {
+          switchAuthTab('signin', false);
+        }
+      });
+
+      // Escape key closes modal
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeForgotPasswordModal();
+        }
+      });
+    });
+
+    /**
+     * Tab switching between Sign In and Create Account
+     */
+    function switchAuthTab(tab, updateHash = true) {
+      activeTab = tab;
+      const tabSlider = document.getElementById('tab-slider');
+      const signinBtn = document.getElementById('tab-signin-btn');
+      const signupBtn = document.getElementById('tab-signup-btn');
+      const signinPanel = document.getElementById('panel-signin');
+      const signupPanel = document.getElementById('panel-signup');
+      const authHeading = document.getElementById('auth-heading');
+      const authSubheading = document.getElementById('auth-subheading');
+
+      if (tab === 'signin') {
+        // Move slider to left
+        tabSlider.style.transform = 'translateX(0%)';
+        
+        // Active button styles
+        signinBtn.setAttribute('aria-selected', 'true');
+        signupBtn.setAttribute('aria-selected', 'false');
+        signinBtn.className = 'relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal text-center rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary';
+        signupBtn.className = 'relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal-muted text-center rounded-xl transition-colors duration-200 hover:text-charcoal focus:outline-none focus:ring-2 focus:ring-primary';
+
+        // Panels
+        signinPanel.classList.remove('hidden-tab');
+        signinPanel.classList.add('active-tab');
+        signupPanel.classList.add('hidden-tab');
+        signupPanel.classList.remove('active-tab');
+
+        // Text update
+        authHeading.textContent = 'Welcome back';
+        authSubheading.textContent = 'Sign in to continue your secure mental healthcare sessions and notes.';
+
+        if (updateHash) {
+          history.replaceState(null, '', '#signin');
+        }
+      } else {
+        // Move slider to right (100% of half container)
+        tabSlider.style.transform = 'translateX(100%)';
+        
+        // Active button styles
+        signinBtn.setAttribute('aria-selected', 'false');
+        signupBtn.setAttribute('aria-selected', 'true');
+        signinBtn.className = 'relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal-muted text-center rounded-xl transition-colors duration-200 hover:text-charcoal focus:outline-none focus:ring-2 focus:ring-primary';
+        signupBtn.className = 'relative z-10 w-1/2 py-2.5 sm:py-3 text-sm font-semibold text-charcoal text-center rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary';
+
+        // Panels
+        signupPanel.classList.remove('hidden-tab');
+        signupPanel.classList.add('active-tab');
+        signinPanel.classList.add('hidden-tab');
+        signinPanel.classList.remove('active-tab');
+
+        // Text update
+        authHeading.textContent = 'Create your account';
+        authSubheading.textContent = 'Take your first step toward personalized, compassionate care today.';
+
+        if (updateHash) {
+          history.replaceState(null, '', '#signup');
+        }
+      }
+    }
+
+    /**
+     * Toggle password visibility between password and text
+     */
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+
+      const eyeIcon = btn.querySelector('.eye-icon');
+      const eyeOffIcon = btn.querySelector('.eye-off-icon');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+        btn.setAttribute('aria-label', 'Hide password');
+      } else {
+        input.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+        btn.setAttribute('aria-label', 'Show password');
+      }
+    }
+
+    /**
+     * Clear error state on input change
+     */
+    function clearError(fieldId) {
+      const input = document.getElementById(fieldId);
+      const errorEl = document.getElementById(`${fieldId}-error`);
+      if (input) {
+        input.classList.remove('input-error');
+        input.removeAttribute('aria-invalid');
+      }
+      if (errorEl) {
+        errorEl.classList.add('hidden');
+      }
+    }
+
+    /**
+     * Show error message and highlight input
+     */
+    function showError(fieldId, customMessage = null) {
+      const input = document.getElementById(fieldId);
+      const errorEl = document.getElementById(`${fieldId}-error`);
+      if (input) {
+        input.classList.add('input-error');
+        input.setAttribute('aria-invalid', 'true');
+        input.focus();
+      }
+      if (errorEl) {
+        if (customMessage) {
+          const textSpan = errorEl.querySelector('span');
+          if (textSpan) textSpan.textContent = customMessage;
+        }
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Password Strength Evaluation
+     */
+    function handlePasswordStrength(password) {
+      const bar1 = document.getElementById('bar-1');
+      const bar2 = document.getElementById('bar-2');
+      const bar3 = document.getElementById('bar-3');
+      const bar4 = document.getElementById('bar-4');
+      const label = document.getElementById('strength-text');
+
+      if (!password || password.length === 0) {
+        resetStrengthBars();
+        label.textContent = 'Enter a password';
+        label.className = 'font-bold text-gray-400';
+        return 0;
+      }
+
+      let score = 0;
+      if (password.length >= 8) score++;
+      if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+      if (/[0-9]/.test(password)) score++;
+      if (/[^A-Za-z0-9]/.test(password)) score++;
+
+      // Reset
+      resetStrengthBars();
+
+      if (score === 1 || password.length < 8) {
+        bar1.className = 'h-full rounded-full bg-red-500 transition-all duration-300';
+        label.textContent = 'Weak';
+        label.className = 'font-bold text-red-500';
+      } else if (score === 2) {
+        bar1.className = 'h-full rounded-full bg-amber-500 transition-all duration-300';
+        bar2.className = 'h-full rounded-full bg-amber-500 transition-all duration-300';
+        label.textContent = 'Fair';
+        label.className = 'font-bold text-amber-500';
+      } else if (score === 3) {
+        bar1.className = 'h-full rounded-full bg-emerald-500 transition-all duration-300';
+        bar2.className = 'h-full rounded-full bg-emerald-500 transition-all duration-300';
+        bar3.className = 'h-full rounded-full bg-emerald-500 transition-all duration-300';
+        label.textContent = 'Good';
+        label.className = 'font-bold text-emerald-600';
+      } else if (score >= 4) {
+        bar1.className = 'h-full rounded-full bg-primary-light transition-all duration-300';
+        bar2.className = 'h-full rounded-full bg-primary-light transition-all duration-300';
+        bar3.className = 'h-full rounded-full bg-primary-light transition-all duration-300';
+        bar4.className = 'h-full rounded-full bg-primary-light transition-all duration-300';
+        label.textContent = 'Strong';
+        label.className = 'font-bold text-primary';
+      }
+
+      return score;
+    }
+
+    function resetStrengthBars() {
+      ['bar-1', 'bar-2', 'bar-3', 'bar-4'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.className = 'h-full rounded-full bg-gray-200 transition-all duration-300';
+      });
+    }
+
+    /**
+     * Check Confirm Password Match
+     */
+    function checkPasswordMatch() {
+      const pass = document.getElementById('signup-password').value;
+      const confirm = document.getElementById('signup-confirm-password').value;
+      const error = document.getElementById('signup-confirm-error');
+
+      if (confirm && pass !== confirm) {
+        error.classList.remove('hidden');
+        return false;
+      } else {
+        error.classList.add('hidden');
+        return true;
+      }
+    }
+
+    /**
+     * Fill Demo Credentials for instant testing
+     */
+    function fillDemoCredentials() {
+      const emailInput = document.getElementById('signin-email');
+      const passInput = document.getElementById('signin-password');
+      emailInput.value = 'sarah.walker@drozo.com';
+      passInput.value = 'HealingTogether2026!';
+      clearError('signin-email');
+      clearError('signin-password');
+      showToast('Demo Credentials Loaded', 'Click "Sign In" to proceed to your secure portal.', 'info');
+    }
+
+    /**
+     * Handle Sign In Submission
+     */
+    function handleSignInSubmit(event) {
+      event.preventDefault();
+      
+      const emailInput = document.getElementById('signin-email');
+      const passInput = document.getElementById('signin-password');
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      let hasError = false;
+
+      // Validate email
+      if (!email || !EMAIL_REGEX.test(email)) {
+        showError('signin-email', 'Please enter a valid email address.');
+        hasError = true;
+      }
+
+      // Validate password
+      if (!password || password.length < 6) {
+        showError('signin-password', 'Password must be at least 6 characters.');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Enter loading state
+      const btn = document.getElementById('signin-submit-btn');
+      const textSpan = btn.querySelector('.btn-text');
+      const spinnerSpan = btn.querySelector('.btn-spinner');
+      
+      btn.disabled = true;
+      textSpan.classList.add('hidden');
+      spinnerSpan.classList.remove('hidden');
+
+      // Real Supabase Authentication
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: { persistSession: true, autoRefreshToken: true }
+      });
+
+      sb.auth.signInWithPassword({ email: email, password: password })
+        .then(async ({ data, error }) => {
+          if (error) {
+            btn.disabled = false;
+            textSpan.classList.remove('hidden');
+            spinnerSpan.classList.add('hidden');
+            showError('signin-password', error.message);
+            showToast('Sign In Failed', error.message, 'error');
+            return;
+          }
+
+          let role = 'patient';
+          try {
+            const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+            if (profile && profile.role) role = profile.role;
+          } catch (_) {}
+
+          localStorage.setItem('drozo_active_session', email);
+          showToast(
+            'Signed In Successfully!', 
+            `Welcome back, ${email.split('@')[0]}. Redirecting to your sanctuary...`, 
+            'success'
+          );
+
+          setTimeout(() => {
+            if (['admin', 'coordinator', 'therapist'].includes(role)) {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'dashboard.html';
+            }
+          }, 1100);
+        })
+        .catch(err => {
+          btn.disabled = false;
+          textSpan.classList.remove('hidden');
+          spinnerSpan.classList.add('hidden');
+          showToast('Authentication Error', err.message || String(err), 'error');
+        });
+    }
+
+    /**
+     * Handle Sign Up Submission
+     */
+    function handleSignUpSubmit(event) {
+      event.preventDefault();
+
+      const nameInput = document.getElementById('signup-name');
+      const emailInput = document.getElementById('signup-email');
+      const passInput = document.getElementById('signup-password');
+      const confirmInput = document.getElementById('signup-confirm-password');
+      const termsInput = document.getElementById('signup-terms');
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      const confirm = confirmInput.value;
+      let hasError = false;
+
+      // Validate name
+      if (!name || name.length < 2) {
+        showError('signup-name', 'Please enter your full name.');
+        hasError = true;
+      }
+
+      // Validate email
+      if (!email || !EMAIL_REGEX.test(email)) {
+        showError('signup-email', 'Please enter a valid email address.');
+        hasError = true;
+      }
+
+      // Validate password
+      if (!password || password.length < 8) {
+        showError('signup-password', 'Password must be at least 8 characters long.');
+        hasError = true;
+      }
+
+      // Validate match
+      if (password !== confirm) {
+        showError('signup-confirm-password', 'Passwords do not match.');
+        hasError = true;
+      }
+
+      // Validate terms
+      if (!termsInput.checked) {
+        const termsError = document.getElementById('signup-terms-error');
+        termsError.classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Enter loading state
+      const btn = document.getElementById('signup-submit-btn');
+      const textSpan = btn.querySelector('.btn-text');
+      const spinnerSpan = btn.querySelector('.btn-spinner');
+
+      btn.disabled = true;
+      textSpan.classList.add('hidden');
+      spinnerSpan.classList.remove('hidden');
+
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: { persistSession: true, autoRefreshToken: true }
+      });
+
+      sb.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: window.location.origin + window.location.pathname
+        }
+      })
+      .then(({ data, error }) => {
+        if (error) {
+          btn.disabled = false;
+          textSpan.classList.remove('hidden');
+          spinnerSpan.classList.add('hidden');
+          showError('signup-email', error.message);
+          showToast('Registration Error', error.message, 'error');
+          return;
+        }
+
+        localStorage.setItem('drozo_active_session', email);
+        showToast(
+          'Account Created!', 
+          `Welcome to Drozo Therapy, ${name.split(' ')[0]}! Starting your sanctuary...`, 
+          'success'
+        );
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1200);
+      })
+      .catch(err => {
+        btn.disabled = false;
+        textSpan.classList.remove('hidden');
+        spinnerSpan.classList.add('hidden');
+        showToast('Registration Error', err.message || String(err), 'error');
+      });
+    }
+
+    /**
+     * Social Authentication Handler (Google & Apple via Supabase OAuth)
+     */
+    async function handleSocialLogin(provider) {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (!SUPABASE_URL || !SUPABASE_ANON || typeof supabase === 'undefined') {
+        showToast('Configuration Missing', 'Supabase configuration is required.', 'error');
         return;
-      } }
-    } catch (e) { alert("Check failed or cancelled: " + errText(e)); return; }
-    respond("authorized");
-  }
+      }
 
-  document.addEventListener("DOMContentLoaded", async function () {
-    $("btnLogin").addEventListener("click", login);
-    $("btnSignOut").addEventListener("click", signOut);
-    $("btnChange").addEventListener("click", resetProtection);
-    $("btnApprove").addEventListener("click", approve);
-    $("btnDeny").addEventListener("click", function () { respond("denied"); });
-    $("btnEnroll").addEventListener("click", enrollFingerprint);
-    $("btnEnrollFace").addEventListener("click", enrollWithFace);
-    $("btnSkip").addEventListener("click", skip);
-    $("btnUnlock").addEventListener("click", unlock);
-    var s = (await sb.auth.getSession()).data;
-    if (s && s.session) afterLogin();
-  });
-})();
-</script>
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+
+      const prov = provider.toLowerCase(); // 'google' or 'apple'
+      showToast(
+        `Connecting with ${provider}...`, 
+        `Redirecting to secure ${provider} Single Sign-On gateway.`, 
+        'info'
+      );
+
+      try {
+        const redirectUrl = window.location.origin + window.location.pathname.replace('auth.html', 'dashboard.html');
+        const { data, error } = await sb.auth.signInWithOAuth({
+          provider: prov,
+          options: {
+            redirectTo: redirectUrl
+          }
+        });
+        if (error) throw error;
+      } catch (err) {
+        showToast(
+          `${provider} Auth Notice`, 
+          (err.message || String(err)) + ` (Make sure ${provider} provider is enabled in your Supabase Auth dashboard)`, 
+          'error'
+        );
+      }
+    }
+
+    /**
+     * Forgot Password Modal Handlers
+     */
+    function openForgotPasswordModal() {
+      const modal = document.getElementById('forgot-password-modal');
+      const formContent = document.getElementById('modal-form-content');
+      const successContent = document.getElementById('modal-success-content');
+      const signinEmail = document.getElementById('signin-email').value;
+      const forgotEmail = document.getElementById('forgot-email');
+
+      if (signinEmail && EMAIL_REGEX.test(signinEmail)) {
+        forgotEmail.value = signinEmail;
+      }
+
+      formContent.classList.remove('hidden');
+      successContent.classList.add('hidden');
+      modal.classList.remove('hidden');
+      forgotEmail.focus();
+    }
+
+    function closeForgotPasswordModal() {
+      const modal = document.getElementById('forgot-password-modal');
+      modal.classList.add('hidden');
+    }
+
+    function handleForgotPasswordSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      const error = document.getElementById('forgot-email-error');
+      const btn = document.getElementById('forgot-submit-btn');
+
+      if (!email || !EMAIL_REGEX.test(email)) {
+        error.classList.remove('hidden');
+        return;
+      }
+      error.classList.add('hidden');
+
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="animate-spin w-4 h-4 text-white mr-2" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Sending...
+      `;
+
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (SUPABASE_URL && SUPABASE_ANON && typeof supabase !== 'undefined') {
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+      }
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'Send Recovery Link';
+        document.getElementById('sent-email-display').textContent = email;
+        document.getElementById('modal-form-content').classList.add('hidden');
+        document.getElementById('modal-success-content').classList.remove('hidden');
+      }, 900);
+    }
+
+    /**
+     * Toast Notification Generator
+     */
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const isSuccess = type === 'success';
+      const bgColor = isSuccess ? 'bg-primary' : 'bg-charcoal';
+      const iconSvg = isSuccess ? `
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7" />
+        </svg>
+      ` : `
+        <svg class="w-6 h-6 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      `;
+
+      toast.className = `toast-animate-in pointer-events-auto flex items-start gap-3.5 p-4 rounded-2xl ${bgColor} text-white shadow-xl shadow-charcoal/20 border border-white/15 mb-3 w-full`;
+      toast.innerHTML = `
+        <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+          ${iconSvg}
+        </div>
+        <div class="flex-grow">
+          <h4 class="font-heading font-bold text-sm tracking-tight text-white">${title}</h4>
+          <p class="text-xs text-white/85 mt-0.5 leading-snug">${message}</p>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-white/60 hover:text-white p-1 rounded-lg focus:outline-none" aria-label="Dismiss toast">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto dismiss after 4 seconds
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px)';
+          toast.style.transition = 'all 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 4000);
+    }
+  </script>
+
 </body>
 </html>

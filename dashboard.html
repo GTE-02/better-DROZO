@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Dashboard — Drozo Therapy</title>
+  <meta name="description" content="Your private, secure Drozo client room. Manage your therapy sessions, confidential messages, mood tracking, and personal wellness journal.">
+
+  <!-- Google Fonts: Plus Jakarta Sans (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#2D6A4F',
+              light: '#40916C',
+              dark: '#1B4332',
+              50: '#EAF4EE',
+              100: '#D5E9DE',
+              200: '#ABCEBE',
+            },
+            sand: {
+              DEFAULT: '#F5F0E8',
+              light: '#FAF7F2',
+              dark: '#EDE5D8',
+              muted: '#E5DDCF',
+            },
+            accent: {
+              DEFAULT: '#E07A5F',
+              hover: '#CE6A4F',
+              light: '#FDF1ED',
+              dark: '#B8553B',
+            },
+            charcoal: {
+              DEFAULT: '#1B2A3D',
+              light: '#2B3E56',
+              dark: '#0F1824',
+              muted: '#5C6C7E',
+            },
+            canvas: {
+              light: '#FAF7F2',
+              card: '#FFFFFF',
+            }
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 10px 30px -5px rgba(27, 42, 61, 0.06), 0 4px 10px -2px rgba(27, 42, 61, 0.03)',
+            'soft-lg': '0 20px 40px -10px rgba(45, 106, 79, 0.12), 0 8px 16px -4px rgba(27, 42, 61, 0.04)',
+            'glow': '0 0 35px -5px rgba(45, 106, 79, 0.35)',
+            'accent-glow': '0 0 30px -5px rgba(224, 122, 95, 0.4)',
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
+            'breathe': 'breathe 8s ease-in-out infinite',
+            'spin-slow': 'spin 12s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            pulseSoft: {
+              '0%, 100%': { opacity: '0.9', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.03)' },
+            },
+            breathe: {
+              '0%, 100%': { transform: 'scale(1)', opacity: '0.7' },
+              '50%': { transform: 'scale(1.08)', opacity: '0.9' },
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom CSS matching index.html & dashboard specifics -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAF7F2;
+      color: #1B2A3D;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, h5, h6, .font-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* Abstract Organic Shapes */
+    .organic-shape {
+      border-radius: 64% 36% 70% 30% / 48% 59% 41% 52%;
+    }
+    .organic-shape-2 {
+      border-radius: 42% 58% 35% 65% / 60% 32% 68% 40%;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F5F0E8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ABCEBE;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2D6A4F;
+    }
+
+    /* Chat bubble smooth entry */
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .message-bubble-anim {
+      animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Pulse dot */
+    @keyframes livePulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(64, 145, 108, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 7px rgba(64, 145, 108, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(64, 145, 108, 0);
+      }
+    }
+    .live-dot {
+      animation: livePulse 2s infinite;
+    }
+
+    /* Typing indicator dots */
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+    .typing-dot-1 { animation: typingBounce 1.2s infinite ease-in-out; }
+    .typing-dot-2 { animation: typingBounce 1.2s infinite ease-in-out 0.2s; }
+    .typing-dot-3 { animation: typingBounce 1.2s infinite ease-in-out 0.4s; }
+
+    /* Circular progress circle */
+    .wellness-circle {
+      transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dark Mode Overrides */
+    html.dark body {
+      background-color: #0F1824;
+      color: #F8F7F4;
+    }
+    html.dark .bg-canvas-light, 
+    html.dark .bg-sand-light, 
+    html.dark .bg-sand {
+      background-color: #162231 !important;
+    }
+    html.dark .bg-white {
+      background-color: #1A283A !important;
+    }
+    html.dark .bg-sand-dark {
+      background-color: #1E3046 !important;
+    }
+    html.dark .border-sand-muted, 
+    html.dark .border-sand-dark, 
+    html.dark .border-sand,
+    html.dark .border-gray-100, 
+    html.dark .border-gray-200 {
+      border-color: #273C56 !important;
+    }
+    html.dark .text-charcoal {
+      color: #F8F7F4 !important;
+    }
+    html.dark .text-charcoal-muted {
+      color: #9EAFBF !important;
+    }
+    html.dark .shadow-soft, 
+    html.dark .shadow-soft-lg {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45) !important;
+    }
+    html.dark nav.sticky-nav,
+    html.dark header.sticky-nav {
+      background-color: rgba(15, 24, 36, 0.95) !important;
+      border-bottom-color: rgba(39, 60, 86, 0.8) !important;
+    }
+    html.dark .bg-primary-50 {
+      background-color: rgba(45, 106, 79, 0.25) !important;
+    }
+    html.dark .bg-sand-muted\/60,
+    html.dark .bg-sand\/60,
+    html.dark .bg-sand\/40 {
+      background-color: rgba(30, 48, 70, 0.6) !important;
+    }
+    html.dark ::-webkit-scrollbar-track {
+      background: #0F1824;
+    }
+    html.dark ::-webkit-scrollbar-thumb {
+      background: #273C56;
+    }
+  </style>
+</head>
+<body class="selection:bg-primary-light selection:text-white min-h-screen flex flex-col antialiased">
+
+  <!-- Accessibility Skip Link -->
+  <a href="#main-dashboard" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary text-white font-medium rounded-lg shadow-lg">
+    Skip to dashboard content
+  </a>
+
+  <!-- ========================================================================= -->
+  <!-- CRISIS SUPPORT NOTICE BANNER (Discreet, supportive mental healthcare safety) -->
+  <!-- ========================================================================= -->
+  <div class="bg-primary-dark text-white/90 text-xs py-1.5 px-4 text-center flex items-center justify-center gap-2 border-b border-primary-light/20">
+    <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-accent animate-ping mr-1"></span>
+    <span>In crisis or immediate distress? Call or text <strong>988</strong> (Suicide & Crisis Lifeline) or text <strong>HOME to 741741</strong>.</span>
+    <button onclick="openModal('crisisModal')" class="underline hover:text-white ml-1 font-medium transition-colors">Resources</button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOP STICKY NAVIGATION BAR                                                 -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 w-full transition-all duration-300 backdrop-blur-md bg-sand-light/95 border-b border-sand-dark/70 sticky-nav" id="dashboardHeader">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-8">
+          <a href="index.html" class="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-xl" aria-label="Drozo Therapy Home">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white shadow-md shadow-primary/20 transition-transform duration-300 group-hover:scale-105">
+              <!-- Leaf / Wellness SVG -->
+              <svg class="w-6 h-6 text-[#F8F7F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22C12 22 20 18 20 10C20 4.5 15.5 2 12 2C8.5 2 4 4.5 4 10C4 18 12 22 12 22Z" fill="rgba(248, 247, 244, 0.15)"></path>
+                <path d="M12 2V22"></path>
+                <path d="M12 7C9.5 8 7 10.5 7 14"></path>
+                <path d="M12 11C14.5 12 17 14.5 17 17"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-heading font-extrabold text-2xl tracking-tight text-charcoal">Drozo</span>
+              <span class="text-[10px] font-semibold tracking-widest uppercase -mt-1 text-primary">Therapy</span>
+            </div>
+          </a>
+
+          <!-- Desktop Navigation Items -->
+          <nav class="hidden md:flex items-center space-x-1 lg:space-x-1.5" aria-label="Client Portal Navigation">
+            <a href="#dashboard" class="px-3.5 py-2 text-sm font-semibold text-primary bg-primary-50 rounded-xl transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+              </svg>
+              Dashboard
+            </a>
+            <a href="#messages" onclick="focusChatInput(event)" class="px-3.5 py-2 text-sm font-medium text-charcoal/80 hover:text-primary transition-colors rounded-xl hover:bg-sand/60 flex items-center gap-1.5">
+              <span>Messages</span>
+              <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-bold leading-none text-white bg-accent rounded-full" id="unreadBadge">2</span>
+            </a>
+            <a href="#sessions-section" class="px-3.5 py-2 text-sm font-medium text-charcoal/80 hover:text-primary transition-colors rounded-xl hover:bg-sand/60 flex items-center gap-1.5">
+              <span>Sessions</span>
+              <span class="w-2 h-2 rounded-full bg-primary-light"></span>
+            </a>
+            <a href="#resources-section" class="px-3.5 py-2 text-sm font-medium text-charcoal/80 hover:text-primary transition-colors rounded-xl hover:bg-sand/60">
+              Resources
+            </a>
+            <a href="#journal-section" class="px-3.5 py-2 text-sm font-medium text-charcoal/80 hover:text-primary transition-colors rounded-xl hover:bg-sand/60">
+              Journal
+            </a>
+          </nav>
+        </div>
+
+        <!-- Right Side: Dark Mode Toggle, Notifications & User Menu -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          
+          <!-- Quick Crisis Support button -->
+          <button onclick="openModal('crisisModal')" class="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent-light rounded-lg transition-colors border border-accent/30" title="Emergency mental health resources">
+            <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span>Crisis Help</span>
+          </button>
+
+          <!-- Dark / Light Mode Toggle -->
+          <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 text-charcoal-muted hover:text-primary rounded-xl hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Toggle dark mode">
+            <!-- Sun icon (shown in dark mode) -->
+            <svg id="themeIconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5" stroke-width="2"></circle>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+            </svg>
+            <!-- Moon icon (shown in light mode) -->
+            <svg id="themeIconMoon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+
+          <!-- Notifications Dropdown Trigger -->
+          <div class="relative">
+            <button id="notificationBtn" onclick="toggleNotificationDropdown()" class="relative p-2.5 text-charcoal-muted hover:text-primary rounded-xl hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Notifications" aria-expanded="false">
+              <!-- Bell Icon -->
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+              <!-- Unread notification indicator dot -->
+              <span id="notifDot" class="absolute top-2 right-2 w-2.5 h-2.5 bg-accent rounded-full ring-2 ring-sand-light"></span>
+            </button>
+
+            <!-- Notifications Dropdown Menu -->
+            <div id="notificationMenu" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-soft-lg border border-sand-dark py-3 z-50 animate-messageSlideIn">
+              <div class="px-4 py-2 border-b border-sand-dark flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-heading font-semibold text-charcoal text-sm">Notifications</h4>
+                  <span class="bg-primary-50 text-primary text-xs px-2 py-0.5 rounded-full font-bold">3 new</span>
+                </div>
+                <button onclick="markAllNotificationsRead()" class="text-xs text-primary hover:text-primary-dark font-medium transition-colors">
+                  Mark all as read
+                </button>
+              </div>
+
+              <div class="max-h-72 overflow-y-auto divide-y divide-sand-dark/50" id="notificationList">
+                <!-- Notif 1 -->
+                <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="focusChatInput()">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
+                    DR
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-charcoal font-medium">New message from <strong>Dr. Rachel Kim</strong></p>
+                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">"That's wonderful progress, Sarah! Recognizing the physical trigger..."</p>
+                    <span class="text-[10px] text-charcoal-muted/80 block mt-1">15 mins ago</span>
+                  </div>
+                  <span class="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5"></span>
+                </div>
+
+                <!-- Notif 2 -->
+                <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="scrollToSection('sessions-section')">
+                  <div class="w-8 h-8 rounded-full bg-primary-50 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"></rect>
+                      <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-charcoal font-medium">Session confirmed for <strong>Thursday at 3:00 PM</strong></p>
+                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">50-min Video Session with Dr. Rachel Kim</p>
+                    <span class="text-[10px] text-charcoal-muted/80 block mt-1">2 hours ago</span>
+                  </div>
+                  <span class="w-2 h-2 rounded-full bg-accent shrink-0 mt-1.5"></span>
+                </div>
+
+                <!-- Notif 3 -->
+                <div class="p-3.5 hover:bg-sand-light/60 transition-colors flex gap-3 cursor-pointer" onclick="openModal('resourceModal1')">
+                  <div class="w-8 h-8 rounded-full bg-sand-muted text-charcoal flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-charcoal font-medium">New resource recommended for you</p>
+                    <p class="text-[11px] text-charcoal-muted truncate mt-0.5">"Managing Anxiety at Work: 4 Boundary Phrases"</p>
+                    <span class="text-[10px] text-charcoal-muted/80 block mt-1">1 day ago</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-2 border-t border-sand-dark text-center">
+                <button onclick="toggleNotificationDropdown()" class="text-xs font-semibold text-charcoal-muted hover:text-primary transition-colors">
+                  Close Notifications
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Avatar Dropdown -->
+          <div class="relative">
+            <button id="userMenuBtn" onclick="toggleUserDropdown()" class="flex items-center gap-2.5 p-1 sm:p-1.5 rounded-full sm:rounded-xl hover:bg-sand/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary" aria-label="User profile menu" aria-expanded="false">
+              <!-- Avatar circle -->
+              <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-light to-primary text-white flex items-center justify-center font-heading font-bold text-sm shadow-sm ring-2 ring-primary/20">
+                SM
+              </div>
+              <div class="hidden sm:flex flex-col text-left">
+                <span class="text-xs font-heading font-bold text-charcoal leading-tight">Sarah M.</span>
+                <span class="text-[10px] text-primary font-medium">Active Client</span>
+              </div>
+              <!-- Chevron down -->
+              <svg class="w-4 h-4 text-charcoal-muted transition-transform" id="userMenuChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- User Menu Dropdown -->
+            <div id="userMenu" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-soft-lg border border-sand-dark py-2 z-50">
+              <div class="px-4 py-3 border-b border-sand-dark">
+                <p class="font-heading font-bold text-sm text-charcoal">Sarah Mitchell</p>
+                <p class="text-xs text-charcoal-muted truncate">sarah.m@example.com</p>
+                <div class="mt-2 flex items-center gap-1.5 text-[11px] text-primary bg-primary-50 px-2 py-0.5 rounded-md font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Weekly Video + Unlimited Chat
+                </div>
+              </div>
+
+              <div class="py-1">
+                <a href="#profile" onclick="openModal('profileModal'); toggleUserDropdown(); return false;" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-charcoal hover:bg-sand-light hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                  My Profile & Preferences
+                </a>
+                <a href="#goals" onclick="scrollToSection('goals-section'); toggleUserDropdown(); return false;" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-charcoal hover:bg-sand-light hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Therapy Goals & Milestones
+                </a>
+                <a href="#billing" onclick="openModal('billingModal'); toggleUserDropdown(); return false;" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-charcoal hover:bg-sand-light hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                  </svg>
+                  Billing & Insurance Receipts
+                </a>
+                <a href="#crisis" onclick="openModal('crisisModal'); toggleUserDropdown(); return false;" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-charcoal hover:bg-sand-light hover:text-primary transition-colors">
+                  <svg class="w-4 h-4 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                  </svg>
+                  Emergency & Crisis Contacts
+                </a>
+              </div>
+
+              <div class="pt-2 border-t border-sand-dark">
+                <a href="#" onclick="handleLogout(); return false;" class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-accent hover:bg-accent-light/50 transition-colors">
+                  <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  Log Out
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN DASHBOARD CONTENT AREA                                               -->
+  <!-- ========================================================================= -->
+  <main id="main-dashboard" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 pb-28 md:pb-16 w-full">
+
+    <!-- 1. WELCOME BANNER (Personalized, Time-of-day greeting, soothing gradient) -->
+    <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sand via-primary-50/60 to-sand-light border border-sand-dark/80 p-6 sm:p-8 shadow-soft">
+      <!-- Decorative organic aura blobs -->
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-primary-100/40 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute right-32 -bottom-20 w-72 h-72 bg-sand-dark/50 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 dark:bg-charcoal/60 backdrop-blur-sm text-xs font-semibold text-primary border border-primary/20 mb-3 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-primary-light animate-ping"></span>
+            <span>Your Safe Space • Confidential & HIPAA-Compliant</span>
+          </div>
+
+          <!-- Dynamic greeting -->
+          <h1 id="welcomeGreeting" class="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl text-charcoal tracking-tight">
+            Good morning, Sarah 👋
+          </h1>
+
+          <p class="mt-2 text-sm sm:text-base text-charcoal-muted leading-relaxed">
+            Your next session is in <span class="font-semibold text-primary dark:text-primary-light">2 days</span> with Dr. Rachel Kim. Take a slow, grounding breath — every step of your therapy journey matters.
+          </p>
+
+          <p class="mt-3 text-xs italic text-charcoal/70 bg-white/50 dark:bg-charcoal-dark/40 px-3 py-1.5 rounded-lg inline-block border border-sand-dark/50">
+            💬 "You don't have to carry everything all at once. Showing up today is enough."
+          </p>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+          <button onclick="focusChatInput()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-dark transition-all duration-200 rounded-full shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            Message Therapist
+          </button>
+
+          <button onclick="openModal('scheduleModal')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-charcoal hover:text-primary bg-white hover:bg-sand-light transition-all duration-200 rounded-full border border-sand-dark shadow-sm hover:-translate-y-0.5">
+            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Book Session
+          </button>
+
+          <button onclick="openModal('journalModal')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-accent hover:bg-accent-hover transition-all duration-200 rounded-full shadow-md shadow-accent/25 hover:shadow-lg hover:-translate-y-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Journal Entry
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. YOUR THERAPIST CARD (Prominent BetterHelp-style therapist room showcase) -->
+    <section class="bg-white rounded-3xl p-6 sm:p-7 border border-sand-dark shadow-soft transition-all duration-300 hover:shadow-soft-lg" id="therapist-card">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        
+        <!-- Left: Therapist Info & Avatar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <!-- Avatar with online indicator -->
+          <div class="relative shrink-0">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary/30 flex items-center justify-center text-primary font-heading font-extrabold text-2xl shadow-inner shadow-primary/20">
+              DR
+            </div>
+            <!-- Online status pulsing badge -->
+            <span class="absolute -bottom-1 -right-1 flex h-5 w-5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-5 w-5 bg-emerald-500 border-2 border-white items-center justify-center text-[9px] text-white font-bold" title="Online now">✓</span>
+            </span>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">Dr. Rachel Kim, PhD</h2>
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+                Online & Available
+              </span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-charcoal-muted">
+              Licensed Clinical Psychologist • CA #PSY28491 • 11 Years Clinical Experience
+            </p>
+
+            <!-- Specialties pills & Rating -->
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <span class="inline-flex items-center text-amber-500 text-xs font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                ★ 4.9 <span class="text-charcoal-muted font-normal ml-1">(128 reviews)</span>
+              </span>
+              <span class="text-xs bg-sand px-2.5 py-0.5 rounded-md text-charcoal font-medium">Anxiety</span>
+              <span class="text-xs bg-sand px-2.5 py-0.5 rounded-md text-charcoal font-medium">Depression</span>
+              <span class="text-xs bg-sand px-2.5 py-0.5 rounded-md text-charcoal font-medium">CBT</span>
+              <span class="text-xs bg-sand px-2.5 py-0.5 rounded-md text-charcoal font-medium">Mindfulness</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Therapist Action Buttons -->
+        <div class="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <button onclick="focusChatInput()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-sm hover:shadow-md">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+              Send Message
+            </button>
+            <button onclick="openModal('scheduleModal')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-charcoal hover:text-primary bg-sand hover:bg-sand-dark rounded-xl transition-colors border border-sand-dark">
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Schedule Session
+            </button>
+          </div>
+          
+          <div class="flex items-center justify-between lg:justify-end gap-3 text-xs pt-1">
+            <button onclick="openModal('therapistProfileModal')" class="text-primary hover:text-primary-dark font-medium underline-offset-2 hover:underline">
+              View Profile & Credentials
+            </button>
+            <span class="text-sand-dark">|</span>
+            <button onclick="openModal('switchTherapistModal')" class="text-charcoal-muted hover:text-accent font-medium transition-colors">
+              Switch Therapist
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick note/status banner from therapist -->
+      <div class="mt-5 pt-4 border-t border-sand-dark/60 flex items-start sm:items-center gap-3 bg-sand-light/60 p-3.5 rounded-2xl">
+        <span class="p-1.5 rounded-lg bg-primary-50 text-primary shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </span>
+        <p class="text-xs text-charcoal-muted leading-relaxed">
+          <strong class="text-charcoal font-semibold">Today's Note from Dr. Kim:</strong> "I reviewed your reflection from Tuesday. You're doing meaningful work tracking your cognitive patterns. See you Thursday at 3:00 PM!"
+        </p>
+      </div>
+    </section>
+
+    <!-- 3. UPCOMING SESSIONS (Card with live countdown & weekly mini-calendar) -->
+    <section class="bg-white rounded-3xl p-6 sm:p-7 border border-sand-dark shadow-soft" id="sessions-section">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-sand-dark">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center font-bold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"></rect>
+              <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-heading font-extrabold text-lg sm:text-xl text-charcoal">Upcoming Sessions</h3>
+            <p class="text-xs text-charcoal-muted">All sessions take place in Drozo's HIPAA-compliant encrypted video room.</p>
+          </div>
+        </div>
+
+        <!-- Simulation toggle button for evaluation -->
+        <button id="countdownDemoToggle" onclick="toggleSessionCountdownDemo()" class="self-start sm:self-auto text-xs px-3 py-1.5 rounded-full bg-sand hover:bg-sand-dark text-charcoal font-medium border border-sand-dark transition-colors flex items-center gap-1.5" title="Preview what the session button looks like 15 minutes before session time">
+          <span class="w-2 h-2 rounded-full bg-accent"></span>
+          <span id="demoToggleLabel">Simulate: Starting in 12 min</span>
+        </button>
+      </div>
+
+      <!-- Session detail spotlight -->
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <!-- Next session info (7 cols) -->
+        <div class="lg:col-span-7 bg-sand-light/80 rounded-2xl p-5 border border-sand-dark">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary border border-primary/20">
+              <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              Next Up: Video Session 📹
+            </span>
+            <span id="sessionCountdownBadge" class="text-xs font-bold text-charcoal-muted bg-white px-2.5 py-1 rounded-lg border border-sand-dark">
+              In 2 days
+            </span>
+          </div>
+
+          <h4 class="font-heading font-bold text-lg text-charcoal">
+            Thursday, Nov 7 · 3:00 PM — 3:50 PM PST
+          </h4>
+          <p class="text-xs sm:text-sm text-charcoal-muted mt-1">
+            50-Minute One-on-One Session with <strong class="text-charcoal font-semibold">Dr. Rachel Kim, PhD</strong>
+          </p>
+
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            <!-- Join Button (interactive) -->
+            <button id="joinSessionBtn" onclick="handleJoinSession()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              <span id="joinButtonText">Join Video Room (Opens 10m before)</span>
+            </button>
+
+            <button onclick="openModal('rescheduleModal')" class="px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-charcoal hover:text-primary bg-white hover:bg-sand rounded-xl border border-sand-dark transition-colors">
+              Reschedule
+            </button>
+
+            <button onclick="openModal('cancelModal')" class="px-3 py-2.5 text-xs text-charcoal-muted hover:text-accent transition-colors font-medium">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Mini Calendar View (5 cols) -->
+        <div class="lg:col-span-5 bg-white p-4 rounded-2xl border border-sand-dark">
+          <div class="flex items-center justify-between mb-3 text-xs">
+            <span class="font-heading font-bold text-charcoal">Week of Nov 4 – Nov 10</span>
+            <span class="text-primary font-medium text-[11px]">1 session scheduled</span>
+          </div>
+
+          <!-- Week Days grid -->
+          <div class="grid grid-cols-7 gap-1.5 text-center">
+            <!-- Mon -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Mon</div>
+              <div class="text-xs font-bold mt-1">4</div>
+            </div>
+            <!-- Tue -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Tue</div>
+              <div class="text-xs font-bold mt-1">5</div>
+            </div>
+            <!-- Wed (Past/Today) -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Wed</div>
+              <div class="text-xs font-bold mt-1">6</div>
+            </div>
+            <!-- Thu (Session Day!) -->
+            <div class="p-2 rounded-xl bg-primary text-white shadow-sm ring-2 ring-primary/30 relative">
+              <div class="text-[10px] uppercase font-bold text-emerald-100">Thu</div>
+              <div class="text-xs font-extrabold mt-1">7</div>
+              <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-accent"></span>
+            </div>
+            <!-- Fri -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Fri</div>
+              <div class="text-xs font-bold mt-1">8</div>
+            </div>
+            <!-- Sat -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Sat</div>
+              <div class="text-xs font-bold mt-1">9</div>
+            </div>
+            <!-- Sun -->
+            <div class="p-2 rounded-xl bg-sand-light/50 text-charcoal-muted">
+              <div class="text-[10px] uppercase font-semibold">Sun</div>
+              <div class="text-xs font-bold mt-1">10</div>
+            </div>
+          </div>
+
+          <div class="mt-3.5 flex items-center justify-between text-[11px] text-charcoal-muted border-t border-sand-dark pt-2.5">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-accent"></span>
+              Video session on Thu @ 3:00 PM
+            </span>
+            <button onclick="openModal('scheduleModal')" class="text-primary hover:underline font-semibold">+ Add session</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 4. TWO COLUMN LAYOUT (Left 65% / Right 35%)                                -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+      
+      <!-- ======================================================================= -->
+      <!-- LEFT COLUMN (65% on LG = 8 cols)                                        -->
+      <!-- ======================================================================= -->
+      <div class="lg:col-span-8 space-y-6 sm:space-y-8">
+
+        <!-- 4.A RECENT MESSAGES (Interactive Client-Therapist chat room) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft" id="messages-card">
+          <!-- Chat Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-sand-dark">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-primary/10 text-primary font-heading font-bold text-sm flex items-center justify-center">
+                  DR
+                </div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></span>
+              </div>
+              <div>
+                <h3 class="font-heading font-bold text-charcoal text-base">Direct Chat with Dr. Rachel Kim</h3>
+                <p class="text-xs text-charcoal-muted flex items-center gap-1.5">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Replies typically within 2 hours • 256-bit HIPAA Encrypted
+                </p>
+              </div>
+            </div>
+
+            <button onclick="clearChatDemo()" class="text-xs text-charcoal-muted hover:text-primary transition-colors" title="Reset sample chat">
+              Refresh chat
+            </button>
+          </div>
+
+          <!-- Message Bubbles Thread Area -->
+          <div id="chatMessageThread" class="py-4 space-y-4 max-h-[380px] overflow-y-auto pr-1">
+            
+            <!-- Message 1: Dr. Kim -->
+            <div class="flex items-start gap-3 message-bubble-anim">
+              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+                DR
+              </div>
+              <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
+                <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
+                  <span class="font-semibold text-primary">Dr. Rachel Kim</span>
+                  <span>Yesterday, 4:15 PM</span>
+                </div>
+                Hi Sarah, I wanted to check in on the mindfulness exercises we discussed during our Tuesday session. How are you feeling today? Were you able to try the 4-7-8 breathing practice?
+              </div>
+            </div>
+
+            <!-- Message 2: Sarah (User) -->
+            <div class="flex items-start justify-end gap-3 message-bubble-anim">
+              <div class="max-w-[85%] bg-primary text-white rounded-2xl rounded-tr-sm p-4 shadow-sm text-xs sm:text-sm leading-relaxed">
+                <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-white/80">
+                  <span class="font-semibold">You</span>
+                  <span>Yesterday, 5:40 PM</span>
+                </div>
+                Hi Dr. Kim! I practiced the 4-7-8 breathing when I felt overwhelmed during our team standup yesterday, and it really helped calm my heart rate. I still felt some tension in my neck, but I didn't spiral like I usually do.
+              </div>
+              <div class="w-8 h-8 rounded-full bg-primary-light text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+                SM
+              </div>
+            </div>
+
+            <!-- Message 3: Dr. Kim -->
+            <div class="flex items-start gap-3 message-bubble-anim">
+              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+                DR
+              </div>
+              <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
+                <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
+                  <span class="font-semibold text-primary">Dr. Rachel Kim</span>
+                  <span>Today, 9:20 AM</span>
+                </div>
+                That's wonderful progress, Sarah! Recognizing the physical trigger and pausing before reacting is a huge step forward in CBT. Let's build on that in our Thursday session. Take a moment to log how your body responds today.
+              </div>
+            </div>
+
+            <!-- Dynamic Messages injected here via JS -->
+            <div id="dynamicMessagesContainer" class="space-y-4"></div>
+
+            <!-- Typing indicator (hidden by default) -->
+            <div id="typingIndicator" class="hidden flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                DR
+              </div>
+              <div class="bg-sand-light rounded-2xl px-4 py-2.5 border border-sand-dark flex items-center gap-1.5">
+                <span class="text-xs text-charcoal-muted font-medium">Dr. Kim is typing</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-1"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-2"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-primary typing-dot-3"></span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick suggestion prompts chips -->
+          <div class="pt-2 pb-3 flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] text-charcoal-muted mr-1">Quick notes:</span>
+            <button onclick="fillQuickMessage('I completed my daily breathing exercise and felt more grounded.')" class="text-[11px] bg-sand hover:bg-sand-dark text-charcoal px-2.5 py-1 rounded-full transition-colors border border-sand-dark/60">
+              🌿 Homework update
+            </button>
+            <button onclick="fillQuickMessage('Noticed an anxious trigger at work this morning.')" class="text-[11px] bg-sand hover:bg-sand-dark text-charcoal px-2.5 py-1 rounded-full transition-colors border border-sand-dark/60">
+              ⚡ Trigger logged
+            </button>
+            <button onclick="fillQuickMessage('Looking forward to our Thursday session.')" class="text-[11px] bg-sand hover:bg-sand-dark text-charcoal px-2.5 py-1 rounded-full transition-colors border border-sand-dark/60">
+              📅 Session confirmation
+            </button>
+          </div>
+
+          <!-- Chat Input Form -->
+          <form id="chatForm" onsubmit="handleSendMessage(event)" class="pt-3 border-t border-sand-dark flex items-center gap-2">
+            <div class="relative flex-1">
+              <input 
+                type="text" 
+                id="chatInput" 
+                placeholder="Write a confidential message to Dr. Kim..." 
+                class="w-full bg-sand-light border border-sand-dark rounded-xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder-charcoal-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-10"
+                autocomplete="off"
+              >
+              <!-- Attachment / paperclip icon -->
+              <button type="button" onclick="showToast('Secure attachment upload ready (PDF, Audio, Note)')" class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-muted hover:text-primary transition-colors" title="Attach file or voice note">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Send Button -->
+            <button 
+              type="submit" 
+              class="px-4 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg shrink-0 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <span class="hidden sm:inline text-xs font-bold">Send</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- 4.B MOOD TRACKER (Weekly Mood Chart & Interactive 5-Emoji Selector) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft" id="mood-tracker-card">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-sand-dark">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-heading font-extrabold text-lg sm:text-xl text-charcoal">Weekly Mood Tracker</h3>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  🔥 12-day check-in streak!
+                </span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-0.5">Tracking your feelings illuminates patterns for your therapy sessions.</p>
+            </div>
+
+            <div class="text-xs text-charcoal-muted flex items-center gap-1.5 self-start sm:self-auto bg-sand px-3 py-1.5 rounded-xl">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>
+              Weekly Average: <strong class="text-charcoal font-semibold">Good (7.2/10)</strong>
+            </div>
+          </div>
+
+          <!-- Weekly Mood Visualization (Mon-Sun) -->
+          <div class="mt-6 grid grid-cols-7 gap-2 sm:gap-3 text-center">
+            
+            <!-- Mon -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Mon</span>
+              <span class="text-2xl sm:text-3xl my-2">😐</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Okay (6)</span>
+            </div>
+
+            <!-- Tue -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Tue</span>
+              <span class="text-2xl sm:text-3xl my-2">🙂</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Good (7)</span>
+            </div>
+
+            <!-- Wed -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Wed</span>
+              <span class="text-2xl sm:text-3xl my-2">😟</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Anxious (4)</span>
+            </div>
+
+            <!-- Thu -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Thu</span>
+              <span class="text-2xl sm:text-3xl my-2">🙂</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Good (7)</span>
+            </div>
+
+            <!-- Fri -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Fri</span>
+              <span class="text-2xl sm:text-3xl my-2">😊</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Joyful (8)</span>
+            </div>
+
+            <!-- Sat -->
+            <div class="flex flex-col items-center p-3 rounded-2xl bg-sand-light border border-sand-dark/60">
+              <span class="text-[11px] font-semibold text-charcoal-muted uppercase">Sat</span>
+              <span class="text-2xl sm:text-3xl my-2">😊</span>
+              <span class="text-[10px] font-bold text-charcoal bg-white px-2 py-0.5 rounded-md border border-sand-dark">Calm (8)</span>
+            </div>
+
+            <!-- Sun (TODAY) - Interactive Slot -->
+            <div id="todayMoodSlot" class="flex flex-col items-center p-3 rounded-2xl bg-primary-50 border-2 border-primary/40 relative shadow-sm transition-all duration-300">
+              <span class="text-[11px] font-bold text-primary uppercase">Today</span>
+              <span id="todayMoodEmoji" class="text-2xl sm:text-3xl my-2 transition-transform hover:scale-110">✨</span>
+              <span id="todayMoodLabel" class="text-[10px] font-extrabold text-primary bg-white px-2 py-0.5 rounded-md border border-primary/30">
+                Log Now
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Interactive 5 Emoji Mood Logger -->
+          <div class="mt-6 p-4 rounded-2xl bg-sand-light/70 border border-sand-dark">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <span class="font-heading font-bold text-xs sm:text-sm text-charcoal">
+                How are you feeling right now, Sarah?
+              </span>
+              <span id="moodFeedbackMessage" class="text-xs text-primary font-medium italic">
+                Select an emoji to log today's check-in
+              </span>
+            </div>
+
+            <div class="grid grid-cols-5 gap-2 sm:gap-3">
+              <!-- 😢 Struggling -->
+              <button 
+                onclick="logMood('😢', 'Struggling', 2, 'Remember to breathe deeply. Dr. Kim and your care plan are here for you.')" 
+                class="mood-btn flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white hover:bg-sand border border-sand-dark transition-all duration-200 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <span class="text-2xl sm:text-3xl">😢</span>
+                <span class="text-[11px] font-medium text-charcoal">Struggling</span>
+              </button>
+
+              <!-- 😟 Anxious -->
+              <button 
+                onclick="logMood('😟', 'Anxious', 4, 'Anxiety is uncomfortable, but temporary. Try the 4-7-8 breathing exercise.')" 
+                class="mood-btn flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white hover:bg-sand border border-sand-dark transition-all duration-200 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <span class="text-2xl sm:text-3xl">😟</span>
+                <span class="text-[11px] font-medium text-charcoal">Anxious</span>
+              </button>
+
+              <!-- 😐 Okay -->
+              <button 
+                onclick="logMood('😐', 'Neutral', 6, 'Grounded and steady. Neutral days are foundational to healing.')" 
+                class="mood-btn flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white hover:bg-sand border border-sand-dark transition-all duration-200 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <span class="text-2xl sm:text-3xl">😐</span>
+                <span class="text-[11px] font-medium text-charcoal">Okay</span>
+              </button>
+
+              <!-- 🙂 Good -->
+              <button 
+                onclick="logMood('🙂', 'Good', 7, 'Glad you are feeling good today! What contributed to your calm?')" 
+                class="mood-btn flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white hover:bg-sand border border-sand-dark transition-all duration-200 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <span class="text-2xl sm:text-3xl">🙂</span>
+                <span class="text-[11px] font-medium text-charcoal">Good</span>
+              </button>
+
+              <!-- 😊 Joyful -->
+              <button 
+                onclick="logMood('😊', 'Joyful', 9, 'Wonderful! Celebrate this positive energy and let it nourish your week.')" 
+                class="mood-btn flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white hover:bg-sand border border-sand-dark transition-all duration-200 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <span class="text-2xl sm:text-3xl">😊</span>
+                <span class="text-[11px] font-medium text-charcoal">Joyful</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================================= -->
+      <!-- RIGHT COLUMN (35% on LG = 4 cols)                                       -->
+      <!-- ======================================================================= -->
+      <div class="lg:col-span-4 space-y-6 sm:space-y-8">
+
+        <!-- 4.C WELLNESS SCORE WIDGET (Circular SVG progress animated on load) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft" id="wellness-widget">
+          <div class="flex items-center justify-between pb-3 border-b border-sand-dark">
+            <h3 class="font-heading font-extrabold text-base text-charcoal">Wellness Score</h3>
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+              </svg>
+              +5 pts this week
+            </span>
+          </div>
+
+          <!-- Circular SVG Gauge -->
+          <div class="py-5 flex flex-col items-center text-center">
+            <div class="relative w-36 h-36 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                <!-- Track ring -->
+                <circle 
+                  cx="60" 
+                  cy="60" 
+                  r="52" 
+                  class="text-sand stroke-current" 
+                  stroke-width="10" 
+                  fill="transparent"
+                ></circle>
+                <!-- Animated score progress ring -->
+                <circle 
+                  id="wellnessCircle"
+                  cx="60" 
+                  cy="60" 
+                  r="52" 
+                  class="text-primary stroke-current wellness-circle" 
+                  stroke-width="10" 
+                  stroke-linecap="round"
+                  fill="transparent"
+                  stroke-dasharray="326.7" 
+                  stroke-dashoffset="326.7"
+                ></circle>
+              </svg>
+
+              <!-- Central Score Number -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="wellnessScoreText" class="font-heading font-extrabold text-3xl sm:text-4xl text-charcoal">0</span>
+                <span class="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider">/ 100</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-charcoal-muted mt-3 max-w-xs leading-relaxed">
+              Based on your consistency, daily reflections, and clinical session check-ins.
+            </p>
+          </div>
+
+          <!-- Wellness Sub-metrics -->
+          <div class="space-y-2.5 pt-3 border-t border-sand-dark text-xs">
+            <div>
+              <div class="flex justify-between text-charcoal font-medium mb-1">
+                <span>Anxiety Management</span>
+                <span class="font-bold text-primary">78%</span>
+              </div>
+              <div class="w-full h-1.5 bg-sand rounded-full overflow-hidden">
+                <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: 78%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-charcoal font-medium mb-1">
+                <span>Sleep Quality</span>
+                <span class="font-bold text-primary">68%</span>
+              </div>
+              <div class="w-full h-1.5 bg-sand rounded-full overflow-hidden">
+                <div class="h-full bg-primary-light rounded-full transition-all duration-1000" style="width: 68%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-charcoal font-medium mb-1">
+                <span>Mindfulness Habit</span>
+                <span class="font-bold text-primary">85%</span>
+              </div>
+              <div class="w-full h-1.5 bg-sand rounded-full overflow-hidden">
+                <div class="h-full bg-accent rounded-full transition-all duration-1000" style="width: 85%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-sand-dark text-center">
+            <button onclick="openModal('reportModal')" class="text-xs font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1">
+              View Detailed Clinical Report
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4.D YOUR GOALS (Progress bars that animate) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft" id="goals-section">
+          <div class="flex items-center justify-between pb-3 border-b border-sand-dark">
+            <div class="flex items-center gap-2">
+              <h3 class="font-heading font-extrabold text-base text-charcoal">Your Therapy Goals</h3>
+              <span class="bg-primary-50 text-primary text-[11px] font-bold px-2 py-0.5 rounded-full">3 active</span>
+            </div>
+            <button onclick="openModal('addGoalModal')" class="text-xs font-semibold text-primary hover:text-primary-dark transition-colors">
+              + Add Goal
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-4">
+            
+            <!-- Goal 1 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/70 border border-sand-dark hover:border-primary/40 transition-all">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked onchange="toggleGoalMilestone(this, 1)" class="w-4 h-4 rounded text-primary focus:ring-primary border-sand-dark cursor-pointer">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-charcoal">Reduce anxiety episodes</span>
+                </label>
+                <span id="goalPercent1" class="text-xs font-extrabold text-primary shrink-0">75%</span>
+              </div>
+              <p class="text-[11px] text-charcoal-muted ml-6 mb-2">Notice triggers & apply 4-7-8 breathing</p>
+              <div class="ml-6 w-[calc(100%-1.5rem)] h-2 bg-sand rounded-full overflow-hidden">
+                <div id="goalBar1" class="h-full bg-primary rounded-full transition-all duration-700 ease-out" style="width: 75%"></div>
+              </div>
+            </div>
+
+            <!-- Goal 2 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/70 border border-sand-dark hover:border-primary/40 transition-all">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" onchange="toggleGoalMilestone(this, 2)" class="w-4 h-4 rounded text-primary focus:ring-primary border-sand-dark cursor-pointer">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-charcoal">Improve sleep quality</span>
+                </label>
+                <span id="goalPercent2" class="text-xs font-extrabold text-primary shrink-0">60%</span>
+              </div>
+              <p class="text-[11px] text-charcoal-muted ml-6 mb-2">Screen-free 45 min before bed + herbal tea</p>
+              <div class="ml-6 w-[calc(100%-1.5rem)] h-2 bg-sand rounded-full overflow-hidden">
+                <div id="goalBar2" class="h-full bg-primary-light rounded-full transition-all duration-700 ease-out" style="width: 60%"></div>
+              </div>
+            </div>
+
+            <!-- Goal 3 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/70 border border-sand-dark hover:border-primary/40 transition-all">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" onchange="toggleGoalMilestone(this, 3)" class="w-4 h-4 rounded text-primary focus:ring-primary border-sand-dark cursor-pointer">
+                  <span class="font-heading font-bold text-xs sm:text-sm text-charcoal">Build healthy boundaries</span>
+                </label>
+                <span id="goalPercent3" class="text-xs font-extrabold text-primary shrink-0">40%</span>
+              </div>
+              <p class="text-[11px] text-charcoal-muted ml-6 mb-2">Decline 1 non-essential workplace request weekly</p>
+              <div class="ml-6 w-[calc(100%-1.5rem)] h-2 bg-sand rounded-full overflow-hidden">
+                <div id="goalBar3" class="h-full bg-accent rounded-full transition-all duration-700 ease-out" style="width: 40%"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 4.E SESSION HISTORY (Clickable past 4 sessions) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft">
+          <div class="flex items-center justify-between pb-3 border-b border-sand-dark">
+            <h3 class="font-heading font-extrabold text-base text-charcoal">Past Sessions</h3>
+            <span class="text-xs text-charcoal-muted">Last 4 visits</span>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            
+            <!-- Session 1 -->
+            <div onclick="openSessionSummary('Oct 31, 2026', 'Cognitive restructuring for workplace triggers', 'Video · 50 min')" class="p-3 rounded-2xl bg-sand-light/60 hover:bg-sand border border-sand-dark/60 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-charcoal group-hover:text-primary transition-colors">Oct 31, 2026</span>
+                <span class="text-[11px] text-charcoal-muted bg-white px-2 py-0.5 rounded-md border border-sand-dark">50 min · Video</span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-1 truncate">
+                Cognitive restructuring for workplace triggers
+              </p>
+              <span class="text-[11px] text-primary font-medium mt-1 inline-block group-hover:underline">
+                View session takeaways →
+              </span>
+            </div>
+
+            <!-- Session 2 -->
+            <div onclick="openSessionSummary('Oct 24, 2026', 'Sleep hygiene & evening wind-down routine', 'Video · 50 min')" class="p-3 rounded-2xl bg-sand-light/60 hover:bg-sand border border-sand-dark/60 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-charcoal group-hover:text-primary transition-colors">Oct 24, 2026</span>
+                <span class="text-[11px] text-charcoal-muted bg-white px-2 py-0.5 rounded-md border border-sand-dark">50 min · Video</span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-1 truncate">
+                Sleep hygiene & evening wind-down routine
+              </p>
+              <span class="text-[11px] text-primary font-medium mt-1 inline-block group-hover:underline">
+                View session takeaways →
+              </span>
+            </div>
+
+            <!-- Session 3 -->
+            <div onclick="openSessionSummary('Oct 17, 2026', 'Identifying core automatic thoughts & distortions', 'Video · 50 min')" class="p-3 rounded-2xl bg-sand-light/60 hover:bg-sand border border-sand-dark/60 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-charcoal group-hover:text-primary transition-colors">Oct 17, 2026</span>
+                <span class="text-[11px] text-charcoal-muted bg-white px-2 py-0.5 rounded-md border border-sand-dark">50 min · Video</span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-1 truncate">
+                Identifying core automatic thoughts & distortions
+              </p>
+              <span class="text-[11px] text-primary font-medium mt-1 inline-block group-hover:underline">
+                View session takeaways →
+              </span>
+            </div>
+
+            <!-- Session 4 -->
+            <div onclick="openSessionSummary('Oct 10, 2026', 'Initial intake & comprehensive therapy roadmap', 'Audio · 50 min')" class="p-3 rounded-2xl bg-sand-light/60 hover:bg-sand border border-sand-dark/60 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-charcoal group-hover:text-primary transition-colors">Oct 10, 2026</span>
+                <span class="text-[11px] text-charcoal-muted bg-white px-2 py-0.5 rounded-md border border-sand-dark">50 min · Audio</span>
+              </div>
+              <p class="text-xs text-charcoal-muted mt-1 truncate">
+                Initial intake & comprehensive therapy roadmap
+              </p>
+              <span class="text-[11px] text-primary font-medium mt-1 inline-block group-hover:underline">
+                View session takeaways →
+              </span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 4.F RECOMMENDED RESOURCES (3 interactive cards) -->
+        <div class="bg-white rounded-3xl p-6 border border-sand-dark shadow-soft" id="resources-section">
+          <div class="flex items-center justify-between pb-3 border-b border-sand-dark">
+            <h3 class="font-heading font-extrabold text-base text-charcoal">Recommended for You</h3>
+            <span class="text-[11px] font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-full">Curated by Dr. Kim</span>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            
+            <!-- Resource 1 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/60 border border-sand-dark/60 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-primary-50 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-[10px] font-bold text-accent uppercase tracking-wider">Reading · 4 min</span>
+                <h4 class="font-heading font-bold text-xs sm:text-sm text-charcoal mt-0.5">Managing Anxiety at Work</h4>
+                <p class="text-[11px] text-charcoal-muted mt-0.5 truncate">4 practical boundary scripts for team meetings</p>
+                <button onclick="openModal('resourceModal1')" class="mt-1 text-xs font-semibold text-primary hover:underline">
+                  Read article →
+                </button>
+              </div>
+            </div>
+
+            <!-- Resource 2 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/60 border border-sand-dark/60 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-accent-light text-accent flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-[10px] font-bold text-primary uppercase tracking-wider">Audio Guide · 5 min</span>
+                <h4 class="font-heading font-bold text-xs sm:text-sm text-charcoal mt-0.5">5-Minute Breathing Exercise</h4>
+                <p class="text-[11px] text-charcoal-muted mt-0.5 truncate">Box breathing for physiological resetting</p>
+                <button onclick="openModal('resourceModal2')" class="mt-1 text-xs font-semibold text-accent hover:underline">
+                  Listen now →
+                </button>
+              </div>
+            </div>
+
+            <!-- Resource 3 -->
+            <div class="p-3.5 rounded-2xl bg-sand-light/60 border border-sand-dark/60 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-sand-muted text-charcoal flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-[10px] font-bold text-charcoal uppercase tracking-wider">CBT Worksheet · 7 min</span>
+                <h4 class="font-heading font-bold text-xs sm:text-sm text-charcoal mt-0.5">Understanding Thought Traps</h4>
+                <p class="text-[11px] text-charcoal-muted mt-0.5 truncate">Identify catastrophizing & black-and-white thinking</p>
+                <button onclick="openModal('resourceModal3')" class="mt-1 text-xs font-semibold text-primary hover:underline">
+                  View guide →
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 5. JOURNAL SECTION (Private, Reflective Safe Space)                       -->
+    <!-- ========================================================================= -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-sand-dark shadow-soft" id="journal-section">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-sand-dark">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-accent-light text-accent flex items-center justify-center shrink-0 font-bold">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">My Personal Journal</h2>
+              <span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                Private & Encrypted
+              </span>
+            </div>
+            <p class="text-xs text-charcoal-muted mt-0.5">Your safe notebook. Entries are private to you unless explicitly shared with Dr. Kim.</p>
+          </div>
+        </div>
+
+        <button onclick="openModal('journalModal')" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-accent hover:bg-accent-hover rounded-full shadow-md shadow-accent/25 hover:shadow-lg transition-all hover:-translate-y-0.5 self-start sm:self-auto">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          New Journal Entry
+        </button>
+      </div>
+
+      <!-- Journal Entries Grid (Dynamic list container) -->
+      <div id="journalEntriesContainer" class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Entry 1 -->
+        <article class="p-5 rounded-2xl bg-sand-light/70 border border-sand-dark flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-medium text-charcoal-muted">Nov 5, 2026</span>
+              <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                😊 Relieved
+              </span>
+            </div>
+            <h3 class="font-heading font-bold text-sm sm:text-base text-charcoal mb-2">
+              Finding calm during the afternoon presentation
+            </h3>
+            <p class="text-xs text-charcoal-muted leading-relaxed line-clamp-3">
+              "I felt my chest tightening right before speaking, but I used the grounding 5-4-3-2-1 technique Dr. Kim taught me. It actually gave me space to steady my voice. For the first time, I didn't rush through my slides..."
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
+            <span class="text-charcoal-muted text-[11px]">Shared with Dr. Kim ✓</span>
+            <button onclick="readFullJournalEntry('Finding calm during the afternoon presentation', 'Nov 5, 2026', '😊 Relieved', 'I felt my chest tightening right before speaking, but I used the grounding 5-4-3-2-1 technique Dr. Kim taught me. It actually gave me space to steady my voice. For the first time in months, I didn\'t rush through my slides. Noticed a brief wave of self-doubt after question #2, but labeled it as an automatic thought and let it pass.')" class="text-primary font-semibold hover:underline">
+              Read entry →
+            </button>
+          </div>
+        </article>
+
+        <!-- Entry 2 -->
+        <article class="p-5 rounded-2xl bg-sand-light/70 border border-sand-dark flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-medium text-charcoal-muted">Nov 3, 2026</span>
+              <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                😟 Anxious
+              </span>
+            </div>
+            <h3 class="font-heading font-bold text-sm sm:text-base text-charcoal mb-2">
+              Reflections on Sunday night dread
+            </h3>
+            <p class="text-xs text-charcoal-muted leading-relaxed line-clamp-3">
+              "Noticed the familiar spiral setting in around 7 PM. Realized I was catastrophic about Monday's project review without real evidence. Wrote down 3 alternative possibilities like we practiced in CBT..."
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
+            <span class="text-charcoal-muted text-[11px]">Private note 🔒</span>
+            <button onclick="readFullJournalEntry('Reflections on Sunday night dread', 'Nov 3, 2026', '😟 Anxious', 'Noticed the familiar spiral setting in around 7 PM. Realized I was catastrophic about Monday\'s project review without real evidence. Wrote down 3 alternative possibilities like we practiced in CBT. It took about 20 minutes for the knot in my stomach to ease, but having the worksheet on my phone made a tangible difference.')" class="text-primary font-semibold hover:underline">
+              Read entry →
+            </button>
+          </div>
+        </article>
+
+        <!-- Entry 3 -->
+        <article class="p-5 rounded-2xl bg-sand-light/70 border border-sand-dark flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-sm">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[11px] font-medium text-charcoal-muted">Oct 29, 2026</span>
+              <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary border border-primary/20">
+                🙂 Empowered
+              </span>
+            </div>
+            <h3 class="font-heading font-bold text-sm sm:text-base text-charcoal mb-2">
+              A small boundary win with family
+            </h3>
+            <p class="text-xs text-charcoal-muted leading-relaxed line-clamp-3">
+              "Politely declined an extra weekend obligation that would have drained me. Felt a momentary pang of guilt, but chose my recovery instead of people-pleasing. Slept 8 hours straight afterwards..."
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
+            <span class="text-charcoal-muted text-[11px]">Shared with Dr. Kim ✓</span>
+            <button onclick="readFullJournalEntry('A small boundary win with family', 'Oct 29, 2026', '🙂 Empowered', 'Politely declined an extra weekend obligation that would have completely drained me before a heavy work week. Felt a momentary pang of guilt, but remembered Dr. Kim\'s phrase: \"Guilt is often just unlearning self-abandonment.\" Slept 8 full hours afterwards.')" class="text-primary font-semibold hover:underline">
+              Read entry →
+            </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE BOTTOM NAVIGATION (Fixed at screen bottom on small devices)        -->
+  <!-- ========================================================================= -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-sand-dark py-2 px-3 flex items-center justify-around shadow-lg" aria-label="Mobile Bottom Navigation">
+    <a href="#dashboard" class="flex flex-col items-center gap-1 text-primary p-1.5 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+      </svg>
+      <span class="text-[10px] font-bold">Home</span>
+    </a>
+
+    <a href="#messages" onclick="focusChatInput(event)" class="flex flex-col items-center gap-1 text-charcoal-muted hover:text-primary p-1.5 relative focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      </svg>
+      <span class="text-[10px] font-medium">Messages</span>
+      <span class="absolute top-1 right-2 w-2 h-2 rounded-full bg-accent"></span>
+    </a>
+
+    <a href="#sessions-section" class="flex flex-col items-center gap-1 text-charcoal-muted hover:text-primary p-1.5 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"></rect>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2"></path>
+      </svg>
+      <span class="text-[10px] font-medium">Sessions</span>
+    </a>
+
+    <a href="#journal-section" class="flex flex-col items-center gap-1 text-charcoal-muted hover:text-primary p-1.5 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+      </svg>
+      <span class="text-[10px] font-medium">Journal</span>
+    </a>
+
+    <button onclick="openModal('profileModal')" class="flex flex-col items-center gap-1 text-charcoal-muted hover:text-primary p-1.5 focus:outline-none">
+      <div class="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
+        SM
+      </div>
+      <span class="text-[10px] font-medium">Profile</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS (Full suite of supportive clinical modals)                         -->
+  <!-- ========================================================================= -->
+
+  <!-- MODAL 1: NEW JOURNAL ENTRY -->
+  <div id="journalModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('journalModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-heading font-extrabold text-xl text-charcoal">New Journal Entry</h3>
+          <p class="text-xs text-charcoal-muted">Take your time. There are no right or wrong words here.</p>
+        </div>
+      </div>
+
+      <form id="newJournalForm" onsubmit="handleSaveJournal(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1.5">Entry Title</label>
+          <input type="text" id="journalTitle" required placeholder="e.g. Reflections after my morning walk..." class="w-full bg-sand-light border border-sand-dark rounded-xl px-4 py-2.5 text-xs sm:text-sm text-charcoal focus:ring-2 focus:ring-primary focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1.5">Mood Tag</label>
+          <div class="flex flex-wrap gap-2" id="modalMoodSelector">
+            <button type="button" onclick="selectModalMood(this, '😊 Relieved')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sand hover:bg-primary-50 text-charcoal border border-sand-dark transition-all">😊 Relieved</button>
+            <button type="button" onclick="selectModalMood(this, '🙂 Calm')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sand hover:bg-primary-50 text-charcoal border border-sand-dark transition-all">🙂 Calm</button>
+            <button type="button" onclick="selectModalMood(this, '😐 Grounded')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sand hover:bg-primary-50 text-charcoal border border-sand-dark transition-all">😐 Grounded</button>
+            <button type="button" onclick="selectModalMood(this, '😟 Anxious')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sand hover:bg-primary-50 text-charcoal border border-sand-dark transition-all">😟 Anxious</button>
+            <button type="button" onclick="selectModalMood(this, '😢 Vulnerable')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sand hover:bg-primary-50 text-charcoal border border-sand-dark transition-all">😢 Vulnerable</button>
+          </div>
+          <input type="hidden" id="selectedModalMoodVal" value="🙂 Calm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1.5">Your Thoughts & Feelings</label>
+          <textarea id="journalContent" rows="5" required placeholder="Write freely about what you are feeling, physical sensations, or thoughts you observed..." class="w-full bg-sand-light border border-sand-dark rounded-xl px-4 py-3 text-xs sm:text-sm text-charcoal focus:ring-2 focus:ring-primary focus:outline-none leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input type="checkbox" id="shareWithDrKimCheck" class="w-4 h-4 rounded text-primary focus:ring-primary border-sand-dark cursor-pointer">
+          <label for="shareWithDrKimCheck" class="text-xs text-charcoal cursor-pointer">
+            Share this entry securely with Dr. Rachel Kim before Thursday's session
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-sand-dark">
+          <button type="button" onclick="closeModal('journalModal')" class="px-4 py-2.5 text-xs font-semibold text-charcoal-muted hover:text-charcoal transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-accent hover:bg-accent-hover rounded-xl shadow-md transition-all">
+            Save Journal Entry
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: JOURNAL READER -->
+  <div id="journalReaderModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative">
+      <button onclick="closeModal('journalReaderModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <span id="readerDate" class="text-xs font-semibold text-charcoal-muted"></span>
+        <span id="readerMood" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sand text-charcoal border border-sand-dark"></span>
+      </div>
+
+      <h3 id="readerTitle" class="font-heading font-extrabold text-xl text-charcoal mb-4"></h3>
+
+      <div class="p-4 rounded-2xl bg-sand-light/60 border border-sand-dark text-xs sm:text-sm text-charcoal leading-relaxed whitespace-pre-wrap" id="readerBody">
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-between items-center text-xs">
+        <span class="text-charcoal-muted">🔒 Encrypted client record</span>
+        <button onclick="closeModal('journalReaderModal')" class="px-4 py-2 font-semibold text-primary hover:underline">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: SCHEDULE / BOOK SESSION -->
+  <div id="scheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('scheduleModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-heading font-extrabold text-xl text-charcoal">Schedule Session</h3>
+          <p class="text-xs text-charcoal-muted">With Dr. Rachel Kim, PhD</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1">Session Modality</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="p-2.5 rounded-xl border-2 border-primary bg-primary-50 text-primary text-xs font-bold flex flex-col items-center gap-1">
+              <span>📹 Video</span>
+              <span class="text-[10px] font-normal">Recommended</span>
+            </button>
+            <button type="button" class="p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
+              <span>📞 Phone</span>
+              <span class="text-[10px] text-charcoal-muted">Audio only</span>
+            </button>
+            <button type="button" class="p-2.5 rounded-xl border border-sand-dark bg-white hover:bg-sand text-charcoal text-xs font-medium flex flex-col items-center gap-1">
+              <span>💬 Live Chat</span>
+              <span class="text-[10px] text-charcoal-muted">Text format</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1">Select Available Time Slot</label>
+          <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
+              <span class="text-xs font-semibold text-charcoal">Friday, Nov 8 · 11:00 AM PST</span>
+              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary" checked>
+            </label>
+            <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
+              <span class="text-xs font-semibold text-charcoal">Tuesday, Nov 12 · 2:00 PM PST</span>
+              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary">
+            </label>
+            <label class="flex items-center justify-between p-3 rounded-xl border border-sand-dark bg-sand-light/50 hover:bg-sand cursor-pointer">
+              <span class="text-xs font-semibold text-charcoal">Thursday, Nov 14 · 3:00 PM PST</span>
+              <input type="radio" name="sessionSlot" class="text-primary focus:ring-primary">
+            </label>
+          </div>
+        </div>
+
+        <div class="p-3 bg-sand rounded-xl text-[11px] text-charcoal-muted">
+          Your Drozo plan includes weekly 50-minute sessions. Additional sessions can be booked anytime without co-pay under your active membership.
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button onclick="closeModal('scheduleModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Cancel</button>
+          <button onclick="confirmBooking()" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md">Confirm Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: RESCHEDULE SESSION -->
+  <div id="rescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('rescheduleModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">Reschedule Session</h3>
+      <p class="text-xs text-charcoal-muted mb-4">Moving your Thursday, Nov 7 (3:00 PM) appointment with Dr. Rachel Kim.</p>
+
+      <div class="space-y-3">
+        <p class="text-xs font-bold text-charcoal uppercase">Pick an alternative date:</p>
+        <button onclick="confirmReschedule('Friday, Nov 8 at 4:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+          <span>Friday, Nov 8 · 4:00 PM PST</span>
+          <span class="text-primary font-bold">Select →</span>
+        </button>
+        <button onclick="confirmReschedule('Monday, Nov 11 at 1:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+          <span>Monday, Nov 11 · 1:00 PM PST</span>
+          <span class="text-primary font-bold">Select →</span>
+        </button>
+        <button onclick="confirmReschedule('Wednesday, Nov 13 at 3:00 PM')" class="w-full text-left p-3 rounded-xl bg-sand-light hover:bg-primary-50 border border-sand-dark text-xs font-medium transition-colors flex justify-between">
+          <span>Wednesday, Nov 13 · 3:00 PM PST</span>
+          <span class="text-primary font-bold">Select →</span>
+        </button>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-end">
+        <button onclick="closeModal('rescheduleModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Keep Current Time</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: CANCEL SESSION -->
+  <div id="cancelModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-2">Cancel Thursday's Session?</h3>
+      <p class="text-xs sm:text-sm text-charcoal-muted leading-relaxed mb-4">
+        Are you sure you want to cancel your session on Thursday, Nov 7 at 3:00 PM? You can reschedule anytime without penalty.
+      </p>
+
+      <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 mb-5">
+        Tip: If Thursday doesn't work, rescheduling helps you keep your therapeutic momentum and 12-day streak going.
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button onclick="closeModal('cancelModal')" class="px-4 py-2.5 text-xs font-semibold text-charcoal bg-sand hover:bg-sand-dark rounded-xl">Keep Session</button>
+        <button onclick="confirmCancelSession()" class="px-4 py-2.5 text-xs font-bold text-white bg-accent hover:bg-accent-hover rounded-xl shadow-sm">Cancel Appointment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: THERAPIST PROFILE & CREDENTIALS -->
+  <div id="therapistProfileModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('therapistProfileModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-16 h-16 rounded-2xl bg-primary-100 text-primary font-heading font-extrabold text-xl flex items-center justify-center">
+          DR
+        </div>
+        <div>
+          <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal">Dr. Rachel Kim, PhD</h3>
+          <p class="text-xs text-charcoal-muted">Licensed Clinical Psychologist • CA Board Lic #PSY28491</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-xs text-amber-600 font-bold">★ 4.9 (128 client reviews)</span>
+            <span class="text-sand-dark">•</span>
+            <span class="text-xs text-primary font-medium">Verified Drozo Provider</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
+        <div>
+          <h4 class="font-heading font-bold text-charcoal text-xs uppercase tracking-wider mb-1">About Dr. Kim</h4>
+          <p>
+            Dr. Rachel Kim received her doctorate in Clinical Psychology from Stanford University. Over the past 11 years, she has specialized in evidence-based cognitive behavioral therapy (CBT), acceptance and commitment therapy (ACT), and somatic mindfulness for high-functioning anxiety and life transitions.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-heading font-bold text-charcoal text-xs uppercase tracking-wider mb-1">Therapeutic Approach</h4>
+          <p>
+            "I believe therapy is an active, collaborative partnership. Rather than passively listening, we work together to uncover actionable insights, reframe automatic thought traps, and build durable coping habits tailored to your daily life."
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-heading font-bold text-charcoal text-xs uppercase tracking-wider mb-1">Clinical Specialties</h4>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="bg-sand text-charcoal px-2.5 py-1 rounded-md text-xs">Workplace Stress & Burnout</span>
+            <span class="bg-sand text-charcoal px-2.5 py-1 rounded-md text-xs">Generalized Anxiety Disorder (GAD)</span>
+            <span class="bg-sand text-charcoal px-2.5 py-1 rounded-md text-xs">Cognitive Restructuring</span>
+            <span class="bg-sand text-charcoal px-2.5 py-1 rounded-md text-xs">Insomnia & Sleep Hygiene</span>
+            <span class="bg-sand text-charcoal px-2.5 py-1 rounded-md text-xs">Perfectionism</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-sand-dark flex justify-between items-center">
+        <button onclick="closeModal('therapistProfileModal'); openModal('switchTherapistModal');" class="text-xs text-charcoal-muted hover:text-accent font-medium">
+          Request therapist change
+        </button>
+        <button onclick="closeModal('therapistProfileModal')" class="px-5 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl">
+          Close Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 7: SWITCH THERAPIST (Supportive BetterHelp-style rematch flow) -->
+  <div id="switchTherapistModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('switchTherapistModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="w-10 h-10 rounded-xl bg-sand text-charcoal flex items-center justify-center font-bold mb-3">
+        🌿
+      </div>
+
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-2">Switching Therapists is Easy & Judgment-Free</h3>
+      <p class="text-xs sm:text-sm text-charcoal-muted leading-relaxed mb-4">
+        Finding the right clinical fit is crucial to your progress. At Drozo, you can change your matched therapist at any time with no uncomfortable conversations, no interruption in your plan, and zero fees.
+      </p>
+
+      <div class="space-y-2 text-xs text-charcoal bg-sand-light p-3.5 rounded-xl border border-sand-dark mb-4">
+        <p class="font-semibold text-primary">What happens when you switch?</p>
+        <ul class="list-disc list-inside space-y-1 text-charcoal-muted">
+          <li>Your session notes and goals securely transfer over.</li>
+          <li>Dr. Kim will be notified kindly without requiring a reason.</li>
+          <li>You can pick from 3 newly matched specialists immediately.</li>
+        </ul>
+      </div>
+
+      <div class="flex justify-end gap-2.5">
+        <button onclick="closeModal('switchTherapistModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Keep Dr. Kim</button>
+        <button onclick="showToast('Therapist rematching started. Showing you 3 recommended providers...'); closeModal('switchTherapistModal');" class="px-4 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md">
+          Browse Matched Providers
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 8: CRISIS & EMERGENCY SUPPORT -->
+  <div id="crisisModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('crisisModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-accent-light text-accent flex items-center justify-center font-bold text-xl">
+          🆘
+        </div>
+        <div>
+          <h3 class="font-heading font-extrabold text-xl text-charcoal">Immediate Crisis Support</h3>
+          <p class="text-xs text-charcoal-muted">Free, confidential support available 24/7/365.</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="p-4 rounded-2xl bg-accent-light/60 border border-accent/30">
+          <h4 class="font-heading font-bold text-sm text-charcoal">988 Suicide & Crisis Lifeline</h4>
+          <p class="text-xs text-charcoal-muted mt-0.5">Call or text <strong>988</strong> anytime within the US & Canada.</p>
+          <a href="tel:988" class="inline-block mt-2 px-4 py-1.5 rounded-lg bg-accent text-white font-bold text-xs shadow-xs">Call 988 Now</a>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-primary-50 border border-primary/20">
+          <h4 class="font-heading font-bold text-sm text-charcoal">Crisis Text Line</h4>
+          <p class="text-xs text-charcoal-muted mt-0.5">Text <strong>HOME to 741741</strong> to connect with a crisis counselor.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-sand border border-sand-dark">
+          <h4 class="font-heading font-bold text-sm text-charcoal">The Trevor Project (LGBTQ+ Youth)</h4>
+          <p class="text-xs text-charcoal-muted mt-0.5">Call <strong>1-866-488-7386</strong> or text START to 678-678.</p>
+        </div>
+      </div>
+
+      <p class="mt-4 text-[11px] text-charcoal-muted leading-tight">
+        *Drozo Therapy provides scheduled outpatient therapy and is not intended for acute emergency situations. If you are experiencing a life-threatening medical emergency, call 911 or go to your nearest emergency room.
+      </p>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark text-right">
+        <button onclick="closeModal('crisisModal')" class="px-5 py-2 text-xs font-bold text-charcoal bg-sand hover:bg-sand-dark rounded-xl">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 9: SESSION SUMMARY / NOTES -->
+  <div id="sessionSummaryModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('sessionSummaryModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center justify-between text-xs text-charcoal-muted mb-2">
+        <span id="summaryModalDate" class="font-bold text-primary"></span>
+        <span id="summaryModalMeta" class="bg-sand px-2 py-0.5 rounded-md text-charcoal"></span>
+      </div>
+
+      <h3 id="summaryModalTitle" class="font-heading font-extrabold text-xl text-charcoal mb-4"></h3>
+
+      <div class="space-y-4 text-xs sm:text-sm text-charcoal-muted leading-relaxed">
+        <div class="bg-sand-light p-3.5 rounded-2xl border border-sand-dark">
+          <h4 class="font-heading font-bold text-charcoal text-xs mb-1">Key Clinical Takeaways</h4>
+          <p>Explored automatic thoughts triggered by sudden meeting calendar updates. Sarah practiced identifying physical tension before cognitive spiral.</p>
+        </div>
+
+        <div class="bg-sand-light p-3.5 rounded-2xl border border-sand-dark">
+          <h4 class="font-heading font-bold text-charcoal text-xs mb-1">Agreed Homework & Practice</h4>
+          <p>1. Track 4-7-8 breathing sessions in the Drozo mood tracker.<br>2. Challenge 1 catastrophic assumption using the thought record worksheet.</p>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-between items-center text-xs">
+        <span class="text-charcoal-muted">Recorded by Dr. Rachel Kim</span>
+        <button onclick="closeModal('sessionSummaryModal')" class="px-4 py-2 font-bold text-white bg-primary hover:bg-primary-dark rounded-xl">
+          Close Notes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 10: RESOURCE 1 READER -->
+  <div id="resourceModal1" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('resourceModal1')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <span class="text-[11px] font-bold text-accent uppercase tracking-wider">CBT Workplace Guide · 4 Min Read</span>
+      <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal mt-1 mb-4">Managing Anxiety at Work: 4 Boundary Phrases</h3>
+
+      <div class="space-y-3.5 text-xs sm:text-sm text-charcoal-muted leading-relaxed max-h-96 overflow-y-auto pr-2">
+        <p>When high workplace demands intersect with generalized anxiety, our instinct is often to over-accommodate out of fear of conflict or judgment. Here are four therapist-vetted phrases to hold boundaries with confidence:</p>
+        
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark text-charcoal">
+          <strong>1. For sudden urgent requests:</strong><br>
+          <em>"I would love to help, but I'm currently committed to finishing [Project A] today. Should we deprioritize that, or review this tomorrow morning?"</em>
+        </div>
+
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark text-charcoal">
+          <strong>2. For feeling pressured on the spot:</strong><br>
+          <em>"Let me digest that and circle back with thoughtful feedback by 3:00 PM."</em>
+        </div>
+
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark text-charcoal">
+          <strong>3. For end-of-day workload:</strong><br>
+          <em>"I'm wrapping up for the day to stay fresh for tomorrow's deliverable. I'll pick this up first thing at 9 AM."</em>
+        </div>
+
+        <p class="italic text-charcoal">Remember: A boundary is not a refusal to collaborate; it is the structure that makes sustainable collaboration possible.</p>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-sand-dark flex justify-between items-center text-xs">
+        <button onclick="showToast('Saved to your therapy notes bookmark list')" class="text-primary font-semibold hover:underline">
+          ★ Bookmark Article
+        </button>
+        <button onclick="closeModal('resourceModal1')" class="px-5 py-2 font-bold text-white bg-primary rounded-xl">
+          Done Reading
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 11: RESOURCE 2 AUDIO EXERCISE -->
+  <div id="resourceModal2" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative text-center animate-messageSlideIn">
+      <button onclick="closeModal('resourceModal2')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="w-16 h-16 rounded-full bg-primary-50 text-primary flex items-center justify-center mx-auto mb-4 animate-breathe">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+
+      <span class="text-[11px] font-bold text-accent uppercase">Guided Somatic Exercise</span>
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mt-1 mb-2">5-Minute Box Breathing</h3>
+      <p class="text-xs text-charcoal-muted mb-6 leading-relaxed">
+        Inhale 4s • Hold 4s • Exhale 4s • Hold 4s<br>
+        Lowers resting heart rate and reactivates the parasympathetic nervous system.
+      </p>
+
+      <!-- Simulated Audio Player bar -->
+      <div class="p-4 rounded-2xl bg-sand-light border border-sand-dark mb-5">
+        <div class="flex items-center justify-between text-xs font-mono text-charcoal-muted mb-2">
+          <span>01:42</span>
+          <span>05:00</span>
+        </div>
+        <div class="w-full h-2 bg-sand rounded-full overflow-hidden">
+          <div class="h-full bg-accent rounded-full" style="width: 34%"></div>
+        </div>
+      </div>
+
+      <button onclick="showToast('Breathing audio playing gently. Inhale deeply...'); closeModal('resourceModal2');" class="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl shadow-md transition-all">
+        Play Guided Exercise
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 12: RESOURCE 3 CBT WORKSHEET -->
+  <div id="resourceModal3" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('resourceModal3')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <span class="text-[11px] font-bold text-primary uppercase">CBT Clinical Worksheet</span>
+      <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-charcoal mt-1 mb-3">Understanding Thought Traps (Cognitive Distortions)</h3>
+
+      <div class="space-y-3 text-xs sm:text-sm text-charcoal-muted max-h-96 overflow-y-auto pr-2">
+        <p>Automatic thoughts are reflex responses our brain generates. When stressed, our minds gravitate toward cognitive distortions:</p>
+        
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <h4 class="font-bold text-charcoal text-xs">1. Catastrophizing</h4>
+          <p class="text-xs text-charcoal-muted">Assuming the absolute worst-case scenario will happen, despite lack of evidence.</p>
+        </div>
+
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <h4 class="font-bold text-charcoal text-xs">2. All-or-Nothing Thinking</h4>
+          <p class="text-xs text-charcoal-muted">Seeing situations in black-and-white categories. "If I'm not perfect, I failed."</p>
+        </div>
+
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <h4 class="font-bold text-charcoal text-xs">3. Emotional Reasoning</h4>
+          <p class="text-xs text-charcoal-muted">Believing that because you feel anxious, danger must truly be present.</p>
+        </div>
+
+        <p class="text-charcoal font-medium">Next time you observe one of these, ask yourself: <em>"What is the actual evidence for and against this thought?"</em></p>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-sand-dark flex justify-end">
+        <button onclick="closeModal('resourceModal3')" class="px-5 py-2 font-bold text-white bg-primary rounded-xl">
+          Close Guide
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 13: CLINICAL REPORT -->
+  <div id="reportModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('reportModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">30-Day Clinical Progress Report</h3>
+      <p class="text-xs text-charcoal-muted mb-4">Patient: Sarah Mitchell • Therapist: Dr. Rachel Kim, PhD</p>
+
+      <div class="space-y-3 text-xs text-charcoal">
+        <div class="p-3.5 bg-sand-light rounded-xl border border-sand-dark flex justify-between items-center">
+          <div>
+            <span class="font-bold">Overall Wellness Score</span>
+            <p class="text-[11px] text-charcoal-muted">Composite mental health index</p>
+          </div>
+          <span class="font-heading font-extrabold text-xl text-primary">78 / 100</span>
+        </div>
+
+        <div class="p-3.5 bg-sand-light rounded-xl border border-sand-dark flex justify-between items-center">
+          <div>
+            <span class="font-bold">Session Attendance</span>
+            <p class="text-[11px] text-charcoal-muted">4 of 4 scheduled sessions completed</p>
+          </div>
+          <span class="font-heading font-extrabold text-sm text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">100%</span>
+        </div>
+
+        <div class="p-3.5 bg-sand-light rounded-xl border border-sand-dark flex justify-between items-center">
+          <div>
+            <span class="font-bold">Check-in Consistency</span>
+            <p class="text-[11px] text-charcoal-muted">12-day consecutive mood logging</p>
+          </div>
+          <span class="font-heading font-extrabold text-sm text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md">Top 5%</span>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-between items-center text-xs">
+        <button onclick="showToast('Clinical report downloaded as encrypted PDF')" class="text-primary font-bold hover:underline">
+          Download PDF for Insurance
+        </button>
+        <button onclick="closeModal('reportModal')" class="px-4 py-2 font-bold text-white bg-primary rounded-xl">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 14: ADD GOAL MODAL -->
+  <div id="addGoalModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('addGoalModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">Add Therapy Goal</h3>
+      <p class="text-xs text-charcoal-muted mb-4">Set a clear, realistic objective to focus on with Dr. Kim.</p>
+
+      <form onsubmit="handleCreateGoal(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1">Goal Statement</label>
+          <input type="text" id="newGoalTitle" required placeholder="e.g. Practice daily progressive muscle relaxation..." class="w-full bg-sand-light border border-sand-dark rounded-xl px-4 py-2.5 text-xs text-charcoal focus:ring-2 focus:ring-primary focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-charcoal uppercase mb-1">Focus Area</label>
+          <select class="w-full bg-sand-light border border-sand-dark rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none">
+            <option>Anxiety Reduction</option>
+            <option>Sleep & Restoration</option>
+            <option>Relationship Boundaries</option>
+            <option>Mood Regulation</option>
+            <option>Mindfulness & Grounding</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('addGoalModal')" class="px-4 py-2 text-xs font-semibold text-charcoal-muted">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-md">Add Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 15: PROFILE & BILLING PLACEHOLDERS -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('profileModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-full bg-primary-100 text-primary font-heading font-bold text-base flex items-center justify-center">
+          SM
+        </div>
+        <div>
+          <h3 class="font-heading font-extrabold text-lg text-charcoal">Sarah Mitchell</h3>
+          <p class="text-xs text-charcoal-muted">Client ID: #DRZ-89421 • California</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs text-charcoal-muted">
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <span class="font-bold text-charcoal block mb-0.5">Primary Email:</span>
+          <span>sarah.m@example.com</span>
+        </div>
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <span class="font-bold text-charcoal block mb-0.5">Assigned Therapist:</span>
+          <span>Dr. Rachel Kim, PhD (Licensed Clinical Psychologist)</span>
+        </div>
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <span class="font-bold text-charcoal block mb-0.5">Emergency Contact:</span>
+          <span>David Mitchell (Spouse) • (555) 234-8901</span>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-end">
+        <button onclick="closeModal('profileModal')" class="px-5 py-2 text-xs font-bold text-white bg-primary rounded-xl">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="billingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-sand-dark relative animate-messageSlideIn">
+      <button onclick="closeModal('billingModal')" class="absolute top-5 right-5 text-charcoal-muted hover:text-charcoal p-1.5 rounded-full hover:bg-sand transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 class="font-heading font-extrabold text-xl text-charcoal mb-1">Billing & Receipts</h3>
+      <p class="text-xs text-charcoal-muted mb-4">Subscription plan & superbills for HSA/FSA insurance reimbursement.</p>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-3 bg-primary-50 rounded-xl border border-primary/20 text-charcoal">
+          <div class="flex justify-between font-bold">
+            <span>Unlimited Care Plan</span>
+            <span>$65 / week (billed monthly)</span>
+          </div>
+          <p class="text-[11px] text-charcoal-muted mt-1">Next invoice: Nov 28, 2026 • Card ending in 4029</p>
+        </div>
+
+        <div class="p-3 bg-sand-light rounded-xl border border-sand-dark">
+          <span class="font-bold text-charcoal block mb-1">Superbill Receipts:</span>
+          <div class="space-y-1.5 text-primary font-medium">
+            <button onclick="showToast('Superbill downloaded for October 2026')" class="block hover:underline">📥 October 2026 Superbill (PDF)</button>
+            <button onclick="showToast('Superbill downloaded for September 2026')" class="block hover:underline">📥 September 2026 Superbill (PDF)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-sand-dark flex justify-end">
+        <button onclick="closeModal('billingModal')" class="px-5 py-2 text-xs font-bold text-white bg-primary rounded-xl">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-charcoal text-white text-xs sm:text-sm px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-charcoal-light">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span id="toastMessage">Action completed successfully.</span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: Interactivity, Animations & Live Simulation                   -->
+  <!-- ========================================================================= -->
+  <script>
+    // --------------------------------------------------------------------------
+    // 1. Time-of-day dynamic greeting
+    // --------------------------------------------------------------------------
+    function updateTimeGreeting() {
+      const greetingEl = document.getElementById('welcomeGreeting');
+      if (!greetingEl) return;
+      const hour = new Date().getHours();
+      let timeGreeting = "Good morning";
+      if (hour >= 12 && hour < 17) {
+        timeGreeting = "Good afternoon";
+      } else if (hour >= 17 || hour < 5) {
+        timeGreeting = "Good evening";
+      }
+      greetingEl.innerHTML = `${timeGreeting}, Sarah 👋`;
+    }
+
+    // --------------------------------------------------------------------------
+    // 2. Animated Circular Wellness Score on Load
+    // --------------------------------------------------------------------------
+    function animateWellnessScore() {
+      const circle = document.getElementById('wellnessCircle');
+      const scoreText = document.getElementById('wellnessScoreText');
+      if (!circle || !scoreText) return;
+
+      const targetScore = 78;
+      const circumference = 2 * Math.PI * 52; // ~326.72
+      const targetOffset = circumference - (circumference * targetScore / 100);
+
+      // Start from 0
+      circle.style.strokeDasharray = `${circumference}`;
+      circle.style.strokeDashoffset = `${circumference}`;
+
+      setTimeout(() => {
+        circle.style.strokeDashoffset = `${targetOffset}`;
+        let current = 0;
+        const duration = 1200;
+        const stepTime = 16;
+        const totalSteps = duration / stepTime;
+        const stepIncrement = targetScore / totalSteps;
+
+        const timer = setInterval(() => {
+          current += stepIncrement;
+          if (current >= targetScore) {
+            scoreText.textContent = targetScore;
+            clearInterval(timer);
+          } else {
+            scoreText.textContent = Math.floor(current);
+          }
+        }, stepTime);
+      }, 300);
+    }
+
+    // --------------------------------------------------------------------------
+    // 3. Dropdowns (User menu & Notifications)
+    // --------------------------------------------------------------------------
+    function toggleUserDropdown() {
+      const menu = document.getElementById('userMenu');
+      const chevron = document.getElementById('userMenuChevron');
+      const isHidden = menu.classList.contains('hidden');
+      
+      // Close notifs if open
+      document.getElementById('notificationMenu').classList.add('hidden');
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      } else {
+        menu.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      }
+    }
+
+    function toggleNotificationDropdown() {
+      const menu = document.getElementById('notificationMenu');
+      const isHidden = menu.classList.contains('hidden');
+
+      // Close user menu if open
+      document.getElementById('userMenu').classList.add('hidden');
+      document.getElementById('userMenuChevron').classList.remove('rotate-180');
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+      } else {
+        menu.classList.add('hidden');
+      }
+    }
+
+    function markAllNotificationsRead() {
+      const notifDot = document.getElementById('notifDot');
+      const unreadBadge = document.getElementById('unreadBadge');
+      if (notifDot) notifDot.classList.add('hidden');
+      if (unreadBadge) unreadBadge.textContent = '0';
+      showToast('All notifications marked as read.');
+      toggleNotificationDropdown();
+    }
+
+    // Close dropdowns on outside click
+    window.addEventListener('click', (e) => {
+      const userBtn = document.getElementById('userMenuBtn');
+      const userMenu = document.getElementById('userMenu');
+      const notifBtn = document.getElementById('notificationBtn');
+      const notifMenu = document.getElementById('notificationMenu');
+
+      if (userBtn && userMenu && !userBtn.contains(e.target) && !userMenu.contains(e.target)) {
+        userMenu.classList.add('hidden');
+        document.getElementById('userMenuChevron').classList.remove('rotate-180');
+      }
+
+      if (notifBtn && notifMenu && !notifBtn.contains(e.target) && !notifMenu.contains(e.target)) {
+        notifMenu.classList.add('hidden');
+      }
+    });
+
+    // --------------------------------------------------------------------------
+    // 4. Modal management
+    // --------------------------------------------------------------------------
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 5. Chat Messaging Interaction
+    // --------------------------------------------------------------------------
+    function focusChatInput(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const card = document.getElementById('messages-card');
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setTimeout(() => {
+        if (input) input.focus();
+      }, 400);
+    }
+
+    function fillQuickMessage(text) {
+      const input = document.getElementById('chatInput');
+      if (input) {
+        input.value = text;
+        input.focus();
+      }
+    }
+
+    function handleSendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+
+      const container = document.getElementById('dynamicMessagesContainer');
+      const thread = document.getElementById('chatMessageThread');
+      const typing = document.getElementById('typingIndicator');
+
+      // Append user bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = "flex items-start justify-end gap-3 message-bubble-anim";
+      userBubble.innerHTML = `
+        <div class="max-w-[85%] bg-primary text-white rounded-2xl rounded-tr-sm p-4 shadow-sm text-xs sm:text-sm leading-relaxed">
+          <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-white/80">
+            <span class="font-semibold">You</span>
+            <span>Just now</span>
+          </div>
+          ${escapeHtml(text)}
+        </div>
+        <div class="w-8 h-8 rounded-full bg-primary-light text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+          SM
+        </div>
+      `;
+      container.appendChild(userBubble);
+      input.value = '';
+      thread.scrollTop = thread.scrollHeight;
+
+      showToast('Message encrypted & sent to Dr. Kim');
+
+      // Show typing indicator after 700ms
+      setTimeout(() => {
+        typing.classList.remove('hidden');
+        thread.scrollTop = thread.scrollHeight;
+
+        // Auto-reply after 2.2 seconds
+        setTimeout(() => {
+          typing.classList.add('hidden');
+
+          const replyBubble = document.createElement('div');
+          replyBubble.className = "flex items-start gap-3 message-bubble-anim";
+          
+          let responseText = "Thank you for sharing this with me, Sarah. You're doing the hard, mindful work of staying aware. Keep holding space for your feelings today, and we'll unpack this further on Thursday!";
+          if (text.toLowerCase().includes('anxious') || text.toLowerCase().includes('trigger')) {
+            responseText = "I hear you, Sarah. Remember that acknowledging the anxiety without self-judgment is the first CBT step. Take two slow 4-7-8 breaths right now. I'm with you.";
+          }
+
+          replyBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-1">
+              DR
+            </div>
+            <div class="max-w-[85%] bg-sand-light rounded-2xl rounded-tl-sm p-4 border border-sand-dark shadow-xs text-xs sm:text-sm text-charcoal leading-relaxed">
+              <div class="flex items-center justify-between gap-4 mb-1 text-[11px] text-charcoal-muted">
+                <span class="font-semibold text-primary">Dr. Rachel Kim</span>
+                <span>Just now</span>
+              </div>
+              ${responseText}
+            </div>
+          `;
+          container.appendChild(replyBubble);
+          thread.scrollTop = thread.scrollHeight;
+        }, 1900);
+
+      }, 600);
+    }
+
+    function clearChatDemo() {
+      const container = document.getElementById('dynamicMessagesContainer');
+      if (container) container.innerHTML = '';
+      showToast('Chat view refreshed');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    // --------------------------------------------------------------------------
+    // 6. Mood Tracker Interaction
+    // --------------------------------------------------------------------------
+    function logMood(emoji, label, score, encouragement) {
+      const todaySlot = document.getElementById('todayMoodSlot');
+      const todayEmoji = document.getElementById('todayMoodEmoji');
+      const todayLabel = document.getElementById('todayMoodLabel');
+      const feedbackMsg = document.getElementById('moodFeedbackMessage');
+
+      if (todayEmoji && todayLabel) {
+        todayEmoji.textContent = emoji;
+        todayEmoji.classList.add('scale-125');
+        setTimeout(() => todayEmoji.classList.remove('scale-125'), 300);
+
+        todayLabel.textContent = `${label} (${score})`;
+        todaySlot.classList.remove('border-primary/40');
+        todaySlot.classList.add('border-emerald-500', 'bg-emerald-50/60');
+      }
+
+      if (feedbackMsg) {
+        feedbackMsg.textContent = encouragement;
+        feedbackMsg.classList.add('text-emerald-700', 'font-semibold');
+      }
+
+      showToast(`Logged: ${emoji} ${label}. 12-day streak extended!`);
+    }
+
+    // --------------------------------------------------------------------------
+    // 7. Goal Progress & Checkbox Interaction
+    // --------------------------------------------------------------------------
+    function toggleGoalMilestone(checkbox, goalNum) {
+      const bar = document.getElementById(`goalBar${goalNum}`);
+      const percentText = document.getElementById(`goalPercent${goalNum}`);
+      if (!bar || !percentText) return;
+
+      if (checkbox.checked) {
+        const val = goalNum === 1 ? '100%' : (goalNum === 2 ? '80%' : '60%');
+        bar.style.width = val;
+        percentText.textContent = val;
+        showToast('Milestone achieved! Great progress.');
+      } else {
+        const val = goalNum === 1 ? '60%' : (goalNum === 2 ? '40%' : '20%');
+        bar.style.width = val;
+        percentText.textContent = val;
+      }
+    }
+
+    function handleCreateGoal(e) {
+      e.preventDefault();
+      const input = document.getElementById('newGoalTitle');
+      const val = input ? input.value : '';
+      if (!val) return;
+      closeModal('addGoalModal');
+      showToast(`Goal added: "${val}". Discussed with Dr. Kim.`);
+      input.value = '';
+    }
+
+    // --------------------------------------------------------------------------
+    // 8. Journal Section Interactions
+    // --------------------------------------------------------------------------
+    function selectModalMood(btn, moodStr) {
+      const buttons = document.querySelectorAll('#modalMoodSelector button');
+      buttons.forEach(b => {
+        b.classList.remove('bg-primary-50', 'border-primary', 'font-bold');
+        b.classList.add('bg-sand');
+      });
+      btn.classList.remove('bg-sand');
+      btn.classList.add('bg-primary-50', 'border-primary', 'font-bold');
+      document.getElementById('selectedModalMoodVal').value = moodStr;
+    }
+
+    function handleSaveJournal(e) {
+      e.preventDefault();
+      const title = document.getElementById('journalTitle').value.trim();
+      const mood = document.getElementById('selectedModalMoodVal').value;
+      const content = document.getElementById('journalContent').value.trim();
+      const isShared = document.getElementById('shareWithDrKimCheck').checked;
+
+      if (!title || !content) return;
+
+      const container = document.getElementById('journalEntriesContainer');
+      const newCard = document.createElement('article');
+      newCard.className = "p-5 rounded-2xl bg-sand-light/70 border border-sand-dark flex flex-col justify-between hover:border-primary/40 transition-all hover:shadow-sm message-bubble-anim";
+
+      const escapedContent = escapeHtml(content);
+      const shortSnippet = escapedContent.length > 150 ? escapedContent.substring(0, 150) + "..." : escapedContent;
+
+      newCard.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-medium text-charcoal-muted">Just now</span>
+            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary border border-primary/20">
+              ${escapeHtml(mood)}
+            </span>
+          </div>
+          <h3 class="font-heading font-bold text-sm sm:text-base text-charcoal mb-2">
+            ${escapeHtml(title)}
+          </h3>
+          <p class="text-xs text-charcoal-muted leading-relaxed line-clamp-3">
+            "${shortSnippet}"
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-sand-dark/60 flex items-center justify-between text-xs">
+          <span class="text-charcoal-muted text-[11px]">${isShared ? 'Shared with Dr. Kim ✓' : 'Private note 🔒'}</span>
+          <button onclick="readFullJournalEntry('${escapeHtml(title)}', 'Today', '${escapeHtml(mood)}', '${escapeHtml(content).replace(/'/g, "\\'")}')" class="text-primary font-semibold hover:underline">
+            Read entry →
+          </button>
+        </div>
+      `;
+
+      container.prepend(newCard);
+      closeModal('journalModal');
+      document.getElementById('newJournalForm').reset();
+      showToast('New journal reflection saved safely.');
+    }
+
+    function readFullJournalEntry(title, date, mood, body) {
+      document.getElementById('readerTitle').textContent = title;
+      document.getElementById('readerDate').textContent = date;
+      document.getElementById('readerMood').textContent = mood;
+      document.getElementById('readerBody').textContent = body;
+      openModal('journalReaderModal');
+    }
+
+    // --------------------------------------------------------------------------
+    // 9. Session Summaries & Bookings
+    // --------------------------------------------------------------------------
+    function openSessionSummary(date, title, meta) {
+      document.getElementById('summaryModalDate').textContent = date;
+      document.getElementById('summaryModalTitle').textContent = title;
+      document.getElementById('summaryModalMeta').textContent = meta;
+      openModal('sessionSummaryModal');
+    }
+
+    function confirmBooking() {
+      closeModal('scheduleModal');
+      showToast('Session booked & synced to your Drozo calendar.');
+    }
+
+    function confirmReschedule(slot) {
+      closeModal('rescheduleModal');
+      showToast(`Session successfully moved to ${slot}.`);
+    }
+
+    function confirmCancelSession() {
+      closeModal('cancelModal');
+      showToast('Session cancelled. You may rebook anytime.');
+    }
+
+    // --------------------------------------------------------------------------
+    // 10. Live Session Countdown Simulation Demo
+    // --------------------------------------------------------------------------
+    let isCountdownActive = false;
+    let countdownSeconds = 12 * 60 + 45; // 12 min 45 sec
+    let countdownInterval = null;
+
+    function toggleSessionCountdownDemo() {
+      isCountdownActive = !isCountdownActive;
+      const toggleLabel = document.getElementById('demoToggleLabel');
+      const badge = document.getElementById('sessionCountdownBadge');
+      const joinBtn = document.getElementById('joinSessionBtn');
+      const joinText = document.getElementById('joinButtonText');
+
+      if (isCountdownActive) {
+        toggleLabel.textContent = "Reset Countdown Demo";
+        badge.classList.remove('text-charcoal-muted', 'bg-white');
+        badge.classList.add('text-emerald-800', 'bg-emerald-100', 'animate-pulse');
+        
+        joinBtn.classList.remove('bg-primary');
+        joinBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-glow');
+        joinText.textContent = "Join Live Session Room Now 📹";
+
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+          if (countdownSeconds > 0) {
+            countdownSeconds--;
+            const mins = Math.floor(countdownSeconds / 60);
+            const secs = countdownSeconds % 60;
+            const formatted = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            badge.textContent = `Starts in ${formatted}`;
+          }
+        }, 1000);
+
+        showToast('Demo simulated: Your session is ready in 12 min!');
+      } else {
+        toggleLabel.textContent = "Simulate: Starting in 12 min";
+        badge.classList.remove('text-emerald-800', 'bg-emerald-100', 'animate-pulse');
+        badge.classList.add('text-charcoal-muted', 'bg-white');
+        badge.textContent = "In 2 days";
+
+        joinBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'shadow-glow');
+        joinBtn.classList.add('bg-primary');
+        joinText.textContent = "Join Video Room (Opens 10m before)";
+
+        clearInterval(countdownInterval);
+        countdownSeconds = 12 * 60 + 45;
+        showToast('Countdown demo reset.');
+      }
+    }
+
+    let currentAppt = null;
+
+    function handleJoinSession() {
+      if (currentAppt && currentAppt.meeting_started_at) {
+        const url = currentAppt.channel === 'video' 
+          ? 'https://meet.jit.si/drozo-' + currentAppt.id 
+          : 'https://discord.gg/ePrjEPtg8X';
+        window.open(url, '_blank');
+      } else if (isCountdownActive) {
+        showToast('Connecting to encrypted video call with clinical provider...');
+      } else {
+        showToast('Session opens when your therapist starts the room.');
+      }
+    }
+
+    async function initSupabaseSession() {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (!SUPABASE_URL || !SUPABASE_ANON || typeof supabase === 'undefined') return;
+
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: { persistSession: true, autoRefreshToken: true }
+      });
+
+      const { data } = await sb.auth.getSession();
+      if (!data || !data.session) {
+        const active = localStorage.getItem('drozo_active_session');
+        if (!active) {
+          window.location.href = 'auth.html';
+          return;
+        }
+      }
+
+      const user = (data && data.session && data.session.user) || { email: localStorage.getItem('drozo_active_session') || 'Friend' };
+      const email = user.email || 'Friend';
+      const name = (user.user_metadata && user.user_metadata.full_name) || email.split('@')[0];
+
+      // Update greeting
+      const greetingEl = document.getElementById('welcomeGreeting');
+      if (greetingEl) {
+        const hour = new Date().getHours();
+        let timeGreeting = "Good morning";
+        if (hour >= 12 && hour < 17) timeGreeting = "Good afternoon";
+        else if (hour >= 17 || hour < 5) timeGreeting = "Good evening";
+        greetingEl.innerHTML = `${timeGreeting}, ${name} 👋`;
+      }
+
+      // Check role
+      if (user.id) {
+        try {
+          const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
+          if (profile && ['admin', 'coordinator', 'therapist'].includes(profile.role)) {
+            const menu = document.getElementById('userMenu');
+            if (menu && !document.getElementById('menuAdminLink')) {
+              const div = document.createElement('div');
+              div.id = 'menuAdminLink';
+              div.className = 'px-4 py-2 bg-sand-dark/50 border-b border-sand-dark';
+              div.innerHTML = '<a href="admin.html" class="flex items-center gap-2 text-xs font-bold text-primary hover:underline"><span>👑</span> Open Admin Operations Panel →</a>';
+              menu.prepend(div);
+            }
+          }
+        } catch (_) {}
+
+        loadUserAppointment(sb, user.id);
+        setInterval(() => loadUserAppointment(sb, user.id), 3000);
+      }
+    }
+
+    async function loadUserAppointment(sb, userId) {
+      try {
+        const { data } = await sb.from('appointments').select('*').eq('patient_id', userId).order('created_at', { ascending: false }).limit(1);
+        if (data && data.length) {
+          currentAppt = data[0];
+          const badge = document.getElementById('sessionCountdownBadge');
+          const joinBtn = document.getElementById('joinSessionBtn');
+          const joinText = document.getElementById('joinButtonText');
+          const isLive = !!currentAppt.meeting_started_at && currentAppt.status === 'CONFIRMED';
+
+          if (isLive) {
+            if (badge) {
+              badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-600 text-white animate-pulse';
+              badge.textContent = '● LIVE SESSION';
+            }
+            if (joinBtn) {
+              joinBtn.className = 'w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2';
+            }
+            if (joinText) {
+              joinText.textContent = currentAppt.channel === 'video' ? 'Join Live Jitsi Video Call 🎥' : 'Join Live Discord Voice Room 🎮';
+            }
+          } else {
+            if (badge) badge.textContent = currentAppt.slot_label || 'Scheduled';
+          }
+        }
+      } catch (_) {}
+    }
+
+    function handleLogout() {
+      const SUPABASE_URL = (window.DROZO_CONFIG || {}).url;
+      const SUPABASE_ANON = (window.DROZO_CONFIG || {}).anon;
+      if (SUPABASE_URL && SUPABASE_ANON && typeof supabase !== 'undefined') {
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        sb.auth.signOut().then(() => {
+          localStorage.removeItem('drozo_active_session');
+          window.location.href = 'index.html';
+        });
+      } else {
+        localStorage.removeItem('drozo_active_session');
+        window.location.href = 'index.html';
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 11. Theme (Dark / Light Mode)
+    // --------------------------------------------------------------------------
+    function initTheme() {
+      const isDark = localStorage.getItem('drozo_theme') === 'dark' || 
+        (!localStorage.getItem('drozo_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      applyTheme(isDark);
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(!isDark);
+      localStorage.setItem('drozo_theme', !isDark ? 'dark' : 'light');
+    }
+
+    function applyTheme(isDark) {
+      const sun = document.getElementById('themeIconSun');
+      const moon = document.getElementById('themeIconMoon');
+
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        if (sun) sun.classList.remove('hidden');
+        if (moon) moon.classList.add('hidden');
+      } else {
+        document.documentElement.classList.remove('dark');
+        if (sun) sun.classList.add('hidden');
+        if (moon) moon.classList.remove('hidden');
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 12. Helpers: Smooth scroll, Toasts
+    // --------------------------------------------------------------------------
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      if (!toast || !msgEl) return;
+
+      msgEl.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3500);
+    }
+
+    // Initialize on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTimeGreeting();
+      initTheme();
+      animateWellnessScore();
+      initSupabaseSession();
+    });
+  </script>
+</body>
+</html>
