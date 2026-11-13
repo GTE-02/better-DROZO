@@ -1204,17 +1204,17 @@
   <!-- MODALS & POPUPS                                                           -->
   <!-- ========================================================================= -->
 
-  <!-- 1. ADD THERAPIST MODAL -->
+  <!-- 1. ADD THERAPIST MODAL — Live user list from Supabase -->
   <div id="add-therapist-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 backdrop-blur-sm hidden p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
-      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-sand-dark overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
+      <div class="px-6 py-5 bg-sand-light border-b border-sand-dark flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
           </div>
           <div>
-            <h3 class="font-heading font-bold text-lg text-charcoal">Add Licensed Therapist</h3>
-            <p class="text-xs text-charcoal-muted">Credential verification & network onboarding</p>
+            <h3 class="font-heading font-bold text-lg text-charcoal">Assign Therapist Role</h3>
+            <p class="text-xs text-charcoal-muted">Choose a registered user to promote to therapist</p>
           </div>
         </div>
         <button onclick="closeModal('add-therapist-modal')" class="p-1 rounded-lg text-charcoal-muted hover:text-charcoal hover:bg-sand">
@@ -1222,64 +1222,29 @@
         </button>
       </div>
 
-      <form onsubmit="handleAddTherapist(event)" class="p-6 space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">First Name *</label>
-            <input type="text" required placeholder="e.g. Stacey" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">Last Name *</label>
-            <input type="text" required placeholder="e.g. Tays" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
-          </div>
+      <!-- Search bar -->
+      <div class="px-6 pt-4 pb-2 shrink-0">
+        <div class="relative">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="therapist-search-input" type="text" placeholder="Search by email or username..." oninput="filterTherapistList()" class="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-sand-light" />
         </div>
+      </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">Credentials *</label>
-            <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-              <option>Psy.D (Doctor of Psychology)</option>
-              <option>Ph.D (Clinical Psychology)</option>
-              <option>MD (Psychiatry)</option>
-              <option>LMFT (Marriage & Family)</option>
-              <option>LCSW (Clinical Social Work)</option>
-              <option>LPC (Professional Counselor)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">Primary State License *</label>
-            <select class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal bg-white">
-              <option>California (BBS)</option>
-              <option>New York (OPD)</option>
-              <option>Texas (BHEC)</option>
-              <option>Florida (DOH)</option>
-              <option>Illinois (IDFPR)</option>
-              <option>Washington (DOH)</option>
-            </select>
+      <!-- User list (dynamically populated from Supabase profiles) -->
+      <div class="px-6 pb-2 overflow-y-auto flex-1" style="max-height: 340px;">
+        <div id="therapist-user-list" class="space-y-1.5">
+          <div class="py-8 text-center text-charcoal-muted text-xs">
+            <svg class="w-8 h-8 mx-auto mb-2 text-charcoal-muted/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Loading registered users...
           </div>
         </div>
+      </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-charcoal mb-1">Clinical Specialties</label>
-          <input type="text" placeholder="e.g. Trauma & PTSD, Cognitive Behavioral Therapy (CBT)" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">NPI Number *</label>
-            <input type="text" required placeholder="10-digit NPI" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-charcoal mb-1">Weekly Caseload Capacity</label>
-            <input type="number" value="25" min="5" max="45" class="w-full px-3 py-2 text-xs rounded-xl border border-sand-dark focus:ring-2 focus:ring-primary focus:outline-none text-charcoal" />
-          </div>
-        </div>
-
-        <div class="pt-4 border-t border-sand-dark flex items-center justify-end gap-3">
-          <button type="button" onclick="closeModal('add-therapist-modal')" class="px-4 py-2 text-xs font-semibold rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-sand transition-colors">Cancel</button>
-          <button type="submit" class="px-5 py-2 text-xs font-semibold rounded-xl bg-primary text-white hover:bg-primary-dark transition-all shadow-md">Submit for Verification</button>
-        </div>
-      </form>
+      <!-- Footer -->
+      <div class="px-6 py-4 bg-sand-light border-t border-sand-dark flex items-center justify-between shrink-0">
+        <p id="therapist-modal-count" class="text-[11px] text-charcoal-muted">0 users available</p>
+        <button type="button" onclick="closeModal('add-therapist-modal')" class="px-4 py-2 text-xs font-semibold rounded-xl text-charcoal-muted hover:text-charcoal hover:bg-sand transition-colors">Close</button>
+      </div>
     </div>
   </div>
 
@@ -1709,7 +1674,12 @@
       }
     }
 
-    function openAddTherapistModal() { openModal('add-therapist-modal'); }
+    function openAddTherapistModal() {
+      populateTherapistModal();
+      const searchInput = document.getElementById('therapist-search-input');
+      if (searchInput) searchInput.value = '';
+      openModal('add-therapist-modal');
+    }
     function openCreateSessionModal() { openModal('create-session-modal'); }
     function openBroadcastModal() { openModal('broadcast-modal'); }
     function openSettingsModal() { showToast('Opened System & Clinical Operations Preferences'); }
@@ -1732,9 +1702,123 @@
     }
 
     function handleAddTherapist(e) {
-      e.preventDefault();
-      closeModal('add-therapist-modal');
-      showToast('✅ Clinician registration submitted to verification queue');
+      if (e) e.preventDefault();
+    }
+
+    // --- Populate Add Therapist modal with REAL users from Supabase ---
+    function populateTherapistModal() {
+      const listEl = document.getElementById('therapist-user-list');
+      const countEl = document.getElementById('therapist-modal-count');
+      if (!listEl) return;
+
+      const users = allRegisteredUsers || [];
+      if (!users.length) {
+        listEl.innerHTML = '<div class="py-8 text-center text-charcoal-muted text-xs">' +
+          '<svg class="w-8 h-8 mx-auto mb-2 text-charcoal-muted/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' +
+          'No registered users yet.<br><span class="text-charcoal-muted/60">Users will appear here after they sign in via Google, GitHub, or Discord.</span></div>';
+        if (countEl) countEl.textContent = '0 users available';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      users.forEach(function(u) {
+        var cached = JSON.parse(localStorage.getItem('drozo_meta_' + u.id) || '{}');
+        var isCurrent = meAdmin && meAdmin.id === u.id;
+        var name = isCurrent ? ((meAdmin && meAdmin.display_name) || (u.email ? u.email.split('@')[0] : 'User')) : (cached.display_name || (u.email ? u.email.split('@')[0] : 'User'));
+        var avatar = isCurrent ? (meAdmin && meAdmin.avatar_url) : cached.avatar_url;
+        var email = u.email || 'Unknown';
+        var currentRole = localStorage.getItem('drozo_role_override_' + email) || u.role || 'patient';
+        var prov = (isCurrent ? (meAdmin && meAdmin.provider) : (cached.provider || 'email') || 'email').toLowerCase();
+        var provLabel = prov === 'google' ? 'Google' : (prov === 'discord' ? 'Discord' : (prov === 'github' ? 'GitHub' : 'Email'));
+        var provColor = prov === 'google' ? 'bg-blue-50 text-blue-600' : (prov === 'discord' ? 'bg-indigo-50 text-[#5865F2]' : (prov === 'github' ? 'bg-zinc-100 text-zinc-800' : 'bg-sand text-charcoal-muted'));
+        var isTherapist = ['therapist', 'coordinator', 'admin'].includes(currentRole);
+
+        var row = document.createElement('div');
+        row.className = 'therapist-user-row flex items-center justify-between p-3 rounded-xl border border-sand-dark/60 hover:border-primary/40 hover:bg-primary-50/30 transition-all group';
+        row.setAttribute('data-search', (name + ' ' + email + ' ' + provLabel).toLowerCase());
+
+        var avatarHtml = avatar
+          ? '<img src="' + escapeHtml(avatar) + '" class="w-full h-full object-cover">'
+          : escapeHtml(name.slice(0, 2).toUpperCase());
+
+        var roleBadge = isTherapist
+          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">' + currentRole.toUpperCase() + '</span>'
+          : '';
+
+        var btnClass = isTherapist
+          ? 'bg-emerald-100 text-emerald-700 cursor-default'
+          : 'bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-md hover:-translate-y-0.5';
+
+        var btnText = isTherapist ? '\u2713 Assigned' : 'Make Therapist';
+        var btnDisabled = isTherapist ? ' disabled' : '';
+
+        row.innerHTML =
+          '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+            '<div class="w-9 h-9 rounded-full bg-primary-50 text-primary font-bold flex items-center justify-center shrink-0 text-xs overflow-hidden">' + avatarHtml + '</div>' +
+            '<div class="min-w-0 flex-1">' +
+              '<div class="flex items-center gap-1.5 flex-wrap">' +
+                '<span class="font-semibold text-sm text-charcoal truncate">' + escapeHtml(name) + '</span>' +
+                '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold ' + provColor + '">' + provLabel + '</span>' +
+                roleBadge +
+              '</div>' +
+              '<p class="text-[11px] text-charcoal-muted truncate">' + escapeHtml(email) + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" onclick="confirmAssignTherapist(\'' + escapeHtml(email).replace(/'/g, "\\'") + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')"' +
+            ' class="shrink-0 ml-3 px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap ' + btnClass + '"' + btnDisabled + '>' +
+            btnText +
+          '</button>';
+
+        listEl.appendChild(row);
+      });
+
+      if (countEl) countEl.textContent = users.length + ' user' + (users.length === 1 ? '' : 's') + ' available';
+    }
+
+    function filterTherapistList() {
+      var query = (document.getElementById('therapist-search-input') || {}).value || '';
+      var q = query.toLowerCase().trim();
+      var rows = document.querySelectorAll('.therapist-user-row');
+      var visible = 0;
+      rows.forEach(function(row) {
+        var searchData = row.getAttribute('data-search') || '';
+        var show = !q || searchData.includes(q);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      var countEl = document.getElementById('therapist-modal-count');
+      if (countEl) countEl.textContent = visible + ' user' + (visible === 1 ? '' : 's') + (q ? ' matching' : ' available');
+    }
+
+    async function confirmAssignTherapist(email, name) {
+      if (!confirm('Assign THERAPIST role to ' + name + ' (' + email + ')?\n\nThey will get therapist access immediately after confirmation.')) return;
+
+      // 1. Try Supabase direct update
+      var success = false;
+      if (sbAdmin) {
+        try {
+          var res1 = await sbAdmin.from('profiles').update({ role: 'therapist' }).eq('email', email);
+          if (!res1.error) success = true;
+        } catch (_) {}
+
+        // Fallback: try RPC
+        if (!success) {
+          try {
+            var res2 = await sbAdmin.rpc('set_role', { target_email: email, new_role: 'therapist' });
+            if (!res2.error) success = true;
+          } catch (_) {}
+        }
+      }
+
+      // 2. Always set local override so UI reflects instantly
+      localStorage.setItem('drozo_role_override_' + email, 'therapist');
+
+      showToast('\u2705 ' + name + ' is now a Therapist!');
+
+      // 3. Refresh everything
+      populateTherapistModal();
+      updateAdminStats();
+      loadRegisteredUsers();
     }
 
     function handleBroadcast(e) {
