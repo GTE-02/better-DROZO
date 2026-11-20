@@ -17,7 +17,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'media',
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -131,19 +131,19 @@
       transition: opacity 0.45s ease-in-out, transform 0.45s ease-in-out;
     }
 
-    /* Custom scrollbar */
+    /* Elegant, subtle custom scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 7px;
     }
     ::-webkit-scrollbar-track {
       background: #F5F0E8;
     }
     ::-webkit-scrollbar-thumb {
-      background: #2D6A4F;
-      border-radius: 4px;
+      background: #CFC5B6;
+      border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #1B4332;
+      background: #B3A794;
     }
 
     /* Abstract Organic Shapes & Mesh */
@@ -154,52 +154,16 @@
       border-radius: 42% 58% 35% 65% / 60% 32% 68% 40%;
     }
 
-    /* Dark Mode via prefers-color-scheme */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #0F1824;
-        color: #F8F7F4;
-      }
-      .bg-canvas-light, .bg-sand-light, .bg-sand {
-        background-color: #162231 !important;
-      }
-      .bg-white {
-        background-color: #1A283A !important;
-      }
-      .bg-sand-dark {
-        background-color: #1E3046 !important;
-      }
-      .border-sand-muted, .border-sand-dark, .border-sand {
-        border-color: #273C56 !important;
-      }
-      .border-gray-100, .border-gray-200 {
-        border-color: #273C56 !important;
-      }
-      .text-charcoal {
-        color: #F8F7F4 !important;
-      }
-      .text-charcoal-muted {
-        color: #9EAFBF !important;
-      }
-      .shadow-soft, .shadow-soft-lg {
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4) !important;
-      }
-      nav.sticky-nav {
-        background-color: rgba(15, 24, 36, 0.9) !important;
-        border-bottom-color: rgba(39, 60, 86, 0.8) !important;
-      }
-      .bg-primary-50 {
-        background-color: rgba(45, 106, 79, 0.22) !important;
-      }
-      .text-primary {
-        color: #40916C !important;
-      }
-      .text-primary-dark {
-        color: #72C09B !important;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0F1824;
-      }
+    /* Enhanced card elevation and readability */
+    .sanctuary-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(237, 229, 216, 0.9);
+      box-shadow: 0 10px 30px -5px rgba(27, 42, 61, 0.04), 0 4px 10px -2px rgba(27, 42, 61, 0.02);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sanctuary-card:hover {
+      box-shadow: 0 20px 40px -10px rgba(45, 106, 79, 0.08), 0 8px 16px -4px rgba(27, 42, 61, 0.03);
+      border-color: rgba(171, 206, 190, 0.6);
     }
   </style>
 </head>
@@ -432,9 +396,10 @@
                 </div>
               </div>
 
-              <!-- Floating Card 3: Mood Tracker -->
-              <div class="absolute top-1/2 -left-6 -translate-y-1/2 z-10 hidden sm:block bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-soft border border-sand-dark text-[11px] font-medium text-charcoal">
-                <span class="text-accent">✨</span> 94% report feeling lighter in 4 weeks
+              <!-- Floating Card 3: Mood Tracker (High-contrast, elevated badge) -->
+              <div class="absolute top-1/2 -left-6 -translate-y-1/2 z-20 hidden sm:flex items-center gap-2 bg-white rounded-2xl px-4 py-2.5 shadow-lg shadow-charcoal/5 border border-sand-dark/80 text-xs font-bold text-charcoal">
+                <span class="text-accent text-sm">✨</span>
+                <span>94% report feeling lighter in 4 weeks</span>
               </div>
 
             </div>
@@ -497,7 +462,7 @@
     <!-- ========================================================================= -->
     <!-- 4. HOW IT WORKS (3 Step Cards with Progressive Layout)                     -->
     <!-- ========================================================================= -->
-    <section id="how-it-works" class="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" class="scroll-mt-24 py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 fade-in-section">
         <span class="text-xs font-bold uppercase tracking-widest text-primary bg-primary-50 px-3.5 py-1.5 rounded-full border border-primary/15">Simple 3-Step Process</span>
@@ -605,7 +570,7 @@
     <!-- ========================================================================= -->
     <!-- 5. WHY DROZO (Feature Grid with Rich SVG Icons)                           -->
     <!-- ========================================================================= -->
-    <section id="why-drozo" class="bg-sand/60 py-20 lg:py-28 border-y border-sand-dark/70 transition-colors">
+    <section id="why-drozo" class="scroll-mt-24 bg-sand/60 py-20 lg:py-28 border-y border-sand-dark/70 transition-colors">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-3xl mx-auto mb-16 fade-in-section">
@@ -704,7 +669,7 @@
     <!-- ========================================================================= -->
     <!-- 6. THERAPIST SHOWCASE (Profile Cards with CSS Avatars & Tags)              -->
     <!-- ========================================================================= -->
-    <section id="therapists" class="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="therapists" class="scroll-mt-24 py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 fade-in-section">
         <div class="max-w-2xl">
@@ -875,7 +840,7 @@
     <!-- ========================================================================= -->
     <!-- 7. TESTIMONIALS (Interactive Carousel with Auto-Rotation & Controls)       -->
     <!-- ========================================================================= -->
-    <section class="bg-sand/70 py-20 lg:py-28 border-y border-sand-dark/80 transition-colors" id="testimonials">
+    <section class="bg-sand/70 py-20 lg:py-28 border-y border-sand-dark/80 transition-colors" id="testimonials" class="scroll-mt-24">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-3xl mx-auto mb-14 fade-in-section">
@@ -995,7 +960,7 @@
     <!-- ========================================================================= -->
     <!-- 8. PRICING SECTION (3 Tiers with Interactive Weekly/Monthly Switcher)       -->
     <!-- ========================================================================= -->
-    <section id="pricing" class="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" class="scroll-mt-24 py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-12 fade-in-section">
         <span class="text-xs font-bold uppercase tracking-widest text-primary bg-primary-50 px-3.5 py-1.5 rounded-full border border-primary/15">Accessible Investment</span>
@@ -1191,7 +1156,7 @@
     <!-- ========================================================================= -->
     <!-- 9. FAQ ACCORDION (6 Common Questions with Smooth JS Expansion)            -->
     <!-- ========================================================================= -->
-    <section id="faq" class="bg-sand/60 py-20 lg:py-28 border-y border-sand-dark/80 transition-colors">
+    <section id="faq" class="scroll-mt-24 bg-sand/60 py-20 lg:py-28 border-y border-sand-dark/80 transition-colors">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-2xl mx-auto mb-16 fade-in-section">
@@ -1317,7 +1282,7 @@
     <!-- ========================================================================= -->
     <!-- 10. CTA BANNER (Full-width High Impact Section with Email Matching Box)   -->
     <!-- ========================================================================= -->
-    <section id="matching-quiz" class="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-br from-primary-dark via-primary to-charcoal text-white">
+    <section id="matching-quiz" class="scroll-mt-24 relative overflow-hidden py-20 lg:py-28 bg-gradient-to-br from-primary-dark via-primary to-charcoal text-white">
       
       <!-- Subtle Decorative Vector Elements -->
       <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-light/20 rounded-full blur-3xl pointer-events-none"></div>

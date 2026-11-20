@@ -17,7 +17,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'media',
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -90,11 +90,11 @@
       background: #F5F0E8;
     }
     ::-webkit-scrollbar-thumb {
-      background: #2D6A4F;
+      background: #CFC5B6;
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #1B4332;
+      background: #B3A794;
     }
 
     /* Sidebar collapse transitions */
@@ -208,6 +208,22 @@
       }
       ::-webkit-scrollbar-track {
         background: #0F1824;
+      }
+      /* Sidebar nav text visibility in dark mode */
+      #sidebar .nav-item {
+        color: #D3DFEB !important;
+      }
+      #sidebar .nav-item:hover {
+        color: #40916C !important;
+      }
+      #sidebar .nav-item.text-primary {
+        color: #40916C !important;
+      }
+      #sidebar .nav-label {
+        color: inherit !important;
+      }
+      #sidebar .user-meta-text {
+        color: #9EAFBF !important;
       }
     }
   </style>
@@ -584,7 +600,6 @@
           </div>
         </div>
 
-      </div>
     </header>
 
     <!-- ========================================================================= -->
@@ -1712,7 +1727,7 @@
       if (!listEl) return;
 
       const users = allRegisteredUsers || [];
-      if (!users.length) {
+      if (!usersList.length) {
         listEl.innerHTML = '<div class="py-8 text-center text-charcoal-muted text-xs">' +
           '<svg class="w-8 h-8 mx-auto mb-2 text-charcoal-muted/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' +
           'No registered users yet.<br><span class="text-charcoal-muted/60">Users will appear here after they sign in via Google, GitHub, or Discord.</span></div>';
@@ -2007,12 +2022,13 @@
       }, 3000);
     }
 
+    // Global stores for live reactive admin metrics
+    let allLiveAppointments = [];
+
     async function updateAdminStats() {
-      if (!sbAdmin) return;
       try {
-        // 1. Total users
-        const { count: userCount } = await sbAdmin.from('profiles').select('*', { count: 'exact', head: true });
-        const cUsers = userCount || 0;
+        // 1. Total users: derived from real accounts in allRegisteredUsers
+        const cUsers = (allRegisteredUsers && allRegisteredUsers.length) || 0;
         const elUsers = document.getElementById('stat-total-users');
         if (elUsers) {
           elUsers.textContent = cUsers;
@@ -2027,9 +2043,14 @@
         const sideUsers = document.getElementById('sidebar-users-badge');
         if (sideUsers) sideUsers.textContent = cUsers;
 
-        // 2. Active Clinicians
-        const { count: staffCount } = await sbAdmin.from('profiles').select('*', { count: 'exact', head: true }).in('role', ['therapist', 'coordinator', 'admin']);
-        const cStaff = staffCount || 0;
+        // 2. Active Clinicians: derived from real users with therapist / coordinator / admin role
+        let cStaff = 0;
+        if (allRegisteredUsers && allRegisteredUsers.length) {
+          cStaff = allRegisteredUsers.filter(u => {
+            const role = localStorage.getItem('drozo_role_override_' + u.email) || u.role || 'patient';
+            return ['therapist', 'coordinator', 'admin'].includes(role);
+          }).length;
+        }
         const elStaff = document.getElementById('stat-therapists');
         if (elStaff) {
           elStaff.textContent = cStaff;
@@ -2042,9 +2063,8 @@
         const sideStaff = document.getElementById('sidebar-therapists-badge');
         if (sideStaff) sideStaff.textContent = cStaff;
 
-        // 3. Total Sessions
-        const { count: sessionCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true });
-        const cSessions = sessionCount || 0;
+        // 3. Total Sessions: derived from real Supabase appointments
+        const cSessions = (allLiveAppointments && allLiveAppointments.length) || 0;
         const elSessions = document.getElementById('stat-sessions');
         if (elSessions) {
           elSessions.textContent = cSessions;
@@ -2055,9 +2075,11 @@
         const modTotal = document.getElementById('mod-total-sessions');
         if (modTotal) modTotal.textContent = cSessions;
 
-        // 4. Live Queue
-        const { count: queueCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true }).in('status', ['CONFIRMED', 'PENDING']);
-        const cQueue = queueCount || 0;
+        // 4. Live Queue: active scheduled or pending sessions
+        let cQueue = 0;
+        if (allLiveAppointments && allLiveAppointments.length) {
+          cQueue = allLiveAppointments.filter(r => ['CONFIRMED', 'PENDING'].includes(r.status)).length;
+        }
         const elQueue = document.getElementById('stat-live-queue');
         if (elQueue) {
           elQueue.textContent = cQueue;
@@ -2068,11 +2090,16 @@
         const modQueue = document.getElementById('mod-active-queue');
         if (modQueue) modQueue.textContent = cQueue;
 
-        // Completed
-        const { count: compCount } = await sbAdmin.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'COMPLETED');
+        // Completed sessions
+        let compCount = 0;
+        if (allLiveAppointments && allLiveAppointments.length) {
+          compCount = allLiveAppointments.filter(r => r.status === 'COMPLETED').length;
+        }
         const modComp = document.getElementById('mod-completed-sessions');
-        if (modComp) modComp.textContent = compCount || 0;
-      } catch (_) {}
+        if (modComp) modComp.textContent = compCount;
+      } catch (err) {
+        console.warn('Stats calculation note:', err);
+      }
     }
 
     async function loadLiveAdminQueue() {
@@ -2091,6 +2118,7 @@
         const weeklyTotal = document.getElementById('chart-weekly-total');
         const activeRatio = document.getElementById('chart-active-ratio');
 
+        allLiveAppointments = data || [];
         if (error || !data || !data.length) {
           tbody.innerHTML = `
             <tr id="empty-table-placeholder">
@@ -2256,6 +2284,48 @@
       } catch (_) {}
     }
 
+        function mergeKnownUsers(dbUsers = []) {
+      const map = new Map();
+      (dbUsers || []).forEach(u => {
+        if (u && (u.email || u.id)) {
+          const key = (u.email || u.id).toLowerCase();
+          map.set(key, {
+            id: u.id,
+            email: u.email,
+            role: localStorage.getItem('drozo_role_override_' + u.email) || u.role || 'patient',
+            created_at: u.created_at || new Date().toISOString()
+          });
+        }
+      });
+
+      if (meAdmin && meAdmin.email && !map.has(meAdmin.email.toLowerCase())) {
+        map.set(meAdmin.email.toLowerCase(), {
+          id: meAdmin.id || 'usr_admin',
+          email: meAdmin.email,
+          role: localStorage.getItem('drozo_role_override_' + meAdmin.email) || meAdmin.role || 'admin',
+          created_at: new Date().toISOString()
+        });
+      }
+
+      try {
+        const local = JSON.parse(localStorage.getItem('drozo_known_accounts') || '[]');
+        if (Array.isArray(local)) {
+          local.forEach(u => {
+            if (u && u.email && !map.has(u.email.toLowerCase())) {
+              map.set(u.email.toLowerCase(), {
+                id: u.id || 'usr_' + Math.random().toString(36).substring(2, 9),
+                email: u.email,
+                role: localStorage.getItem('drozo_role_override_' + u.email) || u.role || 'patient',
+                created_at: u.created_at || new Date().toISOString()
+              });
+            }
+          });
+        }
+      } catch (_) {}
+
+      return Array.from(map.values());
+    }
+
     async function loadRegisteredUsers() {
       if (!sbAdmin) return;
       try {
@@ -2263,13 +2333,13 @@
           .select('id,email,role,created_at')
           .order('created_at', { ascending: false });
 
-        if (error || !users) return;
-        allRegisteredUsers = users;
+        allRegisteredUsers = mergeKnownUsers(error ? [] : (users || []));
+        const usersList = allRegisteredUsers;
 
         // 1. Populate Section 4: Registered Members Table
         const userTbody = document.getElementById('user-management-tbody');
         if (userTbody) {
-          if (!users.length) {
+          if (!usersList.length) {
             userTbody.innerHTML = `
               <tr>
                 <td colspan="4" class="py-8 text-center text-charcoal-muted">
@@ -2279,7 +2349,7 @@
             `;
           } else {
             userTbody.innerHTML = '';
-            users.forEach(u => {
+            usersList.forEach(u => {
               const tr = document.createElement('tr');
               tr.className = 'hover:bg-sand/40 transition-colors';
               const cached = JSON.parse(localStorage.getItem('drozo_meta_' + u.id) || '{}');
@@ -2331,7 +2401,7 @@
         // 2. Populate Panel 2: Assigned Clinicians List
         const therapistFeed = document.getElementById('therapist-list-feed');
         if (therapistFeed) {
-          const clinicians = users.filter(u => ['therapist', 'coordinator', 'admin'].includes(localStorage.getItem('drozo_role_override_' + u.email) || u.role));
+          const clinicians = usersList.filter(u => ['therapist', 'coordinator', 'admin'].includes(localStorage.getItem('drozo_role_override_' + u.email) || u.role));
           if (!clinicians.length) {
             therapistFeed.innerHTML = '<p class="text-xs text-charcoal-muted text-center py-4">0 clinicians assigned yet. Use the Role Clearance table below to assign therapist privileges.</p>';
           } else {
@@ -2368,7 +2438,7 @@
             userFeed.innerHTML = '<p class="text-xs text-charcoal-muted text-center py-4">No verified accounts loaded yet.</p>';
           } else {
             userFeed.innerHTML = '';
-            users.slice(0, 5).forEach(u => {
+            usersList.slice(0, 5).forEach(u => {
               const cached = JSON.parse(localStorage.getItem('drozo_meta_' + u.id) || '{}');
               const uName = cached.display_name || (u.email ? u.email.split('@')[0] : 'Member');
               const div = document.createElement('div');
@@ -2393,7 +2463,7 @@
         // 4. Update Client Selector in Create Session Modal
         const clientSelect = document.getElementById('admin-session-client-select');
         if (clientSelect) {
-          clientSelect.innerHTML = users.map(u => {
+          clientSelect.innerHTML = usersList.map(u => {
             const cached = JSON.parse(localStorage.getItem('drozo_meta_' + u.id) || '{}');
             const label = cached.display_name ? `${cached.display_name} (${u.email})` : u.email;
             return `<option value="${u.id}">${escapeHtml(label)}</option>`;
